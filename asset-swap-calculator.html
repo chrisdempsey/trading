@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Swap Calculator</title>
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .container {
+            max-width: 800px;
+        }
+        .form-control:read-only {
+            background-color: #343a40; /* Darker background for readonly fields in dark mode */
+        }
+        .error-message {
+            display: none; /* Hidden by default */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="form-check form-switch position-absolute top-0 end-0 p-3" id="theme-switcher">
+        <input class="form-check-input" type="checkbox" role="switch" id="theme-switch-input">
+        <label class="form-check-label" for="theme-switch-input" id="theme-switch-label">Dark Mode</label>
+    </div>
+
+    <div class="container">
+        <h1 class="mb-4 text-center">Stock Swap Calculator</h1>
+        <p class="text-center text-muted mb-4">Calculate how many shares of a new asset you can acquire by selling an existing one.</p>
+
+        <form id="swap-form" novalidate>
+            <!-- Error Message Area -->
+            <div id="error-container" class="alert alert-danger error-message" role="alert"></div>
+
+            <!-- Asset to Sell -->
+            <fieldset class="border p-4 rounded mb-4">
+                <legend class="float-none w-auto px-3 h5">Asset to Sell</legend>
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="sell-ticker-select" class="form-label">Stock Ticker</label>
+                        <div class="input-group">
+                            <select class="form-select" id="sell-ticker-select"></select>
+                            <input type="text" class="form-control" id="sell-ticker-override" placeholder="Override">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="sell-price" class="form-label">Current Price</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" id="sell-price" placeholder="Auto" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="sell-quantity" class="form-label">Number to Sell</label>
+                        <input type="number" class="form-control" id="sell-quantity" min="0" step="any">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="sell-total" class="form-label">Total Value</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="text" class="form-control" id="sell-total" readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <ol>
+                            <li>Manually enter a ticker in the Override field or select one from the dropdown</li>
+                            <li>Manually enter the current price or leave blank to retrieve the live price</li>
+                            <li>Enter the number of shares to sell</li>
+                            <li>The Total Value is calculated automatically</li>
+                        </ol>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- Asset to Buy -->
+            <fieldset class="border p-4 rounded mb-4">
+                <legend class="float-none w-auto px-3 h5">Asset to Buy</legend>
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label for="buy-ticker-select" class="form-label">Stock Ticker</label>
+                        <div class="input-group">
+                            <select class="form-select" id="buy-ticker-select"></select>
+                            <input type="text" class="form-control" id="buy-ticker-override" placeholder="Override">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="buy-price" class="form-label">Current Price</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" id="buy-price" placeholder="Auto" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="buy-available" class="form-label">Number Available to Buy</label>
+                        <input type="text" class="form-control" id="buy-available" readonly>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- Remainder Info -->
+            <div id="remainder-info" class="alert alert-info" style="display: none;"></div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">Calculate</button>
+            </div>
+
+            <!-- Configuration Section -->
+            <div class="mt-4">
+                <h6 class="text-muted">Configuration</h6>
+                <div class="p-3 border rounded">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="cache-toggle-switch" checked>
+                                <label class="form-check-label" for="cache-toggle-switch">Enable API Cache</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="allow-fractional-shares-switch">
+                                <label class="form-check-label" for="allow-fractional-shares-switch">Allow fractional shares</label>
+                            </div>
+                        </div>
+                        <div class="input-group input-group-sm" style="width: auto;">
+                            <label class="input-group-text" for="cache-duration-input">Cache Time</label>
+                            <input type="number" class="form-control" id="cache-duration-input" min="0" step="1">
+                            <span class="input-group-text">min</span>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="clear-cache-btn">Clear Cache</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- jQuery 3.7.1 -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <!-- Bootstrap 5.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script>
+        $(document).ready(function() {
+            // --- Theme Switcher ---
+            const themeSwitch = $('#theme-switch-input');
+            const themeLabel = $('#theme-switch-label');
+
+            function setTheme(theme) {
+                $('html').attr('data-bs-theme', theme);
+                localStorage.setItem('theme', theme);
+
+                if (theme === 'dark') {
+                    themeSwitch.prop('checked', true);
+                    themeLabel.text('Dark Mode');
+                } else {
+                    themeSwitch.prop('checked', false);
+                    themeLabel.text('Light Mode');
+                }
+            }
+
+            // Set initial theme on page load from localStorage or default to dark
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            setTheme(savedTheme);
+
+            themeSwitch.on('change', function() {
+                setTheme(this.checked ? 'dark' : 'light');
+            });
+
+            // --- Calculator Setup ---
+            const $calculateBtn = $('#swap-form button[type="submit"]');
+            const originalBtnText = $calculateBtn.text();
+
+            function enableButton() {
+                $calculateBtn.prop('disabled', false).text(originalBtnText);
+            }
+
+            // IMPORTANT: Replace "YOUR_API_KEY" with your actual key from Polygon.io
+            const POLYGON_API_KEY = 'wTraWPV4Cb53DXz6cggVWoRFZU6w5mKv';
+            // Easily update these lists with new tickers. They will be sorted automatically.
+            const commonStocks = ['MSTR', 'TSLA', 'MSFT', 'NVDA', 'PLTR', 'GOOGL', 'META', 'AAPL', 'AMZN'];
+            const commonCrypto = ['BTC-USD', 'JUP-USD', 'SOL-USD'];
+            // Client-side cache to reduce API calls
+            let apiCache = {};
+            let CACHE_DURATION_MS = 3 * 60 * 1000; // 3 minutes
+            let isCacheEnabled = true; // Controlled by the new toggle switch
+
+            // --- Initial Setup ---
+            $('#cache-duration-input').val(CACHE_DURATION_MS / (60 * 1000));
+            populateTickerDropdowns();
+
+
+            /**
+             * Fetches the previous day's closing price for a stock ticker from Polygon.io.
+             * It returns a jQuery Promise to handle the asynchronous nature of a real API call.
+             */
+            function getPolygonStockPrice(ticker) {
+                const deferred = $.Deferred();
+                const upperTicker = ticker.toUpperCase().replace('-', '');
+                let apiTicker = upperTicker; // Default to stock ticker format
+
+                // Check if the ticker is likely a crypto/forex pair and format it for the Polygon API
+                if (upperTicker.endsWith('USD') || upperTicker.endsWith('USDT') || upperTicker.endsWith('EUR')) {
+                    apiTicker = `X:${upperTicker}`;
+                }
+
+                // 1. Check cache first for a fresh entry if enabled
+                if (isCacheEnabled) {
+                    const cachedData = apiCache[apiTicker];
+                    if (cachedData && (Date.now() - cachedData.timestamp < CACHE_DURATION_MS)) {
+                        console.log(`Using cached price for ${apiTicker}.`);
+                        deferred.resolve(cachedData.price);
+                        return deferred.promise();
+                    }
+                }
+
+                // 2. If not in cache or stale, proceed with API call
+                const apiUrl = `https://api.polygon.io/v2/aggs/ticker/${apiTicker}/prev?apiKey=${POLYGON_API_KEY}`;
+
+                if (POLYGON_API_KEY === 'YOUR_API_KEY') {
+                    deferred.reject('Please add your Polygon.io API key to the script.');
+                    return deferred.promise();
+                }
+
+                console.log(`Fetching new price for ${upperTicker} from Polygon.io API.`);
+                $.ajax({
+                    url: apiUrl,
+                    method: 'GET',
+                    success: function(response) {
+                        if (response && response.resultsCount > 0 && response.results[0].c) {
+                            const price = response.results[0].c;
+                            // 3. Store the new price and timestamp in the cache
+                            apiCache[apiTicker] = {
+                                price: price,
+                                timestamp: Date.now()
+                            };
+                            deferred.resolve(price);
+                        } else {
+                            deferred.reject(`Ticker '${ticker}' not found or no data available. Please enter price manually.`);
+                        }
+                    },
+                    error: function() {
+                        deferred.reject(`API request failed for '${ticker}'. Check your connection or API key.`);
+                    }
+                });
+
+                return deferred.promise();
+            }
+
+            // Populates dropdowns with common tickers from the array
+            function populateTickerDropdowns() {
+                commonStocks.sort();
+                commonCrypto.sort();
+
+                const $sellSelect = $('#sell-ticker-select');
+                const $buySelect = $('#buy-ticker-select');
+
+                // Clear any existing options and add the default placeholder
+                $sellSelect.empty().append('<option selected value="">-- Select --</option>');
+                $buySelect.empty().append('<option selected value="">-- Select --</option>');
+
+                // Create Stocks optgroup
+                const $stocksOptgroup = $('<optgroup label="Stocks"></optgroup>');
+                commonStocks.forEach(ticker => {
+                    $stocksOptgroup.append(`<option value="${ticker}">${ticker}</option>`);
+                });
+
+                // Create Crypto optgroup
+                const $cryptoOptgroup = $('<optgroup label="Crypto"></optgroup>');
+                commonCrypto.forEach(ticker => {
+                    $cryptoOptgroup.append(`<option value="${ticker}">${ticker}</option>`);
+                });
+
+                // Append to both dropdowns
+                $sellSelect.append($stocksOptgroup).append($cryptoOptgroup);
+                $buySelect.append($stocksOptgroup.clone()).append($cryptoOptgroup.clone());
+            }
+
+            // Gets the active ticker from either the override field or the dropdown
+            function getTickerValue(type) {
+                const overrideValue = $(`#${type}-ticker-override`).val().trim();
+                return overrideValue ? overrideValue : $(`#${type}-ticker-select`).val();
+            }
+
+            // Main function to orchestrate the fetching and calculations
+            function initiateCalculations() {
+                // 1. Reset UI state and disable button
+                $calculateBtn.prop('disabled', true).text('Working...');
+                $('#error-container').hide().empty();
+                $('#remainder-info').hide().empty();
+                $('.is-invalid').removeClass('is-invalid');
+                $('#sell-price, #buy-price').attr('readonly', true).attr('placeholder', 'Auto');
+                $('#sell-total, #buy-available').val('');
+
+                // 2. Get user inputs
+                const sellTicker = getTickerValue('sell');
+                const sellQuantity = parseFloat($('#sell-quantity').val());
+                const buyTicker = getTickerValue('buy');
+
+                // 3. Validate inputs and handle partial calculations
+                const isSellSideValid = sellTicker && !isNaN(sellQuantity) && sellQuantity > 0;
+                const isBuySideValid = !!buyTicker;
+
+                if (!isSellSideValid) {
+                    showError('Asset to sell not configured. Please select a ticker and enter a valid quantity.');
+                    if (!sellTicker) {
+                        $('#sell-ticker-select, #sell-ticker-override').addClass('is-invalid');
+                    }
+                    if (isNaN(sellQuantity) || sellQuantity <= 0) {
+                        $('#sell-quantity').addClass('is-invalid');
+                    }
+                    enableButton();
+                    return;
+                }
+
+                // At this point, sell side is valid. We can fetch its price.
+                const sellPricePromise = getPolygonStockPrice(sellTicker);
+
+                if (!isBuySideValid) {
+                    // Sell side is valid, but buy side is not. Calculate sell total and show error.
+                    showError('Asset to buy not configured.');
+                    $('#buy-ticker-select, #buy-ticker-override').addClass('is-invalid');
+                    
+                    sellPricePromise.done(price => {
+                        $('#sell-price').val(price.toFixed(2));
+                        const sellTotal = price * sellQuantity;
+                        $('#sell-total').val(sellTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                    }).fail(error => {
+                        showError(error); // This will append to the "Asset to buy not configured" error.
+                        unlockPriceField('#sell-price');
+                    }).always(enableButton); // Re-enable button after API call
+                    return;
+                }
+
+                // If we reach here, both sides are valid. Proceed with full calculation.
+                const buyPricePromise = getPolygonStockPrice(buyTicker);
+
+                sellPricePromise.done(price => $('#sell-price').val(price.toFixed(2))).fail(error => { showError(error); unlockPriceField('#sell-price'); });
+
+                buyPricePromise.done(price => $('#buy-price').val(price.toFixed(2))).fail(error => { showError(error); unlockPriceField('#buy-price'); });
+
+                $.when(sellPricePromise, buyPricePromise).done(updateFinalCalculations).always(enableButton);
+            }
+
+            // Calculates and updates the UI based on available price/quantity values
+            function updateFinalCalculations() {
+                const sellPrice = parseFloat($('#sell-price').val());
+                const sellQuantity = parseFloat($('#sell-quantity').val());
+                const buyPrice = parseFloat($('#buy-price').val());
+                const allowFractions = $('#allow-fractional-shares-switch').is(':checked');
+                $('#remainder-info').hide().empty(); // Reset remainder info
+
+                // Calculate total value of the asset to sell
+                if (!isNaN(sellPrice) && !isNaN(sellQuantity) && sellQuantity > 0) {
+                    const sellTotal = sellPrice * sellQuantity;
+                    $('#sell-total').val(sellTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+
+                    // Calculate how many units of the new asset can be bought
+                    if (!isNaN(buyPrice) && buyPrice > 0) {
+                        const buyAvailable = sellTotal / buyPrice;
+
+                        if (allowFractions) {
+                            $('#buy-available').val(buyAvailable.toFixed(4));
+                        } else {
+                            const wholeShares = Math.floor(buyAvailable);
+                            const fractionalShares = buyAvailable - wholeShares;
+                            const remainderValue = fractionalShares * buyPrice;
+
+                            $('#buy-available').val(wholeShares);
+
+                            if (fractionalShares > 0) {
+                                const remainderText = `Remainder = ${fractionalShares.toFixed(4)} / $${remainderValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                                $('#remainder-info').text(remainderText).show();
+                            }
+                        }
+                    } else {
+                        $('#buy-available').val('');
+                    }
+                } else {
+                    $('#sell-total').val('');
+                    $('#buy-available').val('');
+                }
+            }
+
+            // Helper function to unlock a price field for manual entry
+            function unlockPriceField(fieldId) {
+                $(fieldId).removeAttr('readonly').attr('placeholder', 'Enter manually').focus();
+            }
+
+            // Helper function to display an error message
+            function showError(message) {
+                $('#error-container').append(`<div>${message}</div>`).show();
+            }
+
+            // --- Event Handlers ---
+            $('#swap-form').on('submit', function(event) {
+                event.preventDefault();
+                initiateCalculations();
+            });
+
+            // Cache configuration handlers
+            $('#cache-toggle-switch').on('change', function() {
+                isCacheEnabled = this.checked;
+                console.log(`API Cache ${isCacheEnabled ? 'Enabled' : 'Disabled'}.`);
+            });
+
+            $('#cache-duration-input').on('change', function() {
+                const newDurationMinutes = parseFloat($(this).val());
+                if (!isNaN(newDurationMinutes) && newDurationMinutes >= 0) {
+                    CACHE_DURATION_MS = newDurationMinutes * 60 * 1000;
+                    console.log(`Cache duration updated to ${CACHE_DURATION_MS} ms.`);
+                } else {
+                    // Reset to last valid value if input is invalid, converting back to minutes
+                    $(this).val(CACHE_DURATION_MS / (60 * 1000));
+                }
+            });
+
+            $('#clear-cache-btn').on('click', function() {
+                apiCache = {}; // Clear the cache object by reassigning
+                console.log('API Cache Cleared.');
+                // Provide visual feedback to the user
+                const btn = $(this);
+                const originalText = btn.text();
+                btn.text('Cleared!').addClass('btn-success').removeClass('btn-outline-secondary');
+                setTimeout(() => {
+                    btn.text(originalText).removeClass('btn-success').addClass('btn-outline-secondary');
+                }, 1500);
+            });
+
+            // Clear override when select is used and vice-versa for a better UX
+            $('#sell-ticker-select, #buy-ticker-select').on('change', function() {
+                const overrideId = `#${this.id.replace('-select', '-override')}`;
+                $(overrideId).val('');
+            });
+
+            $('#sell-ticker-override, #buy-ticker-override').on('input', function() {
+                const selectId = `#${this.id.replace('-override', '-select')}`;
+                $(selectId).val('');
+            });
+
+            // Add live recalculation when a user manually changes a price or quantity
+            $('#sell-price, #sell-quantity, #buy-price').on('input', updateFinalCalculations);
+            $('#allow-fractional-shares-switch').on('change', updateFinalCalculations);
+        });
+    </script>
+
+</body>
+</html>
