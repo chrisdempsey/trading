@@ -32,6 +32,11 @@
     <div class="container">
         <h1 class="mb-4 text-center">Stock Swap Calculator</h1>
         <p class="text-center text-muted mb-4">Calculate how many shares of a new asset you can acquire by selling an existing one.</p>
+        <h2>ISSUES</h2>
+        <ul>
+            <li>the stock price API is limited to End of Day data from the previous session - do not rely on the calculation at this time</li>
+            <li>a bug prevents you entering your own prices as the Price fields are readonly - this will be updated on the next edit</li>
+        </ul>
 
         <form id="swap-form" novalidate>
             <!-- Error Message Area -->
