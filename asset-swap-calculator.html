@@ -14,7 +14,7 @@
         .container {
             max-width: 800px;
         }
-        .form-control:read-only {
+        [data-bs-theme="dark"] .form-control:read-only {
             background-color: #343a40; /* Darker background for readonly fields in dark mode */
         }
         .error-message {
@@ -31,40 +31,51 @@
 
     <div class="container">
         <h1 class="mb-4 text-center">Stock Swap Calculator</h1>
-        <p class="text-center text-muted mb-4">Calculate how many shares of a new asset you can acquire by selling an existing one.</p>
-        <h2>ISSUES</h2>
-        <ul>
-            <li>the stock price API is limited to End of Day data from the previous session - do not rely on the calculation at this time</li>
-            <li>a bug prevents you entering your own prices as the Price fields are readonly - this will be updated on the next edit</li>
-        </ul>
+        <p class="text-center text-muted mb-4">Calculate how many shares of an asset you can acquire by selling an existing one.</p>
+
+        <div class="d-flex justify-content-center align-items-center mb-4">
+            <span class="me-2">Mode</span>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="mode-toggle-switch">
+                <label class="form-check-label" for="mode-toggle-switch" id="mode-toggle-label">Manual</label>
+            </div>
+        </div>
 
         <form id="swap-form" novalidate>
+            <!-- API Warning Message -->
+            <div id="api-warning-message" class="alert alert-warning d-none mb-4" role="alert">
+                The Stock Price API is limited to End of Day data from the previous session - for accurate pricing use Manual Mode.
+            </div>
+
             <!-- Error Message Area -->
             <div id="error-container" class="alert alert-danger error-message" role="alert"></div>
 
             <!-- Asset to Sell -->
             <fieldset class="border p-4 rounded mb-4">
                 <legend class="float-none w-auto px-3 h5">Asset to Sell</legend>
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-4">
+                <div class="row g-3 mb-3" id="sell-ticker-row">
+                    <div class="col-12">
                         <label for="sell-ticker-select" class="form-label">Stock Ticker</label>
                         <div class="input-group">
                             <select class="form-select" id="sell-ticker-select"></select>
-                            <input type="text" class="form-control" id="sell-ticker-override" placeholder="Override">
+                            <span class="input-group-text">or</span>
+                            <input type="text" class="form-control" id="sell-ticker-override" placeholder="Set Manually">
                         </div>
                     </div>
-                    <div class="col-md-3">
+                </div>
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
                         <label for="sell-price" class="form-label">Current Price</label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
                             <input type="number" class="form-control" id="sell-price" placeholder="Auto" readonly>
                         </div>
                     </div>
-                    <div class="col-md-2">
-                        <label for="sell-quantity" class="form-label">Number to Sell</label>
-                        <input type="number" class="form-control" id="sell-quantity" min="0" step="any">
+                    <div class="col-md-4">
+                        <label for="sell-quantity" class="form-label">Selling</label>
+                        <input type="number" class="form-control" id="sell-quantity" min="0" step="any" placeholder="Enter Quantity">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label for="sell-total" class="form-label">Total Value</label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
@@ -72,64 +83,48 @@
                         </div>
                     </div>
                 </div>
-                <div class="row mt-3">
-                    <div class="col-md-12">
-                        <ol>
-                            <li>Manually enter a ticker in the Override field or select one from the dropdown</li>
-                            <li>Manually enter the current price or leave blank to retrieve the live price</li>
-                            <li>Enter the number of shares to sell</li>
-                            <li>The Total Value is calculated automatically</li>
-                        </ol>
-                    </div>
-                </div>
             </fieldset>
 
             <!-- Asset to Buy -->
             <fieldset class="border p-4 rounded mb-4">
                 <legend class="float-none w-auto px-3 h5">Asset to Buy</legend>
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-5">
+                <div class="row g-3 mb-3" id="buy-ticker-row">
+                    <div class="col-12">
                         <label for="buy-ticker-select" class="form-label">Stock Ticker</label>
                         <div class="input-group">
                             <select class="form-select" id="buy-ticker-select"></select>
-                            <input type="text" class="form-control" id="buy-ticker-override" placeholder="Override">
+                            <span class="input-group-text">or</span>
+                            <input type="text" class="form-control" id="buy-ticker-override" placeholder="Set Manually">
                         </div>
                     </div>
-                    <div class="col-md-3">
+                </div>
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-6">
                         <label for="buy-price" class="form-label">Current Price</label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
                             <input type="number" class="form-control" id="buy-price" placeholder="Auto" readonly>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <label for="buy-available" class="form-label">Number Available to Buy</label>
+                    <div class="col-md-6">
+                        <label for="buy-available" class="form-label">Available to Buy</label>
                         <input type="text" class="form-control" id="buy-available" readonly>
                     </div>
                 </div>
             </fieldset>
 
-            <!-- Remainder Info -->
-            <div id="remainder-info" class="alert alert-info" style="display: none;"></div>
-
-            <div class="d-grid">
+            <div class="d-grid d-none" id="calculate-btn-container">
                 <button type="submit" class="btn btn-primary btn-lg">Calculate</button>
             </div>
 
             <!-- Configuration Section -->
-            <div class="mt-4">
+            <div class="mt-4 d-none" id="configuration-container">
                 <h6 class="text-muted">Configuration</h6>
                 <div class="p-3 border rounded">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                        <div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="cache-toggle-switch" checked>
-                                <label class="form-check-label" for="cache-toggle-switch">Enable API Cache</label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="allow-fractional-shares-switch">
-                                <label class="form-check-label" for="allow-fractional-shares-switch">Allow fractional shares</label>
-                            </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="cache-toggle-switch" checked>
+                            <label class="form-check-label" for="cache-toggle-switch">Enable API Cache</label>
                         </div>
                         <div class="input-group input-group-sm" style="width: auto;">
                             <label class="input-group-text" for="cache-duration-input">Cache Time</label>
@@ -176,6 +171,48 @@
             });
 
             // --- Calculator Setup ---
+            const $modeToggle = $('#mode-toggle-switch');
+            const $modeLabel = $('#mode-toggle-label');
+            const $sellPriceInput = $('#sell-price');
+            const $buyPriceInput = $('#buy-price');
+            const $sellTickerRow = $('#sell-ticker-row');
+            const $buyTickerRow = $('#buy-ticker-row');
+            const $calculateBtnContainer = $('#calculate-btn-container');
+            const $configurationContainer = $('#configuration-container');
+            const $apiWarningMessage = $('#api-warning-message');
+
+            function setCalculatorMode(isApiMode) {
+                if (isApiMode) {
+                    $modeLabel.text('API');
+                    $sellPriceInput.prop('readonly', true).attr('placeholder', 'Auto');
+                    $buyPriceInput.prop('readonly', true).attr('placeholder', 'Auto');
+                    $sellTickerRow.removeClass('d-none');
+                    $buyTickerRow.removeClass('d-none');
+                    $calculateBtnContainer.removeClass('d-none');
+                    $configurationContainer.removeClass('d-none');
+                    $apiWarningMessage.removeClass('d-none');
+                } else {
+                    $modeLabel.text('Manual');
+                    $sellPriceInput.prop('readonly', false).attr('placeholder', 'Enter Price');
+                    $buyPriceInput.prop('readonly', false).attr('placeholder', 'Enter Price');
+                    $sellTickerRow.addClass('d-none');
+                    $buyTickerRow.addClass('d-none');
+                    $calculateBtnContainer.addClass('d-none');
+                    $configurationContainer.addClass('d-none');
+                    $apiWarningMessage.addClass('d-none');
+                }
+                // Clear prices when switching modes to avoid confusion
+                $sellPriceInput.val('');
+                $buyPriceInput.val('');
+                updateFinalCalculations(); // Recalculate, which will clear results
+            }
+
+            // Event handler for the switch
+            $modeToggle.on('change', function() {
+                setCalculatorMode($(this).is(':checked'));
+            });
+
+            // --- Main Logic ---
             const $calculateBtn = $('#swap-form button[type="submit"]');
             const originalBtnText = $calculateBtn.text();
 
@@ -186,8 +223,8 @@
             // IMPORTANT: Replace "YOUR_API_KEY" with your actual key from Polygon.io
             const POLYGON_API_KEY = 'wTraWPV4Cb53DXz6cggVWoRFZU6w5mKv';
             // Easily update these lists with new tickers. They will be sorted automatically.
-            const commonStocks = ['MSTR', 'TSLA', 'MSFT', 'NVDA', 'PLTR', 'GOOGL', 'META', 'AAPL', 'AMZN'];
-            const commonCrypto = ['BTC-USD', 'JUP-USD', 'SOL-USD'];
+            const commonStocks = ['MSTR', 'TSLA', 'MSFT', 'NVDA', 'PLTR', 'GOOGL', 'META'];
+            const commonCrypto = ['BTC-USD', 'ETH-USD', 'SOL-USD'];
             // Client-side cache to reduce API calls
             let apiCache = {};
             let CACHE_DURATION_MS = 3 * 60 * 1000; // 3 minutes
@@ -195,6 +232,7 @@
 
             // --- Initial Setup ---
             $('#cache-duration-input').val(CACHE_DURATION_MS / (60 * 1000));
+            setCalculatorMode($modeToggle.is(':checked')); // Set initial mode on page load
             populateTickerDropdowns();
 
 
@@ -295,21 +333,18 @@
                 // 1. Reset UI state and disable button
                 $calculateBtn.prop('disabled', true).text('Working...');
                 $('#error-container').hide().empty();
-                $('#remainder-info').hide().empty();
                 $('.is-invalid').removeClass('is-invalid');
-                $('#sell-price, #buy-price').attr('readonly', true).attr('placeholder', 'Auto');
-                $('#sell-total, #buy-available').val('');
 
                 // 2. Get user inputs
                 const sellTicker = getTickerValue('sell');
                 const sellQuantity = parseFloat($('#sell-quantity').val());
                 const buyTicker = getTickerValue('buy');
+                const isApiMode = $modeToggle.is(':checked');
 
                 // 3. Validate inputs and handle partial calculations
-                const isSellSideValid = sellTicker && !isNaN(sellQuantity) && sellQuantity > 0;
-                const isBuySideValid = !!buyTicker;
+                const isSellSideConfigured = sellTicker && !isNaN(sellQuantity) && sellQuantity > 0;
 
-                if (!isSellSideValid) {
+                if (!isSellSideConfigured) {
                     showError('Asset to sell not configured. Please select a ticker and enter a valid quantity.');
                     if (!sellTicker) {
                         $('#sell-ticker-select, #sell-ticker-override').addClass('is-invalid');
@@ -321,33 +356,54 @@
                     return;
                 }
 
-                // At this point, sell side is valid. We can fetch its price.
-                const sellPricePromise = getPolygonStockPrice(sellTicker);
+                // 4. Branch logic based on mode
+                if (isApiMode) {
+                    // --- API Mode Logic ---
+                    $('#sell-total, #buy-available').val(''); // Clear results before fetching
+                    const isBuySideConfigured = !!buyTicker;
+                    const sellPricePromise = getPolygonStockPrice(sellTicker);
 
-                if (!isBuySideValid) {
-                    // Sell side is valid, but buy side is not. Calculate sell total and show error.
-                    showError('Asset to buy not configured.');
-                    $('#buy-ticker-select, #buy-ticker-override').addClass('is-invalid');
-                    
-                    sellPricePromise.done(price => {
-                        $('#sell-price').val(price.toFixed(2));
-                        const sellTotal = price * sellQuantity;
-                        $('#sell-total').val(sellTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-                    }).fail(error => {
-                        showError(error); // This will append to the "Asset to buy not configured" error.
-                        unlockPriceField('#sell-price');
-                    }).always(enableButton); // Re-enable button after API call
-                    return;
+                    if (!isBuySideConfigured) {
+                        showError('Asset to buy not configured.');
+                        $('#buy-ticker-select, #buy-ticker-override').addClass('is-invalid');
+                        
+                        sellPricePromise.done(price => {
+                            $('#sell-price').val(price.toFixed(2));
+                            updateFinalCalculations();
+                        }).fail(error => {
+                            showError(error);
+                            unlockPriceField('#sell-price');
+                        }).always(enableButton);
+                        return;
+                    }
+
+                    const buyPricePromise = getPolygonStockPrice(buyTicker);
+                    sellPricePromise.done(price => $('#sell-price').val(price.toFixed(2))).fail(error => { showError(error); unlockPriceField('#sell-price'); });
+                    buyPricePromise.done(price => $('#buy-price').val(price.toFixed(2))).fail(error => { showError(error); unlockPriceField('#buy-price'); });
+                    $.when(sellPricePromise, buyPricePromise).done(updateFinalCalculations).always(enableButton);
+                } else {
+                    // --- Manual Mode Logic ---
+                    const sellPrice = parseFloat($('#sell-price').val());
+                    const buyPrice = parseFloat($('#buy-price').val());
+                    const buyPriceRaw = $('#buy-price').val().trim();
+
+                    let manualIsValid = true;
+                    if (isNaN(sellPrice) || sellPrice <= 0) {
+                        $('#sell-price').addClass('is-invalid');
+                        manualIsValid = false;
+                    }
+                    // If the user has entered *something* for the buy price, it must be a valid number.
+                    // If it's empty, that's fine, we just won't calculate the final swap.
+                    if (buyPriceRaw !== '' && (isNaN(buyPrice) || buyPrice <= 0)) {
+                        $('#buy-price').addClass('is-invalid');
+                        manualIsValid = false;
+                    }
+
+                    if (!manualIsValid) {
+                        showError('In Manual Mode, please enter a valid price for each configured asset.');
+                    }
+                    updateFinalCalculations();
                 }
-
-                // If we reach here, both sides are valid. Proceed with full calculation.
-                const buyPricePromise = getPolygonStockPrice(buyTicker);
-
-                sellPricePromise.done(price => $('#sell-price').val(price.toFixed(2))).fail(error => { showError(error); unlockPriceField('#sell-price'); });
-
-                buyPricePromise.done(price => $('#buy-price').val(price.toFixed(2))).fail(error => { showError(error); unlockPriceField('#buy-price'); });
-
-                $.when(sellPricePromise, buyPricePromise).done(updateFinalCalculations).always(enableButton);
             }
 
             // Calculates and updates the UI based on available price/quantity values
@@ -355,8 +411,6 @@
                 const sellPrice = parseFloat($('#sell-price').val());
                 const sellQuantity = parseFloat($('#sell-quantity').val());
                 const buyPrice = parseFloat($('#buy-price').val());
-                const allowFractions = $('#allow-fractional-shares-switch').is(':checked');
-                $('#remainder-info').hide().empty(); // Reset remainder info
 
                 // Calculate total value of the asset to sell
                 if (!isNaN(sellPrice) && !isNaN(sellQuantity) && sellQuantity > 0) {
@@ -366,21 +420,7 @@
                     // Calculate how many units of the new asset can be bought
                     if (!isNaN(buyPrice) && buyPrice > 0) {
                         const buyAvailable = sellTotal / buyPrice;
-
-                        if (allowFractions) {
-                            $('#buy-available').val(buyAvailable.toFixed(4));
-                        } else {
-                            const wholeShares = Math.floor(buyAvailable);
-                            const fractionalShares = buyAvailable - wholeShares;
-                            const remainderValue = fractionalShares * buyPrice;
-
-                            $('#buy-available').val(wholeShares);
-
-                            if (fractionalShares > 0) {
-                                const remainderText = `Remainder = ${fractionalShares.toFixed(4)} / $${remainderValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                                $('#remainder-info').text(remainderText).show();
-                            }
-                        }
+                        $('#buy-available').val(buyAvailable.toFixed(4));
                     } else {
                         $('#buy-available').val('');
                     }
@@ -392,7 +432,7 @@
 
             // Helper function to unlock a price field for manual entry
             function unlockPriceField(fieldId) {
-                $(fieldId).removeAttr('readonly').attr('placeholder', 'Enter manually').focus();
+                $(fieldId).prop('readonly', false).attr('placeholder', 'Enter manually').focus();
             }
 
             // Helper function to display an error message
@@ -403,7 +443,10 @@
             // --- Event Handlers ---
             $('#swap-form').on('submit', function(event) {
                 event.preventDefault();
-                initiateCalculations();
+                // Only run calculations on submit if in API mode, as the button is hidden in Manual mode.
+                if ($modeToggle.is(':checked')) {
+                    initiateCalculations();
+                }
             });
 
             // Cache configuration handlers
@@ -448,7 +491,6 @@
 
             // Add live recalculation when a user manually changes a price or quantity
             $('#sell-price, #sell-quantity, #buy-price').on('input', updateFinalCalculations);
-            $('#allow-fractional-shares-switch').on('change', updateFinalCalculations);
         });
     </script>
 
