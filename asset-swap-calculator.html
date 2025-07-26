@@ -34,7 +34,7 @@
         <p class="text-center text-muted mb-4">Calculate how many shares of an asset you can acquire by selling an existing one.</p>
 
         <div class="d-flex justify-content-center align-items-center mb-4">
-            <span class="me-2">Mode</span>
+            <span class="me-2">Mode: </span>
             <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" role="switch" id="mode-toggle-switch">
                 <label class="form-check-label" for="mode-toggle-switch" id="mode-toggle-label">Manual</label>
@@ -44,7 +44,9 @@
         <form id="swap-form" novalidate>
             <!-- API Warning Message -->
             <div id="api-warning-message" class="alert alert-warning d-none mb-4" role="alert">
-                The Stock Price API is limited to End of Day data from the previous session - for accurate pricing use Manual Mode.
+                <p>API data is provided by Alpaca and is delayed by up to 15 minutes (this is the consolidated data feed (SIP) from all major U.S. exchanges).</p>
+                
+                <p class="mb-0">For up-to-the-minute pricing, use Manual Mode.</p>
             </div>
 
             <!-- Error Message Area -->
@@ -68,7 +70,7 @@
                         <label for="sell-price" class="form-label">Current Price</label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
-                            <input type="number" class="form-control" id="sell-price" placeholder="Auto" readonly>
+                            <input type="number" class="form-control" id="sell-price" placeholder="Auto" readonly step="0.01">
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -103,7 +105,7 @@
                         <label for="buy-price" class="form-label">Current Price</label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
-                            <input type="number" class="form-control" id="buy-price" placeholder="Auto" readonly>
+                            <input type="number" class="form-control" id="buy-price" placeholder="Auto" readonly step="0.01">
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -220,8 +222,9 @@
                 $calculateBtn.prop('disabled', false).text(originalBtnText);
             }
 
-            // IMPORTANT: Replace "YOUR_API_KEY" with your actual key from Polygon.io
-            const POLYGON_API_KEY = 'wTraWPV4Cb53DXz6cggVWoRFZU6w5mKv';
+            // IMPORTANT: Replace with your actual keys from Alpaca.markets
+            const ALPACA_API_KEY_ID = 'PKKDH97Z8AR3ZRNFL6Z4';
+            const ALPACA_SECRET_KEY = 'RVZoAFqkwcY5XE4n4SWlgxJlnY6dJ2pHi2ObrtrI';
             // Easily update these lists with new tickers. They will be sorted automatically.
             const commonStocks = ['MSTR', 'TSLA', 'MSFT', 'NVDA', 'PLTR', 'GOOGL', 'META'];
             const commonCrypto = ['BTC-USD', 'ETH-USD', 'SOL-USD'];
@@ -237,56 +240,70 @@
 
 
             /**
-             * Fetches the previous day's closing price for a stock ticker from Polygon.io.
+             * Fetches the latest trade price for a stock or crypto ticker from Alpaca.
              * It returns a jQuery Promise to handle the asynchronous nature of a real API call.
              */
-            function getPolygonStockPrice(ticker) {
+            function getAlpacaStockPrice(ticker) {
                 const deferred = $.Deferred();
-                const upperTicker = ticker.toUpperCase().replace('-', '');
-                let apiTicker = upperTicker; // Default to stock ticker format
+                const upperTicker = ticker.toUpperCase();
+                let isCrypto = false;
+                let apiTicker = upperTicker;
 
-                // Check if the ticker is likely a crypto/forex pair and format it for the Polygon API
-                if (upperTicker.endsWith('USD') || upperTicker.endsWith('USDT') || upperTicker.endsWith('EUR')) {
-                    apiTicker = `X:${upperTicker}`;
+                // Check if the ticker is a crypto pair and format it for the Alpaca API
+                if (upperTicker.includes('-')) {
+                    apiTicker = upperTicker.replace('-', '/');
+                    isCrypto = true;
                 }
+
+                const cacheKey = apiTicker; // Use the formatted ticker as the cache key
 
                 // 1. Check cache first for a fresh entry if enabled
                 if (isCacheEnabled) {
-                    const cachedData = apiCache[apiTicker];
+                    const cachedData = apiCache[cacheKey];
                     if (cachedData && (Date.now() - cachedData.timestamp < CACHE_DURATION_MS)) {
-                        console.log(`Using cached price for ${apiTicker}.`);
+                        console.log(`Using cached price for ${cacheKey}.`);
                         deferred.resolve(cachedData.price);
                         return deferred.promise();
                     }
                 }
 
                 // 2. If not in cache or stale, proceed with API call
-                const apiUrl = `https://api.polygon.io/v2/aggs/ticker/${apiTicker}/prev?apiKey=${POLYGON_API_KEY}`;
-
-                if (POLYGON_API_KEY === 'YOUR_API_KEY') {
-                    deferred.reject('Please add your Polygon.io API key to the script.');
+                if (ALPACA_API_KEY_ID === 'YOUR_API_KEY_ID' || ALPACA_SECRET_KEY === 'YOUR_SECRET_KEY') {
+                    deferred.reject('Please add your Alpaca API Key ID and Secret Key to the script.');
                     return deferred.promise();
                 }
 
-                console.log(`Fetching new price for ${upperTicker} from Polygon.io API.`);
+                const apiUrl = isCrypto ?
+                    `https://data.alpaca.markets/v1beta3/crypto/${apiTicker}/trades/latest` :
+                    `https://data.alpaca.markets/v2/stocks/${apiTicker}/trades/latest`;
+
+                console.log(`Fetching new price for ${apiTicker} from Alpaca API.`);
                 $.ajax({
                     url: apiUrl,
                     method: 'GET',
+                    headers: {
+                        'APCA-API-KEY-ID': ALPACA_API_KEY_ID,
+                        'APCA-API-SECRET-KEY': ALPACA_SECRET_KEY
+                    },
                     success: function(response) {
-                        if (response && response.resultsCount > 0 && response.results[0].c) {
-                            const price = response.results[0].c;
+                        if (response && response.trade && response.trade.p) {
+                            const price = response.trade.p;
                             // 3. Store the new price and timestamp in the cache
-                            apiCache[apiTicker] = {
+                            apiCache[cacheKey] = {
                                 price: price,
                                 timestamp: Date.now()
                             };
                             deferred.resolve(price);
                         } else {
-                            deferred.reject(`Ticker '${ticker}' not found or no data available. Please enter price manually.`);
+                            deferred.reject(`Ticker '${ticker}' not found or no data available from Alpaca. Please enter price manually.`);
                         }
                     },
-                    error: function() {
-                        deferred.reject(`API request failed for '${ticker}'. Check your connection or API key.`);
+                    error: function(jqXHR) {
+                        let errorMessage = `API request failed for '${ticker}'. Check your connection or API keys.`;
+                        if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
+                            errorMessage += ` (Error: ${jqXHR.responseJSON.message})`;
+                        }
+                        deferred.reject(errorMessage);
                     }
                 });
 
@@ -361,7 +378,7 @@
                     // --- API Mode Logic ---
                     $('#sell-total, #buy-available').val(''); // Clear results before fetching
                     const isBuySideConfigured = !!buyTicker;
-                    const sellPricePromise = getPolygonStockPrice(sellTicker);
+                    const sellPricePromise = getAlpacaStockPrice(sellTicker);
 
                     if (!isBuySideConfigured) {
                         showError('Asset to buy not configured.');
@@ -377,7 +394,7 @@
                         return;
                     }
 
-                    const buyPricePromise = getPolygonStockPrice(buyTicker);
+                    const buyPricePromise = getAlpacaStockPrice(buyTicker);
                     sellPricePromise.done(price => $('#sell-price').val(price.toFixed(2))).fail(error => { showError(error); unlockPriceField('#sell-price'); });
                     buyPricePromise.done(price => $('#buy-price').val(price.toFixed(2))).fail(error => { showError(error); unlockPriceField('#buy-price'); });
                     $.when(sellPricePromise, buyPricePromise).done(updateFinalCalculations).always(enableButton);
