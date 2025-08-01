@@ -6,6 +6,8 @@
     <title>Stock Swap Calculator</title>
     <!-- Bootstrap 5.3 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Google Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <style>
         body {
             padding-top: 2rem;
@@ -14,11 +16,40 @@
         .container {
             max-width: 800px;
         }
-        [data-bs-theme="dark"] .form-control:read-only {
-            background-color: #343a40; /* Darker background for readonly fields in dark mode */
-        }
         .error-message {
             display: none; /* Hidden by default */
+        }
+        .tooltip {
+            --bs-tooltip-max-width: 350px; /* Increase tooltip width */
+        }
+        #copy-ratio-btn {
+            /* Reset button styles to be just an icon */
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            /* Styling */
+            opacity: 0.6;
+            transition: opacity 0.2s ease-in-out;
+            vertical-align: middle;
+            line-height: 1;
+        }
+        #copy-ratio-btn:hover {
+            opacity: 1;
+        }
+        #copy-ratio-btn .material-symbols-outlined {
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+        #copy-ratio-btn.is-copied .material-symbols-outlined {
+            transform: scale(1.25);
+        }
+        [data-bs-toggle="tooltip"] {
+            cursor: help;
+        }
+        .material-symbols-outlined {
+            /* Align icons better with surrounding text */
+            vertical-align: text-bottom;
+            font-size: 1.15em;
         }
     </style>
 </head>
@@ -31,7 +62,7 @@
 
     <div class="container">
         <h1 class="mb-4 text-center">Stock Swap Calculator</h1>
-        <p class="text-center text-muted mb-4">Calculate how many shares of an asset you can acquire by selling an existing one.</p>
+        <p class="text-center text-muted mb-4">Calculate how many shares of an asset you can acquire by selling another asset.</p>
 
         <div class="d-flex justify-content-center align-items-center mb-4">
             <span class="me-2">Mode: </span>
@@ -44,7 +75,7 @@
         <form id="swap-form" novalidate>
             <!-- API Warning Message -->
             <div id="api-warning-message" class="alert alert-warning d-none mb-4" role="alert">
-                <p>API data is provided by Alpaca and is delayed by up to 15 minutes (this is the consolidated data feed (SIP) from all major U.S. exchanges).</p>
+                <p>API data provided by Alpaca is delayed by up to 15 minutes (this is the consolidated data feed (SIP) from all major U.S. exchanges).</p>
                 
                 <p class="mb-0">For up-to-the-minute pricing, use Manual Mode.</p>
             </div>
@@ -54,10 +85,13 @@
 
             <!-- Asset to Sell -->
             <fieldset class="border p-4 rounded mb-4">
-                <legend class="float-none w-auto px-3 h5">Asset to Sell</legend>
+                <legend class="float-none w-auto px-3 h5">Selling</legend>
                 <div class="row g-3 mb-3" id="sell-ticker-row">
                     <div class="col-12">
-                        <label for="sell-ticker-select" class="form-label">Stock Ticker</label>
+                        <label for="sell-ticker-select" class="form-label">
+                            Ticker
+                            <span class="material-symbols-outlined ms-1 help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="The stock ticker is used by API Mode when fetching the live price and by the log function to generate a transaction message containing the details of your stock swap.">info</span>
+                        </label>
                         <div class="input-group">
                             <select class="form-select" id="sell-ticker-select"></select>
                             <span class="input-group-text">or</span>
@@ -67,21 +101,21 @@
                 </div>
                 <div class="row g-3 align-items-end">
                     <div class="col-md-4">
-                        <label for="sell-price" class="form-label">Current Price</label>
+                        <label for="sell-price" class="form-label">Price</label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
-                            <input type="number" class="form-control" id="sell-price" placeholder="Auto" readonly step="0.01">
+                            <input type="number" class="form-control" id="sell-price" placeholder="Enter Price" step="0.01">
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <label for="sell-quantity" class="form-label">Selling</label>
+                        <label for="sell-quantity" class="form-label">Quantity</label>
                         <input type="number" class="form-control" id="sell-quantity" min="0" step="any" placeholder="Enter Quantity">
                     </div>
                     <div class="col-md-4">
                         <label for="sell-total" class="form-label">Total Value</label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
-                            <input type="text" class="form-control" id="sell-total" readonly>
+                            <input type="text" class="form-control" id="sell-total" disabled>
                         </div>
                     </div>
                 </div>
@@ -89,10 +123,13 @@
 
             <!-- Asset to Buy -->
             <fieldset class="border p-4 rounded mb-4">
-                <legend class="float-none w-auto px-3 h5">Asset to Buy</legend>
+                <legend class="float-none w-auto px-3 h5">Buying</legend>
                 <div class="row g-3 mb-3" id="buy-ticker-row">
                     <div class="col-12">
-                        <label for="buy-ticker-select" class="form-label">Stock Ticker</label>
+                        <label for="buy-ticker-select" class="form-label">
+                            Ticker
+                            <span class="material-symbols-outlined ms-1 help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="The stock ticker is used by API Mode when fetching the live price and by the log function to generate a transaction message containing the details of your stock swap.">info</span>
+                        </label>
                         <div class="input-group">
                             <select class="form-select" id="buy-ticker-select"></select>
                             <span class="input-group-text">or</span>
@@ -100,40 +137,60 @@
                         </div>
                     </div>
                 </div>
-                <div class="row g-3 align-items-end">
+                <div class="row g-3 align-items-start">
                     <div class="col-md-6">
-                        <label for="buy-price" class="form-label">Current Price</label>
+                        <label for="buy-price" class="form-label">Price</label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
-                            <input type="number" class="form-control" id="buy-price" placeholder="Auto" readonly step="0.01">
+                            <input type="number" class="form-control" id="buy-price" placeholder="Enter Price" step="0.01">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <label for="buy-available" class="form-label">Available to Buy</label>
-                        <input type="text" class="form-control" id="buy-available" readonly>
+                        <input type="text" class="form-control" id="buy-available" disabled>
+                        <div class="form-text mt-2" id="ratio-achieved-container" style="display: none;">
+                            <div class="d-flex align-items-center">
+                                <span><span id="ratio-label">Swap Ratio</span>: <strong id="ratio-achieved"></strong></span>
+                                <button type="button" class="ms-2" id="copy-ratio-btn" title="Copy Ratio">
+                                    <span class="material-symbols-outlined">content_copy</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </fieldset>
 
-            <div class="d-grid d-none" id="calculate-btn-container">
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end" id="action-buttons-container">
+                <button type="button" class="btn btn-outline-secondary btn-lg" id="reset-btn">Reset</button>
                 <button type="submit" class="btn btn-primary btn-lg">Calculate</button>
             </div>
 
             <!-- Configuration Section -->
-            <div class="mt-4 d-none" id="configuration-container">
+            <div class="mt-4" id="configuration-container">
                 <h6 class="text-muted">Configuration</h6>
                 <div class="p-3 border rounded">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" role="switch" id="cache-toggle-switch" checked>
-                            <label class="form-check-label" for="cache-toggle-switch">Enable API Cache</label>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" role="switch" id="show-help-icons-switch" checked>
+                        <label class="form-check-label" for="show-help-icons-switch">Show Help</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="reverse-ratio-switch">
+                        <label class="form-check-label" for="reverse-ratio-switch">Reverse Ratio</label>
+                    </div>
+                    <div id="api-config-settings" class="d-none">
+                        <hr class="my-3">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="cache-toggle-switch" checked>
+                                <label class="form-check-label" for="cache-toggle-switch">Enable API Cache</label>
+                            </div>
+                            <div class="input-group input-group-sm" style="width: auto;">
+                                <label class="input-group-text" for="cache-duration-input">Cache Time</label>
+                                <input type="number" class="form-control" id="cache-duration-input" min="0" step="1">
+                                <span class="input-group-text">min</span>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="clear-cache-btn">Clear Cache</button>
                         </div>
-                        <div class="input-group input-group-sm" style="width: auto;">
-                            <label class="input-group-text" for="cache-duration-input">Cache Time</label>
-                            <input type="number" class="form-control" id="cache-duration-input" min="0" step="1">
-                            <span class="input-group-text">min</span>
-                        </div>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" id="clear-cache-btn">Clear Cache</button>
                     </div>
                 </div>
             </div>
@@ -147,6 +204,107 @@
 
     <script>
         $(document).ready(function() {
+            // --- Cookie Helpers ---
+            function setCookie(name, value, days) {
+                let expires = "";
+                if (days) {
+                    const date = new Date();
+                    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                    expires = "; expires=" + date.toUTCString();
+                }
+                document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax";
+            }
+
+            function getCookie(name) {
+                const nameEQ = name + "=";
+                const ca = document.cookie.split(';');
+                for (let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+                }
+                return null;
+            }
+
+            function eraseCookie(name) {
+                document.cookie = name + '=; Max-Age=-99999999; path=/; SameSite=Lax';
+            }
+
+            // --- State Management ---
+            const COOKIE_NAME = 'assetSwapState';
+
+            function saveStateToCookie() {
+                // Always start with the current state from the cookie to preserve fields
+                const state = JSON.parse(getCookie(COOKIE_NAME) || '{}');
+
+                // Update general fields
+                state.isApiMode = $modeToggle.is(':checked');
+                state.sellTickerSelect = $('#sell-ticker-select').val();
+                state.sellTickerOverride = $('#sell-ticker-override').val();
+                state.sellQuantity = $('#sell-quantity').val();
+                state.buyTickerSelect = $('#buy-ticker-select').val();
+                state.buyTickerOverride = $('#buy-ticker-override').val();
+                state.showHelpIcons = $('#show-help-icons-switch').is(':checked');
+                state.isRatioReversed = $('#reverse-ratio-switch').is(':checked');
+
+                // Conditionally update price fields
+                if (state.isApiMode) {
+                    // When in API mode, only update the general price fields
+                    state.sellPrice = $('#sell-price').val();
+                    state.buyPrice = $('#buy-price').val();
+                } else {
+                    // When in Manual mode, update both general and specific manual price fields
+                    const manualSellPrice = $('#sell-price').val();
+                    const manualBuyPrice = $('#buy-price').val();
+                    state.sellPrice = manualSellPrice;
+                    state.buyPrice = manualBuyPrice;
+                    state.manualSellPrice = manualSellPrice;
+                    state.manualBuyPrice = manualBuyPrice;
+                }
+                setCookie(COOKIE_NAME, JSON.stringify(state), 7); // Save for 7 days
+            }
+
+            function loadStateFromCookie() {
+                const savedState = getCookie(COOKIE_NAME);
+                if (savedState) {
+                    try {
+                        const state = JSON.parse(savedState);
+                        $modeToggle.prop('checked', state.isApiMode || false);
+                        $('#sell-ticker-select').val(state.sellTickerSelect || '');
+                        $('#sell-ticker-override').val(state.sellTickerOverride || '');
+                        $('#sell-quantity').val(state.sellQuantity);
+                        $('#buy-ticker-select').val(state.buyTickerSelect || '');
+                        $('#buy-ticker-override').val(state.buyTickerOverride || '');
+                        const showHelp = state.showHelpIcons === undefined ? true : state.showHelpIcons;
+                        $('#show-help-icons-switch').prop('checked', showHelp);
+                        $('#reverse-ratio-switch').prop('checked', state.isRatioReversed || false);
+
+                        // Conditionally load prices based on the saved mode
+                        if (state.isApiMode) {
+                            $('#sell-price').val(state.sellPrice || '');
+                            $('#buy-price').val(state.buyPrice || '');
+                        } else {
+                            $('#sell-price').val(state.manualSellPrice || '');
+                            $('#buy-price').val(state.manualBuyPrice || '');
+                        }
+                    } catch (e) {
+                        console.error("Error parsing saved state from cookie:", e);
+                        eraseCookie(COOKIE_NAME);
+                    }
+                }
+            }
+
+            function resetState() {
+                eraseCookie(COOKIE_NAME);
+                $('#swap-form')[0].reset();
+                $('.is-invalid').removeClass('is-invalid');
+                $('#error-container').hide().empty();
+                $modeToggle.prop('checked', false);
+                setCalculatorMode(false);
+                updateFinalCalculations();
+                console.log('Form has been reset.');
+            }
+
             // --- Theme Switcher ---
             const themeSwitch = $('#theme-switch-input');
             const themeLabel = $('#theme-switch-label');
@@ -172,6 +330,19 @@
                 setTheme(this.checked ? 'dark' : 'light');
             });
 
+            // --- Help Icon Toggle ---
+            const $helpIconSwitch = $('#show-help-icons-switch');
+            function toggleHelpIcons(show) {
+                if (show) {
+                    $('.help-icon').removeClass('d-none');
+                } else {
+                    $('.help-icon').addClass('d-none');
+                }
+            }
+            $helpIconSwitch.on('change', function() {
+                toggleHelpIcons(this.checked);
+            });
+
             // --- Calculator Setup ---
             const $modeToggle = $('#mode-toggle-switch');
             const $modeLabel = $('#mode-toggle-label');
@@ -179,43 +350,48 @@
             const $buyPriceInput = $('#buy-price');
             const $sellTickerRow = $('#sell-ticker-row');
             const $buyTickerRow = $('#buy-ticker-row');
-            const $calculateBtnContainer = $('#calculate-btn-container');
+            const $actionButtonsContainer = $('#action-buttons-container');
             const $configurationContainer = $('#configuration-container');
             const $apiWarningMessage = $('#api-warning-message');
+            const $calculateBtn = $('#swap-form button[type="submit"]');
 
             function setCalculatorMode(isApiMode) {
                 if (isApiMode) {
                     $modeLabel.text('API');
-                    $sellPriceInput.prop('readonly', true).attr('placeholder', 'Auto');
-                    $buyPriceInput.prop('readonly', true).attr('placeholder', 'Auto');
-                    $sellTickerRow.removeClass('d-none');
-                    $buyTickerRow.removeClass('d-none');
-                    $calculateBtnContainer.removeClass('d-none');
-                    $configurationContainer.removeClass('d-none');
+                    $sellPriceInput.prop('disabled', true).attr('placeholder', 'Auto');
+                    $buyPriceInput.prop('disabled', true).attr('placeholder', 'Auto');
+                    $calculateBtn.removeClass('d-none');
+                    $('#api-config-settings').removeClass('d-none');
                     $apiWarningMessage.removeClass('d-none');
                 } else {
                     $modeLabel.text('Manual');
-                    $sellPriceInput.prop('readonly', false).attr('placeholder', 'Enter Price');
-                    $buyPriceInput.prop('readonly', false).attr('placeholder', 'Enter Price');
-                    $sellTickerRow.addClass('d-none');
-                    $buyTickerRow.addClass('d-none');
-                    $calculateBtnContainer.addClass('d-none');
-                    $configurationContainer.addClass('d-none');
+                    $sellPriceInput.prop('disabled', false).attr('placeholder', 'Enter Price');
+                    $buyPriceInput.prop('disabled', false).attr('placeholder', 'Enter Price');
+                    $calculateBtn.addClass('d-none');
+                    $('#api-config-settings').addClass('d-none');
                     $apiWarningMessage.addClass('d-none');
                 }
-                // Clear prices when switching modes to avoid confusion
-                $sellPriceInput.val('');
-                $buyPriceInput.val('');
                 updateFinalCalculations(); // Recalculate, which will clear results
             }
 
             // Event handler for the switch
             $modeToggle.on('change', function() {
-                setCalculatorMode($(this).is(':checked'));
+                const isApiMode = $(this).is(':checked');
+
+                if (isApiMode) {
+                    // Switching TO API mode: clear the price fields.
+                    $sellPriceInput.val('');
+                    $buyPriceInput.val('');
+                } else {
+                    // Switching TO Manual mode: load the saved manual prices from the cookie.
+                    const savedState = JSON.parse(getCookie(COOKIE_NAME) || '{}');
+                    $sellPriceInput.val(savedState.manualSellPrice || '');
+                    $buyPriceInput.val(savedState.manualBuyPrice || '');
+                }
+                setCalculatorMode(isApiMode);
             });
 
             // --- Main Logic ---
-            const $calculateBtn = $('#swap-form button[type="submit"]');
             const originalBtnText = $calculateBtn.text();
 
             function enableButton() {
@@ -234,10 +410,16 @@
             let isCacheEnabled = true; // Controlled by the new toggle switch
 
             // --- Initial Setup ---
-            $('#cache-duration-input').val(CACHE_DURATION_MS / (60 * 1000));
-            setCalculatorMode($modeToggle.is(':checked')); // Set initial mode on page load
-            populateTickerDropdowns();
+            // Initialize Bootstrap tooltips
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
+            $('#cache-duration-input').val(CACHE_DURATION_MS / (60 * 1000));
+            populateTickerDropdowns();
+            loadStateFromCookie(); // Populates the form controls from cookie if it exists
+            toggleHelpIcons($helpIconSwitch.is(':checked')); // Set initial visibility of help icons
+            setCalculatorMode($modeToggle.is(':checked')); // Updates UI visibility based on (potentially loaded) mode
+            updateFinalCalculations(); // Calculates results based on (potentially loaded) values
 
             /**
              * Fetches the latest trade price for a stock or crypto ticker from Alpaca.
@@ -251,7 +433,7 @@
 
                 // Check if the ticker is a crypto pair and format it for the Alpaca API
                 if (upperTicker.includes('-')) {
-                    apiTicker = upperTicker.replace('-', '/');
+                    apiTicker = upperTicker.replace('-', '/'); // 'BTC-USD' -> 'BTC/USD'
                     isCrypto = true;
                 }
 
@@ -273,9 +455,13 @@
                     return deferred.promise();
                 }
 
-                const apiUrl = isCrypto ?
-                    `https://data.alpaca.markets/v1beta3/crypto/${apiTicker}/trades/latest` :
-                    `https://data.alpaca.markets/v2/stocks/${apiTicker}/trades/latest`;
+                // Use the `?symbols=` query parameter for both stocks and crypto for robustness.
+                // This avoids issues with special characters like '/' in the URL path.
+                const baseUrl = isCrypto ?
+                    'https://data.alpaca.markets/v1beta2/crypto/latest/trades' :
+                    'https://data.alpaca.markets/v2/stocks/trades/latest';
+
+                const apiUrl = `${baseUrl}?symbols=${encodeURIComponent(apiTicker)}`;
 
                 console.log(`Fetching new price for ${apiTicker} from Alpaca API.`);
                 $.ajax({
@@ -286,13 +472,11 @@
                         'APCA-API-SECRET-KEY': ALPACA_SECRET_KEY
                     },
                     success: function(response) {
-                        if (response && response.trade && response.trade.p) {
-                            const price = response.trade.p;
-                            // 3. Store the new price and timestamp in the cache
-                            apiCache[cacheKey] = {
-                                price: price,
-                                timestamp: Date.now()
-                            };
+                        // The response for a query with `symbols` is a map of symbols to trades.
+                        // The key in the map is the UNENCODED symbol, e.g., "BTC/USD".
+                        if (response && response.trades && response.trades[apiTicker]) {
+                            const price = response.trades[apiTicker].p;
+                            apiCache[cacheKey] = { price: price, timestamp: Date.now() };
                             deferred.resolve(price);
                         } else {
                             deferred.reject(`Ticker '${ticker}' not found or no data available from Alpaca. Please enter price manually.`);
@@ -309,6 +493,7 @@
 
                 return deferred.promise();
             }
+
 
             // Populates dropdowns with common tickers from the array
             function populateTickerDropdowns() {
@@ -377,6 +562,7 @@
                 if (isApiMode) {
                     // --- API Mode Logic ---
                     $('#sell-total, #buy-available').val(''); // Clear results before fetching
+                    $('#ratio-achieved-container').hide();
                     const isBuySideConfigured = !!buyTicker;
                     const sellPricePromise = getAlpacaStockPrice(sellTicker);
 
@@ -387,6 +573,7 @@
                         sellPricePromise.done(price => {
                             $('#sell-price').val(price.toFixed(2));
                             updateFinalCalculations();
+                            saveStateToCookie(); // Persist the fetched API price
                         }).fail(error => {
                             showError(error);
                             unlockPriceField('#sell-price');
@@ -397,7 +584,10 @@
                     const buyPricePromise = getAlpacaStockPrice(buyTicker);
                     sellPricePromise.done(price => $('#sell-price').val(price.toFixed(2))).fail(error => { showError(error); unlockPriceField('#sell-price'); });
                     buyPricePromise.done(price => $('#buy-price').val(price.toFixed(2))).fail(error => { showError(error); unlockPriceField('#buy-price'); });
-                    $.when(sellPricePromise, buyPricePromise).done(updateFinalCalculations).always(enableButton);
+                    $.when(sellPricePromise, buyPricePromise).done(function() {
+                        updateFinalCalculations();
+                        saveStateToCookie(); // Persist the fetched API prices
+                    }).always(enableButton);
                 } else {
                     // --- Manual Mode Logic ---
                     const sellPrice = parseFloat($('#sell-price').val());
@@ -428,28 +618,39 @@
                 const sellPrice = parseFloat($('#sell-price').val());
                 const sellQuantity = parseFloat($('#sell-quantity').val());
                 const buyPrice = parseFloat($('#buy-price').val());
+                const isRatioReversed = $('#reverse-ratio-switch').is(':checked');
 
                 // Calculate total value of the asset to sell
-                if (!isNaN(sellPrice) && !isNaN(sellQuantity) && sellQuantity > 0) {
+                if (!isNaN(sellPrice) && sellPrice > 0 && !isNaN(sellQuantity) && sellQuantity > 0) {
                     const sellTotal = sellPrice * sellQuantity;
                     $('#sell-total').val(sellTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
-                    // Calculate how many units of the new asset can be bought
+                    // Calculate how many units of the new asset can be bought and the ratio
                     if (!isNaN(buyPrice) && buyPrice > 0) {
                         const buyAvailable = sellTotal / buyPrice;
-                        $('#buy-available').val(buyAvailable.toFixed(4));
+                        $('#buy-available').val(buyAvailable.toLocaleString(undefined, {minimumFractionDigits: 4, maximumFractionDigits: 4}));
+
+                        const ratio = isRatioReversed ? sellPrice / buyPrice : buyPrice / sellPrice;
+                        const ratioLabelText = isRatioReversed ? 'Swap Ratio (sell/buy)' : 'Swap Ratio (buy/sell)';
+                        $('#ratio-label').text(ratioLabelText);
+                        $('#ratio-achieved').text(ratio.toFixed(4));
+                        $('#ratio-achieved-container').show();
                     } else {
                         $('#buy-available').val('');
+                        $('#ratio-achieved').text('');
+                        $('#ratio-achieved-container').hide();
                     }
                 } else {
                     $('#sell-total').val('');
                     $('#buy-available').val('');
+                    $('#ratio-achieved').text('');
+                    $('#ratio-achieved-container').hide();
                 }
             }
 
             // Helper function to unlock a price field for manual entry
             function unlockPriceField(fieldId) {
-                $(fieldId).prop('readonly', false).attr('placeholder', 'Enter manually').focus();
+                $(fieldId).prop('disabled', false).attr('placeholder', 'Enter manually').focus();
             }
 
             // Helper function to display an error message
@@ -466,11 +667,44 @@
                 }
             });
 
+            // Copy ratio button handler
+            $('#copy-ratio-btn').on('click', function() {
+                const ratioValue = $('#ratio-achieved').text();
+                const button = $(this);
+                const icon = button.find('.material-symbols-outlined');
+
+                if (ratioValue && navigator.clipboard && !button.hasClass('is-copied')) {
+                    navigator.clipboard.writeText(ratioValue).then(() => {
+                        // Success: Provide visual feedback
+                        button.addClass('is-copied');
+                        icon.addClass('text-success');
+
+                        // Revert back after a short delay
+                        setTimeout(() => {
+                            button.removeClass('is-copied');
+                            icon.removeClass('text-success'); // Color and transform will fade back via CSS transition
+                        }, 1200);
+                    }).catch(err => {
+                        console.error('Failed to copy ratio to clipboard: ', err);
+                        alert('Failed to copy ratio.'); // Fallback for user
+                    });
+                }
+            });
+
+            // Reset button handler
+            $('#reset-btn').on('click', resetState);
+
+            // Save state on any input change
+            $('#swap-form').on('input change', 'input, select', saveStateToCookie);
+
             // Cache configuration handlers
             $('#cache-toggle-switch').on('change', function() {
                 isCacheEnabled = this.checked;
                 console.log(`API Cache ${isCacheEnabled ? 'Enabled' : 'Disabled'}.`);
             });
+
+            // Recalculate when ratio direction is changed
+            $('#reverse-ratio-switch').on('change', updateFinalCalculations);
 
             $('#cache-duration-input').on('change', function() {
                 const newDurationMinutes = parseFloat($(this).val());
