@@ -187,17 +187,26 @@ TODO
                 </div>
             </div>
 
-            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4" id="action-buttons-container">
-                <button type="button" class="btn btn-outline-secondary btn-lg" id="reset-btn">Reset</button>
-                <button type="submit" class="btn btn-primary btn-lg" id="calculate-btn">Calculate</button>
+            <!-- Action Buttons & Toggles -->
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div class="d-flex align-items-center gap-4"> <!-- Toggles on the left -->
+                    <h6 class="text-muted d-flex align-items-center mb-0" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#transaction-log-collapse" aria-expanded="false" aria-controls="transaction-log-collapse">
+                        <span>Transaction Log</span>
+                        <span class="material-symbols-outlined collapse-chevron ms-2">chevron_forward</span>
+                    </h6>
+                    <h6 class="text-muted d-flex align-items-center mb-0" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#configuration-collapse" aria-expanded="false" aria-controls="configuration-collapse">
+                        <span>Configuration</span>
+                        <span class="material-symbols-outlined collapse-chevron ms-2">chevron_forward</span>
+                    </h6>
+                </div>
+                <div id="action-buttons-container" class="d-grid gap-2 d-md-flex"> <!-- Buttons on the right -->
+                    <button type="button" class="btn btn-outline-secondary btn-lg" id="reset-btn">Reset</button>
+                    <button type="submit" class="btn btn-primary btn-lg" id="calculate-btn">Calculate</button>
+                </div>
             </div>
 
-            <!-- Transaction Log -->
-            <div class="mt-4" id="transaction-log-container">
-                <h6 class="text-muted d-flex align-items-center" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#transaction-log-collapse" aria-expanded="false" aria-controls="transaction-log-collapse">
-                    <span>Transaction Log</span>
-                    <span class="material-symbols-outlined collapse-chevron ms-2">chevron_forward</span>
-                </h6>
+            <!-- Transaction Log Content -->
+            <div id="transaction-log-container">
                 <div class="collapse" id="transaction-log-collapse">
                     <div class="border rounded p-3 mt-2 d-flex justify-content-between align-items-center">
                         <span id="transaction-log-text" class="text-monospace" style="word-break: break-all;"></span>
@@ -208,12 +217,8 @@ TODO
                 </div>
             </div>
 
-            <!-- Configuration Section -->
-            <div class="mt-4">
-                <h6 class="text-muted d-flex align-items-center" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#configuration-collapse" aria-expanded="false" aria-controls="configuration-collapse">
-                    <span>Configuration</span>
-                    <span class="material-symbols-outlined collapse-chevron ms-2">chevron_forward</span>
-                </h6>
+            <!-- Configuration Section Content -->
+            <div id="configuration-container">
                 <div class="collapse" id="configuration-collapse">
                     <div class="p-3 border rounded mt-2">
                         <div class="form-check form-switch mb-2">
