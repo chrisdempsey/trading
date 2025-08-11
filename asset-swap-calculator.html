@@ -1,3 +1,9 @@
+<!--
+
+TODO
+- silence
+-->
+
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 <head>
@@ -22,7 +28,7 @@
         .tooltip {
             --bs-tooltip-max-width: 350px; /* Increase tooltip width */
         }
-        #copy-ratio-btn {
+        #copy-ratio-btn, #copy-log-btn {
             /* Reset button styles to be just an icon */
             background: none;
             border: none;
@@ -34,14 +40,21 @@
             vertical-align: middle;
             line-height: 1;
         }
-        #copy-ratio-btn:hover {
+        #copy-ratio-btn:hover, #copy-log-btn:hover {
             opacity: 1;
         }
-        #copy-ratio-btn .material-symbols-outlined {
+        #copy-ratio-btn .material-symbols-outlined, #copy-log-btn .material-symbols-outlined {
             transition: color 0.3s ease, transform 0.3s ease;
         }
-        #copy-ratio-btn.is-copied .material-symbols-outlined {
+        #copy-ratio-btn.is-copied .material-symbols-outlined, #copy-log-btn.is-copied .material-symbols-outlined {
             transform: scale(1.25);
+        }
+        #swap-button {
+            opacity: 0.6;
+            transition: opacity 0.2s ease-in-out;
+        }
+        #swap-button:hover {
+            opacity: 1;
         }
         [data-bs-toggle="tooltip"] {
             cursor: help;
@@ -50,6 +63,12 @@
             /* Align icons better with surrounding text */
             vertical-align: text-bottom;
             font-size: 1.15em;
+        }
+        .collapse-chevron {
+            transition: transform 300ms ease-in-out;
+        }
+        h6[aria-expanded="true"] .collapse-chevron {
+            transform: rotate(90deg);
         }
     </style>
 </head>
@@ -62,7 +81,7 @@
 
     <div class="container">
         <h1 class="mb-4 text-center">Stock Swap Calculator</h1>
-        <p class="text-center text-muted mb-4">Calculate how many shares of an asset you can acquire by selling another asset.</p>
+        <p class="text-center text-muted mb-4">Calculate the number of shares of an asset you can acquire by selling another.</p>
 
         <div class="d-flex justify-content-center align-items-center mb-4">
             <span class="me-2">Mode: </span>
@@ -70,6 +89,9 @@
                 <input class="form-check-input" type="checkbox" role="switch" id="mode-toggle-switch">
                 <label class="form-check-label" for="mode-toggle-switch" id="mode-toggle-label">Manual</label>
             </div>
+            <a href="#" id="swap-button" title="Swap Sides" class="text-muted text-decoration-none ms-5">
+                <span class="material-symbols-outlined" style="font-size: 2.5rem; vertical-align: middle;">swap_horiz</span>
+            </a>
         </div>
 
         <form id="swap-form" novalidate>
@@ -83,113 +105,139 @@
             <!-- Error Message Area -->
             <div id="error-container" class="alert alert-danger error-message" role="alert"></div>
 
-            <!-- Asset to Sell -->
-            <fieldset class="border p-4 rounded mb-4">
-                <legend class="float-none w-auto px-3 h5">Selling</legend>
-                <div class="row g-3 mb-3" id="sell-ticker-row">
-                    <div class="col-12">
-                        <label for="sell-ticker-select" class="form-label">
-                            Ticker
-                            <span class="material-symbols-outlined ms-1 help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="The stock ticker is used by API Mode when fetching the live price and by the log function to generate a transaction message containing the details of your stock swap.">info</span>
-                        </label>
-                        <div class="input-group">
-                            <select class="form-select" id="sell-ticker-select"></select>
-                            <span class="input-group-text">or</span>
-                            <input type="text" class="form-control" id="sell-ticker-override" placeholder="Set Manually">
-                        </div>
-                    </div>
-                </div>
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-4">
-                        <label for="sell-price" class="form-label">Price</label>
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input type="number" class="form-control" id="sell-price" placeholder="Enter Price" step="0.01">
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label for="sell-quantity" class="form-label">Quantity</label>
-                        <input type="number" class="form-control" id="sell-quantity" min="0" step="any" placeholder="Enter Quantity">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="sell-total" class="form-label">Total Value</label>
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input type="text" class="form-control" id="sell-total" disabled>
-                        </div>
-                    </div>
-                </div>
-            </fieldset>
-
-            <!-- Asset to Buy -->
-            <fieldset class="border p-4 rounded mb-4">
-                <legend class="float-none w-auto px-3 h5">Buying</legend>
-                <div class="row g-3 mb-3" id="buy-ticker-row">
-                    <div class="col-12">
-                        <label for="buy-ticker-select" class="form-label">
-                            Ticker
-                            <span class="material-symbols-outlined ms-1 help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="The stock ticker is used by API Mode when fetching the live price and by the log function to generate a transaction message containing the details of your stock swap.">info</span>
-                        </label>
-                        <div class="input-group">
-                            <select class="form-select" id="buy-ticker-select"></select>
-                            <span class="input-group-text">or</span>
-                            <input type="text" class="form-control" id="buy-ticker-override" placeholder="Set Manually">
-                        </div>
-                    </div>
-                </div>
-                <div class="row g-3 align-items-start">
-                    <div class="col-md-6">
-                        <label for="buy-price" class="form-label">Price</label>
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input type="number" class="form-control" id="buy-price" placeholder="Enter Price" step="0.01">
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="buy-available" class="form-label">Available to Buy</label>
-                        <input type="text" class="form-control" id="buy-available" disabled>
-                        <div class="form-text mt-2" id="ratio-achieved-container" style="display: none;">
-                            <div class="d-flex align-items-center">
-                                <span><span id="ratio-label">Swap Ratio</span>: <strong id="ratio-achieved"></strong></span>
-                                <button type="button" class="ms-2" id="copy-ratio-btn" title="Copy Ratio">
-                                    <span class="material-symbols-outlined">content_copy</span>
-                                </button>
+            <div class="row">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <!-- Asset to Sell -->
+                    <fieldset class="border p-4 rounded h-100">
+                        <legend class="float-none w-auto px-3 h5">Selling</legend>
+                        <div class="row g-3 mb-3" id="sell-ticker-row">
+                            <div class="col-12">
+                                <label for="sell-ticker-select" class="form-label">
+                                    Ticker
+                                    <span class="material-symbols-outlined ms-1 help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="The stock ticker is used by API Mode when fetching the live price and by the log function to generate a transaction message containing the details of your stock swap.">info</span>
+                                </label>
+                                <select class="form-select mb-2" id="sell-ticker-select"></select>
+                                <div class="text-center text-muted small my-1">or</div>
+                                <input type="text" class="form-control" id="sell-ticker-override" placeholder="Enter manually">
                             </div>
                         </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label for="sell-price" class="form-label">Price</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="sell-price" placeholder="Enter Price" step="0.01">
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <label for="sell-quantity" class="form-label">Quantity</label>
+                                <input type="number" class="form-control" id="sell-quantity" min="0" step="any" placeholder="Enter Quantity">
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="sell-total" class="form-label">Total Value</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="text" class="form-control" id="sell-total" disabled>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="col-lg-6">
+                    <!-- Asset to Buy -->
+                    <fieldset class="border p-4 rounded h-100">
+                        <legend class="float-none w-auto px-3 h5">Buying</legend>
+                        <div class="row g-3 mb-3" id="buy-ticker-row">
+                            <div class="col-12">
+                                <label for="buy-ticker-select" class="form-label">
+                                    Ticker
+                                    <span class="material-symbols-outlined ms-1 help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="The stock ticker is used by API Mode when fetching the live price and by the log function to generate a transaction message containing the details of your stock swap.">info</span>
+                                </label>
+                                <select class="form-select mb-2" id="buy-ticker-select"></select>
+                                <div class="text-center text-muted small my-1">or</div>
+                                <input type="text" class="form-control" id="buy-ticker-override" placeholder="Enter manually">
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-12">
+                                <label for="buy-price" class="form-label">Price</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="buy-price" placeholder="Enter Price" step="0.01">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="buy-available" class="form-label">Available to Buy</label>
+                                <input type="text" class="form-control" id="buy-available" disabled>
+                                <div class="form-text mt-2" id="ratio-achieved-container" style="display: none;">
+                                    <div class="d-flex align-items-center">
+                                        <span><span id="ratio-label">Swap Ratio</span>: <strong id="ratio-achieved"></strong></span>
+                                        <button type="button" class="ms-2" id="copy-ratio-btn" title="Copy Ratio">
+                                            <span class="material-symbols-outlined">content_copy</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4" id="action-buttons-container">
+                <button type="button" class="btn btn-outline-secondary btn-lg" id="reset-btn">Reset</button>
+                <button type="submit" class="btn btn-primary btn-lg" id="calculate-btn">Calculate</button>
+            </div>
+
+            <!-- Transaction Log -->
+            <div class="mt-4" id="transaction-log-container">
+                <h6 class="text-muted d-flex align-items-center" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#transaction-log-collapse" aria-expanded="false" aria-controls="transaction-log-collapse">
+                    <span>Transaction Log</span>
+                    <span class="material-symbols-outlined collapse-chevron ms-2">chevron_forward</span>
+                </h6>
+                <div class="collapse" id="transaction-log-collapse">
+                    <div class="border rounded p-3 mt-2 d-flex justify-content-between align-items-center">
+                        <span id="transaction-log-text" class="text-monospace" style="word-break: break-all;"></span>
+                        <button type="button" id="copy-log-btn" title="Copy Log" class="ms-3 flex-shrink-0">
+                            <span class="material-symbols-outlined">content_copy</span>
+                        </button>
                     </div>
                 </div>
-            </fieldset>
-
-            <div class="d-grid gap-2 d-md-flex justify-content-md-end" id="action-buttons-container">
-                <button type="button" class="btn btn-outline-secondary btn-lg" id="reset-btn">Reset</button>
-                <button type="submit" class="btn btn-primary btn-lg">Calculate</button>
             </div>
 
             <!-- Configuration Section -->
-            <div class="mt-4" id="configuration-container">
-                <h6 class="text-muted">Configuration</h6>
-                <div class="p-3 border rounded">
-                    <div class="form-check form-switch mb-2">
-                        <input class="form-check-input" type="checkbox" role="switch" id="show-help-icons-switch" checked>
-                        <label class="form-check-label" for="show-help-icons-switch">Show Help</label>
-                    </div>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" role="switch" id="reverse-ratio-switch">
-                        <label class="form-check-label" for="reverse-ratio-switch">Reverse Ratio</label>
-                    </div>
-                    <div id="api-config-settings" class="d-none">
-                        <hr class="my-3">
-                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="cache-toggle-switch" checked>
-                                <label class="form-check-label" for="cache-toggle-switch">Enable API Cache</label>
+            <div class="mt-4">
+                <h6 class="text-muted d-flex align-items-center" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#configuration-collapse" aria-expanded="false" aria-controls="configuration-collapse">
+                    <span>Configuration</span>
+                    <span class="material-symbols-outlined collapse-chevron ms-2">chevron_forward</span>
+                </h6>
+                <div class="collapse" id="configuration-collapse">
+                    <div class="p-3 border rounded mt-2">
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" role="switch" id="show-help-icons-switch" checked>
+                            <label class="form-check-label" for="show-help-icons-switch">Show Help</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="reverse-ratio-switch">
+                            <label class="form-check-label" for="reverse-ratio-switch">Reverse Ratio</label>
+                        </div>
+                        <div id="api-config-settings" class="d-none">
+                            <hr class="my-3">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="cache-toggle-switch" checked>
+                                    <label class="form-check-label" for="cache-toggle-switch">Enable API Cache</label>
+                                </div>
+                                <div class="input-group input-group-sm" style="width: auto;">
+                                    <label class="input-group-text" for="cache-duration-input">Cache Time</label>
+                                    <input type="number" class="form-control" id="cache-duration-input" min="0" step="1">
+                                    <span class="input-group-text">min</span>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="clear-cache-btn">Clear Cache</button>
                             </div>
-                            <div class="input-group input-group-sm" style="width: auto;">
-                                <label class="input-group-text" for="cache-duration-input">Cache Time</label>
-                                <input type="number" class="form-control" id="cache-duration-input" min="0" step="1">
-                                <span class="input-group-text">min</span>
-                            </div>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" id="clear-cache-btn">Clear Cache</button>
                         </div>
                     </div>
                 </div>
@@ -246,6 +294,8 @@
                 state.buyTickerOverride = $('#buy-ticker-override').val();
                 state.showHelpIcons = $('#show-help-icons-switch').is(':checked');
                 state.isRatioReversed = $('#reverse-ratio-switch').is(':checked');
+                state.isConfigExpanded = $('#configuration-collapse').hasClass('show');
+                state.isLogExpanded = $('#transaction-log-collapse').hasClass('show');
 
                 // Conditionally update price fields
                 if (state.isApiMode) {
@@ -279,6 +329,20 @@
                         $('#show-help-icons-switch').prop('checked', showHelp);
                         $('#reverse-ratio-switch').prop('checked', state.isRatioReversed || false);
 
+                        if (state.isConfigExpanded) {
+                            const configCollapse = new bootstrap.Collapse('#configuration-collapse', {
+                                toggle: false
+                            });
+                            configCollapse.show();
+                        }
+
+                        if (state.isLogExpanded) {
+                            const logCollapse = new bootstrap.Collapse('#transaction-log-collapse', {
+                                toggle: false
+                            });
+                            logCollapse.show();
+                        }
+
                         // Conditionally load prices based on the saved mode
                         if (state.isApiMode) {
                             $('#sell-price').val(state.sellPrice || '');
@@ -301,6 +365,8 @@
                 $('#error-container').hide().empty();
                 $modeToggle.prop('checked', false);
                 setCalculatorMode(false);
+                $('#configuration-collapse').collapse('hide');
+                $('#transaction-log-collapse').collapse('hide');
                 updateFinalCalculations();
                 console.log('Form has been reset.');
             }
@@ -353,7 +419,7 @@
             const $actionButtonsContainer = $('#action-buttons-container');
             const $configurationContainer = $('#configuration-container');
             const $apiWarningMessage = $('#api-warning-message');
-            const $calculateBtn = $('#swap-form button[type="submit"]');
+            const $calculateBtn = $('#calculate-btn');
 
             function setCalculatorMode(isApiMode) {
                 if (isApiMode) {
@@ -619,33 +685,53 @@
                 const sellQuantity = parseFloat($('#sell-quantity').val());
                 const buyPrice = parseFloat($('#buy-price').val());
                 const isRatioReversed = $('#reverse-ratio-switch').is(':checked');
+                const sellTicker = getTickerValue('sell');
+                const buyTicker = getTickerValue('buy');
 
+                // --- Update Swap Ratio Label ---
+                const sellTickerLabel = sellTicker.toUpperCase() || 'SELL';
+                const buyTickerLabel = buyTicker.toUpperCase() || 'BUY';
+                const tickerPair = isRatioReversed ? `${buyTickerLabel}/${sellTickerLabel}` : `${sellTickerLabel}/${buyTickerLabel}`;
+                $('#ratio-label').text(`Swap Ratio (${tickerPair})`);
+
+                // --- Perform calculations ---
+                let sellTotal, buyAvailable, ratio;
                 // Calculate total value of the asset to sell
                 if (!isNaN(sellPrice) && sellPrice > 0 && !isNaN(sellQuantity) && sellQuantity > 0) {
-                    const sellTotal = sellPrice * sellQuantity;
+                    sellTotal = sellPrice * sellQuantity;
                     $('#sell-total').val(sellTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
                     // Calculate how many units of the new asset can be bought and the ratio
                     if (!isNaN(buyPrice) && buyPrice > 0) {
-                        const buyAvailable = sellTotal / buyPrice;
+                        buyAvailable = sellTotal / buyPrice;
                         $('#buy-available').val(buyAvailable.toLocaleString(undefined, {minimumFractionDigits: 4, maximumFractionDigits: 4}));
 
-                        const ratio = isRatioReversed ? sellPrice / buyPrice : buyPrice / sellPrice;
-                        const ratioLabelText = isRatioReversed ? 'Swap Ratio (sell/buy)' : 'Swap Ratio (buy/sell)';
-                        $('#ratio-label').text(ratioLabelText);
+                        ratio = isRatioReversed ? buyPrice / sellPrice : sellPrice / buyPrice;
                         $('#ratio-achieved').text(ratio.toFixed(4));
                         $('#ratio-achieved-container').show();
                     } else {
                         $('#buy-available').val('');
-                        $('#ratio-achieved').text('');
                         $('#ratio-achieved-container').hide();
                     }
                 } else {
                     $('#sell-total').val('');
                     $('#buy-available').val('');
-                    $('#ratio-achieved').text('');
                     $('#ratio-achieved-container').hide();
                 }
+
+                // --- Update Transaction Log ---
+                const logSellQuantity = !isNaN(sellQuantity) && sellQuantity > 0 ? `${sellQuantity.toLocaleString()}x` : '---x';
+                const logSellTicker = sellTicker.toUpperCase() || 'TICKER';
+                const logSellPrice = !isNaN(sellPrice) && sellPrice > 0 ? `@${sellPrice.toFixed(2)}` : '@$$$';
+
+                const logBuyQuantity = buyAvailable !== undefined && !isNaN(buyAvailable) && buyAvailable > 0 ? `${buyAvailable.toLocaleString(undefined, {minimumFractionDigits: 4, maximumFractionDigits: 4})}x` : '---x';
+                const logBuyTicker = buyTicker.toUpperCase() || 'TICKER';
+                const logBuyPrice = !isNaN(buyPrice) && buyPrice > 0 ? `@${buyPrice.toFixed(2)}` : '@$$$';
+                
+                const logRatio = ratio !== undefined && !isNaN(ratio) ? ratio.toFixed(4) : 'x.xxxx';
+                
+                const logEntry = `${tickerPair}: SELL ${logSellQuantity} ${logSellTicker} ${logSellPrice}, BUY ${logBuyQuantity} ${logBuyTicker} ${logBuyPrice} - RATIO = ${logRatio}`;
+                $('#transaction-log-text').text(logEntry);
             }
 
             // Helper function to unlock a price field for manual entry
@@ -691,16 +777,81 @@
                 }
             });
 
+            // Copy log button handler
+            $('#copy-log-btn').on('click', function() {
+                const logValue = $('#transaction-log-text').text();
+                const button = $(this);
+                const icon = button.find('.material-symbols-outlined');
+
+                if (logValue && navigator.clipboard && !button.hasClass('is-copied')) {
+                    navigator.clipboard.writeText(logValue).then(() => {
+                        // Success: Provide visual feedback
+                        button.addClass('is-copied');
+                        icon.addClass('text-success');
+
+                        // Revert back after a short delay
+                        setTimeout(() => {
+                            button.removeClass('is-copied');
+                            icon.removeClass('text-success');
+                        }, 1200);
+                    }).catch(err => {
+                        console.error('Failed to copy log to clipboard: ', err);
+                        alert('Failed to copy log.'); // Fallback for user
+                    });
+                }
+            });
+
             // Reset button handler
             $('#reset-btn').on('click', resetState);
 
             // Save state on any input change
             $('#swap-form').on('input change', 'input, select', saveStateToCookie);
 
+            // Save collapse state when it changes
+            $('#configuration-collapse, #transaction-log-collapse').on('shown.bs.collapse hidden.bs.collapse', saveStateToCookie);
+
             // Cache configuration handlers
             $('#cache-toggle-switch').on('change', function() {
                 isCacheEnabled = this.checked;
                 console.log(`API Cache ${isCacheEnabled ? 'Enabled' : 'Disabled'}.`);
+            });
+            
+            // --- Swap Button Functionality ---
+            $('#swap-button').on('click', function(e) {
+                e.preventDefault();
+                 // Get values from Selling section
+                const sellTickerSelect = $('#sell-ticker-select').val();
+                const sellTickerOverride = $('#sell-ticker-override').val();
+                const sellPrice = $('#sell-price').val();
+                const sellQuantity = $('#sell-quantity').val();
+
+                // Get values from Buying section
+                const buyTickerSelect = $('#buy-ticker-select').val();
+                const buyTickerOverride = $('#buy-ticker-override').val();
+                const buyPrice = $('#buy-price').val();
+
+                // Swap Ticker Select values
+                $('#sell-ticker-select').val(buyTickerSelect);
+                $('#buy-ticker-select').val(sellTickerSelect);
+
+                // Swap Ticker Override values
+                $('#sell-ticker-override').val(buyTickerOverride);
+                $('#buy-ticker-override').val(sellTickerOverride);
+
+                // Swap Price values
+                $('#sell-price').val(buyPrice);
+                $('#buy-price').val(sellPrice);
+
+                // Swap Quantity value (only for Sell Quantity, Buying is calculated)
+                $('#sell-quantity').val(sellQuantity);
+
+                // Clear calculated values (Buy Available, Ratio, Total Value)
+                $('#buy-available').val('');
+                $('#sell-total').val('');
+                $('#ratio-achieved').text('');
+                $('#ratio-achieved-container').hide();
+
+                updateFinalCalculations();
             });
 
             // Recalculate when ratio direction is changed
@@ -733,17 +884,21 @@
             $('#sell-ticker-select, #buy-ticker-select').on('change', function() {
                 const overrideId = `#${this.id.replace('-select', '-override')}`;
                 $(overrideId).val('');
+                updateFinalCalculations();
             });
 
             $('#sell-ticker-override, #buy-ticker-override').on('input', function() {
                 const selectId = `#${this.id.replace('-override', '-select')}`;
                 $(selectId).val('');
+                updateFinalCalculations();
             });
 
             // Add live recalculation when a user manually changes a price or quantity
             $('#sell-price, #sell-quantity, #buy-price').on('input', updateFinalCalculations);
         });
     </script>
+
+
 
 </body>
 </html>
