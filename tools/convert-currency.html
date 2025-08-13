@@ -19,14 +19,64 @@
     </style>
 </head>
 <body>
-    <div id="header-placeholder"></div>
+    <div class="header-bar bg-dark text-light fixed-top small">
+        <div class="container-fluid d-flex justify-content-between align-items-center px-3 py-1">
+            <div class="d-flex align-items-center">
+                <a href="../index.html" class="text-light text-decoration-none me-3" title="Back to Home">
+                    <span class="material-symbols-outlined" style="vertical-align: middle;">home</span>
+                </a>
+                <span id="week-number" class="me-3"></span>
+                <span id="current-date"></span>
+            </div>
+            <div class="d-flex align-items-center">
+                <span id="ip-address" class="me-4"></span>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="theme-switch-input">
+                    <label class="form-check-label" for="theme-switch-input" id="theme-switch-label">Dark Mode</label>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="container">
         <h1 class="mb-4 text-center">Currency Converter</h1>
         <p class="text-center text-muted mb-4">Convert between different currencies using real-time exchange rates.</p>
 
-        <!-- Calculator content will go here -->
-        <div class="alert alert-info">
-            This tool is under construction.
+        <div class="card">
+            <div class="card-body">
+                <form id="currency-converter-form" onsubmit="return false;">
+                    <div class="row g-3 align-items-center mb-3">
+                        <div class="col-md-5">
+                            <label for="from-currency" class="form-label">From</label>
+                            <select class="form-select form-select-lg" id="from-currency"></select>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <button type="button" id="swap-currencies" class="btn btn-link text-secondary px-0" title="Swap Currencies">
+                                <span class="material-symbols-outlined fs-1">swap_horiz</span>
+                            </button>
+                        </div>
+                        <div class="col-md-5">
+                            <label for="to-currency" class="form-label">To</label>
+                            <select class="form-select form-select-lg" id="to-currency"></select>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="amount" class="form-label">Amount</label>
+                            <input type="number" class="form-control form-control-lg" id="amount" value="1" step="any">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="results-container" class="mt-4" style="display: none;">
+            <div class="card text-center">
+                <div class="card-body p-4">
+                    <p class="card-text text-muted mb-1" id="result-text-from">-</p>
+                    <h2 class="card-title" id="result-text-to">-</h2>
+                    <p class="card-text small text-muted mt-2" id="rate-info">-</p>
+                </div>
+            </div>
         </div>
 
     </div>
@@ -38,9 +88,122 @@
 
     <script>
         $(document).ready(function() {
-            // Load the shared header
-            $("#header-placeholder").load("../_includes/header.html", function() {
-                // Optional: callback function after header is loaded
+            // --- Header Info ---
+            function getWeekNumber(d) {
+                d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+                d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+                var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+                var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+                return weekNo;
+            }
+            const today = new Date();
+            const dateOptions = { day: '2-digit', month: 'long', year: 'numeric' };
+            $('#current-date').text(today.toLocaleDateString('en-GB', dateOptions));
+            $('#week-number').text('Week ' + getWeekNumber(today));
+            $.getJSON('https://api.ipify.org?format=json', function(data) {
+                $('#ip-address').text('Your IP: ' + data.ip);
+            }).fail(function() {
+                $('#ip-address').text('Your IP: Not available');
+            });
+
+            // --- Theme Switcher ---
+            const themeSwitch = $('#theme-switch-input');
+            const themeLabel = $('#theme-switch-label');
+            function setTheme(theme) {
+                $('html').attr('data-bs-theme', theme);
+                localStorage.setItem('theme', theme);
+                if (theme === 'dark') {
+                    themeSwitch.prop('checked', true);
+                    themeLabel.text('Dark Mode');
+                } else {
+                    themeSwitch.prop('checked', false);
+                    themeLabel.text('Light Mode');
+                }
+            }
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            setTheme(savedTheme);
+            themeSwitch.on('change', function() {
+                setTheme(this.checked ? 'dark' : 'light');
+            });
+
+            // --- Currency Converter Logic ---
+            const API_URL = 'https://api.frankfurter.app';
+            const $fromCurrency = $('#from-currency');
+            const $toCurrency = $('#to-currency');
+            const $amount = $('#amount');
+            const $swapBtn = $('#swap-currencies');
+            const $resultsContainer = $('#results-container');
+            const $resultFrom = $('#result-text-from');
+            const $resultTo = $('#result-text-to');
+            const $rateInfo = $('#rate-info');
+            let conversionTimeout;
+
+            // 1. Fetch currencies and populate dropdowns
+            $.getJSON(`${API_URL}/currencies`)
+                .done(function(currencies) {
+                    $.each(currencies, function(code, name) {
+                        const option = `<option value="${code}">${code} - ${name}</option>`;
+                        $fromCurrency.append(option);
+                        $toCurrency.append(option);
+                    });
+                    // Set default values
+                    $fromCurrency.val('USD');
+                    $toCurrency.val('EUR');
+                    // Trigger initial calculation
+                    convert();
+                })
+                .fail(function() {
+                    $resultsContainer.show();
+                    $resultTo.html('<span class="text-danger">Could not load currencies.</span>');
+                });
+
+            // 2. Conversion function
+            function convert() {
+                const amount = parseFloat($amount.val());
+                const from = $fromCurrency.val();
+                const to = $toCurrency.val();
+
+                if (isNaN(amount) || !from || !to || amount <= 0) {
+                    $resultsContainer.hide();
+                    return;
+                }
+
+                $resultsContainer.show();
+                $resultTo.html('<div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div>');
+
+                if (from === to) {
+                    displayResult(amount, amount, 1, from, to);
+                    return;
+                }
+
+                $.getJSON(`${API_URL}/latest?amount=${amount}&from=${from}&to=${to}`)
+                    .done(function(data) {
+                        const result = data.rates[to];
+                        const rate = result / amount;
+                        displayResult(amount, result, rate, from, to);
+                    })
+                    .fail(function() {
+                        $resultTo.html('<span class="text-danger">Conversion failed.</span>');
+                    });
+            }
+
+            function displayResult(amount, result, rate, from, to) {
+                $resultFrom.text(`${amount.toLocaleString()} ${from} =`);
+                $resultTo.text(`${result.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${to}`);
+                $rateInfo.html(`1 ${from} = ${rate.toFixed(4)} ${to} &nbsp;&bull;&nbsp; <span class="text-muted">Updated: ${new Date().toLocaleDateString()}</span>`);
+            }
+
+            // 3. Event Handlers
+            $('#currency-converter-form').on('input change', function() {
+                clearTimeout(conversionTimeout);
+                conversionTimeout = setTimeout(convert, 300); // Debounce input
+            });
+
+            $swapBtn.on('click', function() {
+                const fromVal = $fromCurrency.val();
+                $fromCurrency.val($toCurrency.val());
+                $toCurrency.val(fromVal);
+                convert();
             });
         });
     </script>

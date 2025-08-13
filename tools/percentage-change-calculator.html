@@ -19,15 +19,63 @@
     </style>
 </head>
 <body>
-    <div id="header-placeholder"></div>
+    <div class="header-bar bg-dark text-light fixed-top small">
+        <div class="container-fluid d-flex justify-content-between align-items-center px-3 py-1">
+            <div class="d-flex align-items-center">
+                <a href="../index.html" class="text-light text-decoration-none me-3" title="Back to Home">
+                    <span class="material-symbols-outlined" style="vertical-align: middle;">home</span>
+                </a>
+                <span id="week-number" class="me-3"></span>
+                <span id="current-date"></span>
+            </div>
+            <div class="d-flex align-items-center">
+                <span id="ip-address" class="me-4"></span>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="theme-switch-input">
+                    <label class="form-check-label" for="theme-switch-input" id="theme-switch-label">Dark Mode</label>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="container">
         <h1 class="mb-4 text-center">Percentage Change Calculator</h1>
         <p class="text-center text-muted mb-4">Calculate the difference, percentage change, and multiplier between two numbers.</p>
 
-        <!-- Calculator content will go here -->
-        <div class="alert alert-info">
-            This tool is under construction.
+        <div class="card">
+            <div class="card-body">
+                <form id="percentage-change-form" onsubmit="return false;">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-5">
+                            <label for="initial-value" class="form-label">Initial Value</label>
+                            <input type="number" class="form-control form-control-lg" id="initial-value" step="any" placeholder="e.g. 100">
+                        </div>
+                        <div class="col-md-2 text-center d-none d-md-block">
+                            <span class="material-symbols-outlined fs-1 text-muted" style="padding-top: 2rem;">arrow_forward</span>
+                        </div>
+                        <div class="col-md-5">
+                            <label for="final-value" class="form-label">Final Value</label>
+                            <input type="number" class="form-control form-control-lg" id="final-value" step="any" placeholder="e.g. 150">
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
+
+        <div id="results-container" class="mt-4" style="display: none;">
+            <div class="row g-3 text-center">
+                <div class="col-md-4">
+                    <div class="card h-100"><div class="card-body"><h6 class="card-subtitle mb-2 text-muted">Difference</h6><p class="card-text fs-4" id="result-difference">-</p></div></div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100"><div class="card-body"><h6 class="card-subtitle mb-2 text-muted">Percentage Change</h6><p class="card-text fs-4" id="result-percentage">-</p></div></div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100"><div class="card-body"><h6 class="card-subtitle mb-2 text-muted">Multiplier</h6><p class="card-text fs-4" id="result-multiplier">-</p></div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4"><button type="button" class="btn btn-outline-secondary" id="reset-btn">Reset</button></div>
 
     </div>
 
@@ -38,10 +86,102 @@
 
     <script>
         $(document).ready(function() {
-            // Load the shared header
-            $("#header-placeholder").load("../_includes/header.html", function() {
-                // Optional: callback function after header is loaded
+            // --- Header Info ---
+            function getWeekNumber(d) {
+                d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+                d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+                var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+                var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+                return weekNo;
+            }
+            const today = new Date();
+            const dateOptions = { day: '2-digit', month: 'long', year: 'numeric' };
+            $('#current-date').text(today.toLocaleDateString('en-GB', dateOptions));
+            $('#week-number').text('Week ' + getWeekNumber(today));
+            $.getJSON('https://api.ipify.org?format=json', function(data) {
+                $('#ip-address').text('Your IP: ' + data.ip);
+            }).fail(function() {
+                $('#ip-address').text('Your IP: Not available');
             });
+
+            // --- Theme Switcher ---
+            const themeSwitch = $('#theme-switch-input');
+            const themeLabel = $('#theme-switch-label');
+            function setTheme(theme) {
+                $('html').attr('data-bs-theme', theme);
+                localStorage.setItem('theme', theme);
+                if (theme === 'dark') {
+                    themeSwitch.prop('checked', true);
+                    themeLabel.text('Dark Mode');
+                } else {
+                    themeSwitch.prop('checked', false);
+                    themeLabel.text('Light Mode');
+                }
+            }
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            setTheme(savedTheme);
+            themeSwitch.on('change', function() {
+                setTheme(this.checked ? 'dark' : 'light');
+            });
+
+            // --- Calculator Logic ---
+            const $initialValue = $('#initial-value');
+            const $finalValue = $('#final-value');
+            const $resultsContainer = $('#results-container');
+            const $resultDifference = $('#result-difference');
+            const $resultPercentage = $('#result-percentage');
+            const $resultMultiplier = $('#result-multiplier');
+
+            function calculateAndDisplay() {
+                const initial = parseFloat($initialValue.val());
+                const final = parseFloat($finalValue.val());
+
+                if (isNaN(initial) || isNaN(final)) {
+                    $resultsContainer.hide();
+                    return;
+                }
+
+                $resultsContainer.show();
+
+                // 1. Difference
+                const difference = final - initial;
+                $resultDifference.text(difference.toLocaleString());
+                $resultDifference.removeClass('text-success text-danger');
+                if (difference > 0) $resultDifference.addClass('text-success');
+                else if (difference < 0) $resultDifference.addClass('text-danger');
+
+                // 2. Percentage Change
+                $resultPercentage.removeClass('text-success text-danger');
+                if (initial !== 0) {
+                    const percentageChange = (difference / Math.abs(initial)) * 100;
+                    let icon = '';
+                    if (percentageChange > 0) {
+                        $resultPercentage.addClass('text-success');
+                        icon = '<span class="material-symbols-outlined" style="vertical-align: middle;">trending_up</span> ';
+                    } else if (percentageChange < 0) {
+                        $resultPercentage.addClass('text-danger');
+                        icon = '<span class="material-symbols-outlined" style="vertical-align: middle;">trending_down</span> ';
+                    }
+                    $resultPercentage.html(icon + Math.abs(percentageChange).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '%');
+                } else {
+                    $resultPercentage.html('<span class="text-muted">N/A</span>');
+                }
+
+                // 3. Multiplier
+                if (initial !== 0) {
+                    const multiplier = final / initial;
+                    $resultMultiplier.text(multiplier.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + 'x');
+                } else {
+                    $resultMultiplier.html('<span class="text-muted">N/A</span>');
+                }
+            }
+
+            $('#reset-btn').on('click', function() {
+                $('#percentage-change-form')[0].reset();
+                calculateAndDisplay();
+            });
+
+            $('#percentage-change-form input').on('input', calculateAndDisplay);
         });
     </script>
 </body>
