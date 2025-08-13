@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 <head>
@@ -11,125 +10,25 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <style>
         body {
-            padding-top: 2rem;
+            padding-top: 5rem; /* Increased for fixed header */
             padding-bottom: 2rem;
         }
         .container {
             max-width: 800px;
         }
-        .copy-btn {
-            background: none;
-            border: none;
-            padding: 0;
-            cursor: pointer;
-            opacity: 0.6;
-            transition: opacity 0.2s ease-in-out;
-            vertical-align: middle;
-            line-height: 1;
-        }
-        .copy-btn:hover {
-            opacity: 1;
-        }
-        .copy-btn .material-symbols-outlined {
-            transition: color 0.3s ease, transform 0.3s ease;
-        }
-        .copy-btn.is-copied .material-symbols-outlined {
-            transform: scale(1.25);
-        }
-        #swap-button {
-            opacity: 0.6;
-            transition: opacity 0.2s ease-in-out;
-        }
-        #swap-button:hover {
-            opacity: 1;
-        }
-        .material-symbols-outlined {
-            vertical-align: text-bottom;
-            font-size: 1.15em;
-        }
     </style>
 </head>
 <body>
-
-    <div class="form-check form-switch position-absolute top-0 end-0 p-3" id="theme-switcher">
-        <input class="form-check-input" type="checkbox" role="switch" id="theme-switch-input">
-        <label class="form-check-label" for="theme-switch-input" id="theme-switch-label">Dark Mode</label>
-    </div>
-
+    <div id="header-placeholder"></div>
     <div class="container">
         <h1 class="mb-4 text-center">Currency Converter</h1>
-        <p class="text-center text-muted mb-4">Convert amounts between different currencies using real-time exchange rates from Google Finance.</p>
+        <p class="text-center text-muted mb-4">Convert between different currencies using real-time exchange rates.</p>
 
-        <div class="d-flex justify-content-center align-items-center mb-4">
-            <a href="#" id="swap-button" title="Swap Currencies" class="text-muted text-decoration-none">
-                <span class="material-symbols-outlined" style="font-size: 2.5rem; vertical-align: middle;">swap_horiz</span>
-            </a>
+        <!-- Calculator content will go here -->
+        <div class="alert alert-info">
+            This tool is under construction.
         </div>
 
-        <form id="converter-form" novalidate>
-            <div class="row">
-                <div class="col-lg-6 mb-4 mb-lg-0">
-                    <!-- Initial Currency -->
-                    <fieldset class="border p-4 rounded h-100">
-                        <legend class="float-none w-auto px-3 h5">From</legend>
-                        <div class="mb-3">
-                            <label for="initial-currency-select" class="form-label">Currency</label>
-                            <select class="form-select mb-2" id="initial-currency-select">
-                                <option value="USD">US Dollar (USD)</option>
-                                <option value="GBP">British Pound (GBP)</option>
-                                <option value="EUR">Euro (EUR)</option>
-                                <option value="JPY">Japanese Yen (JPY)</option>
-                                <option value="SEK">Swedish Krona (SEK)</option>
-                            </select>
-                            <div class="text-center text-muted small my-1">or</div>
-                            <input type="text" class="form-control" id="initial-currency-override" placeholder="Enter currency code (e.g., CAD)">
-                        </div>
-                        <div class="mb-3">
-                            <label for="amount" class="form-label">Amount</label>
-                            <div class="input-group">
-                                <input type="number" class="form-control" id="amount" placeholder="Enter amount" step="any">
-                                <button class="btn btn-outline-secondary copy-btn" type="button" id="copy-initial-btn" title="Copy Amount">
-                                    <span class="material-symbols-outlined">content_copy</span>
-                                </button>
-                            </div>
-                        </div>
-                    </fieldset>
-                </div>
-                <div class="col-lg-6">
-                    <!-- Target Currency -->
-                    <fieldset class="border p-4 rounded h-100">
-                        <legend class="float-none w-auto px-3 h5">To</legend>
-                        <div class="mb-3">
-                            <label for="target-currency-select" class="form-label">Currency</label>
-                            <select class="form-select mb-2" id="target-currency-select">
-                                <option value="GBP">British Pound (GBP)</option>
-                                <option value="EUR">Euro (EUR)</option>
-                                <option value="JPY">Japanese Yen (JPY)</option>
-                                <option value="USD">US Dollar (USD)</option>
-                                <option value="SEK">Swedish Krona (SEK)</option>
-                            </select>
-                            <div class="text-center text-muted small my-1">or</div>
-                            <input type="text" class="form-control" id="target-currency-override" placeholder="Enter currency code (e.g., AUD)">
-                        </div>
-                        <div class="mb-3">
-                            <label for="converted-amount" class="form-label">Converted Amount</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="converted-amount" disabled>
-                                <button class="btn btn-outline-secondary copy-btn" type="button" id="copy-converted-btn" title="Copy Converted Amount">
-                                    <span class="material-symbols-outlined">content_copy</span>
-                                </button>
-                            </div>
-                        </div>
-                    </fieldset>
-                </div>
-            </div>
-
-            <div class="d-grid mt-4">
-                <button type="submit" class="btn btn-primary btn-lg">Convert</button>
-            </div>
-
-            <div id="error-container" class="alert alert-danger mt-3 d-none"></div>
-        </form>
     </div>
 
     <!-- jQuery 3.7.1 -->
@@ -138,222 +37,12 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
     <script>
-    $(document).ready(function() {
-        // --- Cookie Helpers ---
-        function setCookie(name, value, days) {
-            let expires = "";
-            if (days) {
-                const date = new Date();
-                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-                expires = "; expires=" + date.toUTCString();
-            }
-            document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax";
-        }
-
-        function getCookie(name) {
-            const nameEQ = name + "=";
-            const ca = document.cookie.split(';');
-            for (let i = 0; i < ca.length; i++) {
-                let c = ca[i];
-                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-            }
-            return null;
-        }
-
-        // --- State Management ---
-        const COOKIE_NAME = 'currencyConverterState';
-
-        function saveStateToCookie() {
-            const state = {
-                initialSelect: $('#initial-currency-select').val(),
-                initialOverride: $('#initial-currency-override').val(),
-                targetSelect: $('#target-currency-select').val(),
-                targetOverride: $('#target-currency-override').val(),
-                amount: $('#amount').val()
-            };
-            setCookie(COOKIE_NAME, JSON.stringify(state), 7);
-        }
-
-        function loadStateFromCookie() {
-            const savedState = getCookie(COOKIE_NAME);
-            if (savedState) {
-                try {
-                    const state = JSON.parse(savedState);
-                    $('#initial-currency-select').val(state.initialSelect || 'USD');
-                    $('#initial-currency-override').val(state.initialOverride || '');
-                    $('#target-currency-select').val(state.targetSelect || 'GBP');
-                    $('#target-currency-override').val(state.targetOverride || '');
-                    $('#amount').val(state.amount || '');
-                } catch (e) {
-                    console.error("Error parsing saved state from cookie:", e);
-                }
-            }
-        }
-
-        // --- Theme Switcher ---
-        const themeSwitch = $('#theme-switch-input');
-        const themeLabel = $('#theme-switch-label');
-
-        function setTheme(theme) {
-            $('html').attr('data-bs-theme', theme);
-            localStorage.setItem('theme', theme);
-            if (theme === 'dark') {
-                themeSwitch.prop('checked', true);
-                themeLabel.text('Dark Mode');
-            } else {
-                themeSwitch.prop('checked', false);
-                themeLabel.text('Light Mode');
-            }
-        }
-
-        // --- Main Logic ---
-        function getCurrencyCode(type) { // type is 'initial' or 'target'
-            const override = $(`#${type}-currency-override`).val().trim().toUpperCase();
-            return override || $(`#${type}-currency-select`).val();
-        }
-
-        function convert() {
-            const initialCurrency = getCurrencyCode('initial');
-            const targetCurrency = getCurrencyCode('target');
-            const amount = parseFloat($('#amount').val());
-            const $errorContainer = $('#error-container');
-            const $convertBtn = $('#converter-form button[type="submit"]');
-            const originalBtnText = $convertBtn.text();
-
-            $errorContainer.addClass('d-none').empty();
-            $('.is-invalid').removeClass('is-invalid');
-
-            let isValid = true;
-            if (!initialCurrency) {
-                $('#initial-currency-select, #initial-currency-override').addClass('is-invalid');
-                isValid = false;
-            }
-            if (!targetCurrency) {
-                $('#target-currency-select, #target-currency-override').addClass('is-invalid');
-                isValid = false;
-            }
-            if (isNaN(amount)) {
-                $('#amount').addClass('is-invalid');
-                isValid = false;
-            }
-
-            if (!isValid) {
-                $errorContainer.text('Please fill in all required fields.').removeClass('d-none');
-                return;
-            }
-
-            $convertBtn.prop('disabled', true).text('Converting...');
-
-            fetch(`https://api.exchangerate-api.com/v4/latest/${initialCurrency}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Network response was not ok (${response.status}). Check if '${initialCurrency}' is a valid currency code.`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    const exchangeRate = data.rates[targetCurrency];
-                    if (exchangeRate) {
-                        const convertedAmount = amount * exchangeRate;
-                        $('#converted-amount').val(convertedAmount.toFixed(2));
-                    } else {
-                        $errorContainer.text(`Could not find exchange rate for '${targetCurrency}'. Please check the currency code.`).removeClass('d-none');
-                        $('#target-currency-select, #target-currency-override').addClass('is-invalid');
-                        $('#converted-amount').val('');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching exchange rate:', error);
-                    $errorContainer.text(error.message || 'Error fetching exchange rate. Please try again later.').removeClass('d-none');
-                    $('#converted-amount').val('');
-                })
-                .finally(() => {
-                    $convertBtn.prop('disabled', false).text(originalBtnText);
-                });
-        }
-
-        // --- Event Handlers ---
-        $('#converter-form').on('submit', function(e) {
-            e.preventDefault();
-            convert();
+        $(document).ready(function() {
+            // Load the shared header
+            $("#header-placeholder").load("../_includes/header.html", function() {
+                // Optional: callback function after header is loaded
+            });
         });
-
-        // Save state on any input change
-        $('#converter-form').on('input change', 'input, select', saveStateToCookie);
-
-        // Swap button
-        $('#swap-button').on('click', function(e) {
-            e.preventDefault();
-            const initialSelect = $('#initial-currency-select').val();
-            const initialOverride = $('#initial-currency-override').val();
-            const targetSelect = $('#target-currency-select').val();
-            const targetOverride = $('#target-currency-override').val();
-
-            $('#initial-currency-select').val(targetSelect);
-            $('#initial-currency-override').val(targetOverride);
-            $('#target-currency-select').val(initialSelect);
-            $('#target-currency-override').val(initialOverride);
-
-            // Move converted amount to initial amount and clear result
-            const convertedVal = $('#converted-amount').val();
-            if (convertedVal) {
-                $('#amount').val(convertedVal);
-                $('#converted-amount').val('');
-            }
-            saveStateToCookie();
-        });
-
-        // Copy buttons
-        $('.copy-btn').on('click', function() {
-            const button = $(this);
-            let valueToCopy;
-
-            if (button.attr('id') === 'copy-initial-btn') {
-                valueToCopy = $('#amount').val();
-            } else {
-                valueToCopy = $('#converted-amount').val();
-            }
-            
-            const icon = button.find('.material-symbols-outlined');
-
-            if (valueToCopy && navigator.clipboard && !button.hasClass('is-copied')) {
-                navigator.clipboard.writeText(valueToCopy).then(() => {
-                    button.addClass('is-copied');
-                    icon.addClass('text-success');
-                    setTimeout(() => {
-                        button.removeClass('is-copied');
-                        icon.removeClass('text-success');
-                    }, 1200);
-                }).catch(err => {
-                    console.error('Failed to copy: ', err);
-                    alert('Failed to copy.');
-                });
-            }
-        });
-
-        // Clear override when select is used and vice-versa
-        $('#initial-currency-select, #target-currency-select').on('change', function() {
-            const overrideId = `#${this.id.replace('-select', '-override')}`;
-            $(overrideId).val('');
-        });
-
-        $('#initial-currency-override, #target-currency-override').on('input', function() {
-            const selectId = `#${this.id.replace('-override', '-select')}`;
-            $(selectId).val('');
-        });
-
-        // Theme switcher handler
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        setTheme(savedTheme);
-        themeSwitch.on('change', function() {
-            setTheme(this.checked ? 'dark' : 'light');
-        });
-
-        // --- Initial Load ---
-        loadStateFromCookie();
-    });
     </script>
-
 </body>
 </html>
