@@ -1,0 +1,125 @@
+
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>VAT Calculator</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  
+  <!-- credit: http://www.ssdtutorials.com/tutorials/title/vat-calculator.html -->
+</head>
+
+<body>
+
+
+<form id="calculator" method="post">
+    
+    <table class="tbl_insert">
+        <tr>
+            <th><label for="amount">Amount:</label></th>
+            <td>
+                <input type="number" name="amount" id="amount" value="" class="field" />
+            </td>
+        </tr>
+        <tr>
+            <th><label for="tax_included">Vat included?:</label></th>
+            <td>
+                <input type="checkbox" name="tax_included" id="tax_included" />
+            </td>
+        </tr>
+        <tr>
+            <th><label for="tax">VAT/Tax rate:</label></th>
+            <td>
+                <select name="tax" id="tax" class="select">
+                    <option value="30">30%</option>
+                    <option value="20">20%</option>
+                    <option value="17.5">17.5%</option>
+                    <option value="15">15%</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th><label for="tax_amount">VAT/Tax:</label></th>
+            <td>
+                <input type="text" name="tax_amount" id="tax_amount" 
+                    value="0.00" class="field" disabled="disabled" />
+            </td>
+        </tr>
+        <tr>
+            <th><label for="total_amount">Total:</label></th>
+            <td>
+                <input type="text" name="total_amount" id="total_amount" 
+                    value="0.00" class="field" disabled="disabled" />
+            </td>
+        </tr>
+    </table>
+    
+</form>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+
+<script>
+var calcObject = {
+	amountNull : '0.00',
+	amountTax : '0.00',
+	amountTotal : '0.00',
+	run : function() {
+		var amount = $('#amount').val();
+		var tax  = $('#tax').val();
+		var included = $('#tax_included').is(':checked');
+		if (amount !== '' && tax !== '') {
+			if (included) {
+				var amountNew = amount / ((tax / 100) + 1);
+				calcObject.amountTax = parseFloat(amount) - parseFloat(amountNew);
+				calcObject.amountTotal = amountNew.toFixed(2);
+			} else {
+				calcObject.amountTax = (amount * tax) / 100;
+				calcObject.amountTotal = parseFloat(amount) + parseFloat(calcObject.amountTax);
+			}
+			$('#tax_amount').val(parseFloat(calcObject.amountTax).toFixed(2));
+			$('#total_amount').val(parseFloat(calcObject.amountTotal).toFixed(2));
+		} else {
+			$('#tax_amount').val(calcObject.amountNull);
+			$('#total_amount').val(calcObject.amountNull);
+		}
+	}
+};
+$(function() {
+
+	$('#amount').keyup(function() {
+		calcObject.run();
+	});
+	
+	$('#tax_included').click(function() {
+		calcObject.run();
+	});
+	
+	$('#tax').change(function() {
+		calcObject.run();
+	});
+
+});
+</script>
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-1897149-9', 'auto');
+      ga('send', 'pageview');
+
+    </script>
+
+</body>
+</html>
