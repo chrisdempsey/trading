@@ -1,1 +1,1 @@
-- [x] move shared css to separate file in /assets/css/styles.css
+- [x] update /trading/tools/vat-calculator.html so the toggle switch for Amount includes VAT is on by default
