@@ -25,10 +25,29 @@ function initializeHeader() {
     $('#current-date').text(today.toLocaleDateString('en-GB', dateOptions));
     $('#week-number').text('Week ' + getWeekNumber(today));
 
+    const $ipAddressSpan = $('#ip-address');
     $.getJSON('https://api.ipify.org?format=json', function(data) {
-        $('#ip-address').text('Your IP: ' + data.ip);
+        const ip = data.ip;
+        const originalText = 'Your IP: ' + ip;
+
+        $ipAddressSpan.text(originalText)
+            .css('cursor', 'pointer')
+            .attr('title', 'Click to copy IP');
+
+        // .off() prevents multiple handlers from being attached if this function is ever called more than once.
+        $ipAddressSpan.off('click').on('click', function() {
+            navigator.clipboard.writeText(ip).then(() => {
+                // On success, provide visual feedback
+                $ipAddressSpan.text('Copied!');
+                setTimeout(() => {
+                    $ipAddressSpan.text(originalText);
+                }, 1500);
+            }).catch(err => {
+                console.error('Failed to copy IP to clipboard: ', err);
+            });
+        });
     }).fail(function() {
-        $('#ip-address').text('Your IP: Not available');
+        $ipAddressSpan.text('Your IP: Not available').css('cursor', 'default');
     });
 
     // --- Theme Switcher ---

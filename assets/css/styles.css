@@ -1,0 +1,20 @@
+/*
+ * Shared styles for the Trading Tools website
+ */
+
+/* Add padding to the body to account for the fixed header and navbar */
+body {
+    padding-top: 7rem;
+    padding-bottom: 2rem;
+}
+
+/* Custom dark background for the navbar for better contrast */
+.bg-custom-dark {
+    background-color: #111111 !important;
+}
+
+/* General styling for Google Material Symbols to align them better */
+.material-symbols-outlined {
+    vertical-align: text-bottom;
+    font-size: 1.15em;
+}

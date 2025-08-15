@@ -1,125 +1,218 @@
-
-<!doctype html>
-
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
 <head>
-  <meta charset="utf-8">
-
-  <title>VAT Calculator</title>
-  <meta name="description" content="">
-  <meta name="author" content="">
-
-  <link rel="stylesheet" href="css/styles.css">
-
-  <!--[if lt IE 9]>
-  <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-  <![endif]-->
-  
-  <!-- credit: http://www.ssdtutorials.com/tutorials/title/vat-calculator.html -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VAT Calculator</title>
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Google Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <style>
+        .container { max-width: 800px; }
+        .btn-copy {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s ease-in-out;
+            vertical-align: middle;
+            line-height: 1;
+        }
+        .btn-copy:hover {
+            opacity: 1;
+        }
+        .btn-copy .material-symbols-outlined {
+            transition: color 0.3s ease, transform 0.3s ease;
+            font-size: 1rem;
+        }
+        .btn-copy.is-copied .material-symbols-outlined {
+            transform: scale(1.25);
+        }
+    </style>
 </head>
-
 <body>
+    <div id="header-placeholder"></div>
+    <div id="navbar-placeholder"></div>
+    <div class="container">
+        <h1 class="mb-4 text-center">VAT Calculator</h1>
+        <p class="text-center text-muted mb-4">Calculate VAT amounts and totals from a net or gross figure.</p>
 
+        <div class="card">
+            <div class="card-body">
+                <form id="vat-calculator-form" onsubmit="return false;">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="amount" class="form-label">Amount</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control form-control-lg" id="amount" step="any" placeholder="e.g. 100">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="tax" class="form-label">VAT/Tax Rate (%)</label>
+                            <select class="form-select form-select-lg mb-2" id="tax">
+                                <option value="30">30%</option>
+                                <option value="20" selected>20%</option>
+                                <option value="17.5">17.5%</option>
+                                <option value="15">15%</option>
+                            </select>
+                            <div class="text-center text-muted small my-1">or</div>
+                            <input type="number" class="form-control form-control-lg" id="tax-manual" step="any" placeholder="Enter custom rate">
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="tax-included">
+                            <label class="form-check-label" for="tax-included">Amount includes VAT</label>
+                        </div>
+                        <button type="button" class="btn btn-outline-secondary" id="reset-btn">Reset</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
-<form id="calculator" method="post">
-    
-    <table class="tbl_insert">
-        <tr>
-            <th><label for="amount">Amount:</label></th>
-            <td>
-                <input type="number" name="amount" id="amount" value="" class="field" />
-            </td>
-        </tr>
-        <tr>
-            <th><label for="tax_included">Vat included?:</label></th>
-            <td>
-                <input type="checkbox" name="tax_included" id="tax_included" />
-            </td>
-        </tr>
-        <tr>
-            <th><label for="tax">VAT/Tax rate:</label></th>
-            <td>
-                <select name="tax" id="tax" class="select">
-                    <option value="30">30%</option>
-                    <option value="20">20%</option>
-                    <option value="17.5">17.5%</option>
-                    <option value="15">15%</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <th><label for="tax_amount">VAT/Tax:</label></th>
-            <td>
-                <input type="text" name="tax_amount" id="tax_amount" 
-                    value="0.00" class="field" disabled="disabled" />
-            </td>
-        </tr>
-        <tr>
-            <th><label for="total_amount">Total:</label></th>
-            <td>
-                <input type="text" name="total_amount" id="total_amount" 
-                    value="0.00" class="field" disabled="disabled" />
-            </td>
-        </tr>
-    </table>
-    
-</form>
+        <div id="results-container" class="mt-4" style="display: none;">
+            <div class="row g-3 text-center">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted d-flex justify-content-center align-items-center">
+                                <span>VAT/Tax Amount</span>
+                                <button type="button" class="btn-copy ms-2" data-copy-target="#result-tax-amount" title="Copy VAT Amount">
+                                    <span class="material-symbols-outlined">content_copy</span>
+                                </button>
+                            </h6>
+                            <p class="card-text fs-4"><span class="text-muted small me-1">$</span><span id="result-tax-amount">-</span></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted d-flex justify-content-center align-items-center">
+                                <span>Total Amount</span>
+                                <button type="button" class="btn-copy ms-2" data-copy-target="#result-total-amount" title="Copy Total Amount">
+                                    <span class="material-symbols-outlined">content_copy</span>
+                                </button>
+                            </h6>
+                            <p class="card-text fs-4"><span class="text-muted small me-1">$</span><span id="result-total-amount">-</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-
-<script>
-var calcObject = {
-	amountNull : '0.00',
-	amountTax : '0.00',
-	amountTotal : '0.00',
-	run : function() {
-		var amount = $('#amount').val();
-		var tax  = $('#tax').val();
-		var included = $('#tax_included').is(':checked');
-		if (amount !== '' && tax !== '') {
-			if (included) {
-				var amountNew = amount / ((tax / 100) + 1);
-				calcObject.amountTax = parseFloat(amount) - parseFloat(amountNew);
-				calcObject.amountTotal = amountNew.toFixed(2);
-			} else {
-				calcObject.amountTax = (amount * tax) / 100;
-				calcObject.amountTotal = parseFloat(amount) + parseFloat(calcObject.amountTax);
-			}
-			$('#tax_amount').val(parseFloat(calcObject.amountTax).toFixed(2));
-			$('#total_amount').val(parseFloat(calcObject.amountTotal).toFixed(2));
-		} else {
-			$('#tax_amount').val(calcObject.amountNull);
-			$('#total_amount').val(calcObject.amountNull);
-		}
-	}
-};
-$(function() {
-
-	$('#amount').keyup(function() {
-		calcObject.run();
-	});
-	
-	$('#tax_included').click(function() {
-		calcObject.run();
-	});
-	
-	$('#tax').change(function() {
-		calcObject.run();
-	});
-
-});
-</script>
+    <!-- jQuery 3.7.1 -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <!-- Bootstrap 5.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Shared Header Script -->
+    <script src="/assets/js/header.js"></script>
 
     <script>
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+        $(document).ready(function() {
+            // Load and initialize header
+            $("#header-placeholder").load("/assets/includes/_header.html?v=" + new Date().getTime(), function() {
+                initializeHeader();
+            });
+            // Load navbar
+            $("#navbar-placeholder").load("/assets/includes/_navbar.html?v=" + new Date().getTime());
 
-      ga('create', 'UA-1897149-9', 'auto');
-      ga('send', 'pageview');
+            // --- Element Selectors ---
+            const $amount = $('#amount');
+            const $taxSelect = $('#tax');
+            const $taxManual = $('#tax-manual');
+            const $taxIncluded = $('#tax-included');
+            const $resultsContainer = $('#results-container');
+            const $resultTaxAmount = $('#result-tax-amount');
+            const $resultTotalAmount = $('#result-total-amount');
 
+            // --- Calculation Logic ---
+            function calculateAndDisplay() {
+                const amount = parseFloat($amount.val());
+                const manualRate = parseFloat($taxManual.val());
+                const selectedRate = parseFloat($taxSelect.val());
+                const isIncluded = $taxIncluded.is(':checked');
+
+                // Prioritize manual rate if it's a valid number
+                const taxRate = !isNaN(manualRate) && manualRate > 0 ? manualRate : selectedRate;
+
+                if (isNaN(amount) || isNaN(taxRate)) {
+                    $resultsContainer.hide();
+                    return;
+                }
+
+                $resultsContainer.show();
+
+                let taxAmount = 0;
+                let totalAmount = 0;
+
+                if (isIncluded) {
+                    // Amount already includes VAT. Calculate the original net amount and the VAT portion.
+                    const netAmount = amount / ((taxRate / 100) + 1);
+                    taxAmount = amount - netAmount;
+                    totalAmount = amount;
+                } else {
+                    // Amount is the net value. Calculate the VAT and add it.
+                    taxAmount = (amount * taxRate) / 100;
+                    totalAmount = amount + taxAmount;
+                }
+                
+                $resultTaxAmount.text(taxAmount.toFixed(2));
+                $resultTotalAmount.text(totalAmount.toFixed(2));
+            }
+
+            // --- Event Handlers ---
+            $('#vat-calculator-form input, #vat-calculator-form select').on('input change', calculateAndDisplay);
+
+            // Clear manual input when select is used and vice-versa for a better UX
+            $taxSelect.on('change', function() {
+                $taxManual.val('');
+            });
+
+            $taxManual.on('input', function() {
+                if ($(this).val()) {
+                    // Reset select to a non-value state to avoid confusion
+                    $taxSelect.val($taxSelect.find('option:first').val()).prop('selected', false);
+                }
+            });
+
+            // Reset button
+            $('#reset-btn').on('click', function() {
+                $('#vat-calculator-form')[0].reset();
+                $taxSelect.val('20'); // Reset select to default
+                $resultsContainer.hide();
+            });
+
+            // Copy button handler
+            $('.btn-copy').on('click', function() {
+                const $button = $(this);
+                const targetId = $button.data('copy-target');
+                const valueToCopy = $(targetId).text();
+                const icon = $button.find('.material-symbols-outlined');
+
+                if (valueToCopy && valueToCopy !== '-' && navigator.clipboard && !$button.hasClass('is-copied')) {
+                    navigator.clipboard.writeText(valueToCopy).then(() => {
+                        $button.addClass('is-copied');
+                        icon.addClass('text-success');
+                        setTimeout(() => {
+                            $button.removeClass('is-copied');
+                            icon.removeClass('text-success');
+                        }, 1200);
+                    }).catch(err => {
+                        console.error('Failed to copy to clipboard: ', err);
+                    });
+                }
+            });
+            
+            // Initial calculation on load if there are values
+            calculateAndDisplay();
+        });
     </script>
-
 </body>
 </html>
