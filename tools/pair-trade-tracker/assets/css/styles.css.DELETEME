@@ -1,0 +1,110 @@
+/**
+  *
+  * pair trades tracker
+ */
+
+/* Make table inputs a bit wider for better visibility */
+.trade-input {
+    min-width: 100px;
+}
+
+/* Ensure dropdowns in the table don't overflow */
+.trade-select {
+    min-width: 120px;
+}
+
+/* Increase specificity to override Bootstrap's default focus styles without !important */
+.form-control.is-invalid,
+.form-select.is-invalid {
+    border-color: var(--bs-danger);
+}
+
+.delete-trade-btn .material-symbols-outlined {
+    font-size: 1rem;
+    vertical-align: text-bottom;
+    pointer-events: none; /* Prevents icon from capturing click */
+}
+
+/* Style for initial quantity inputs */
+#config-stock-a-qty[readonly], #config-stock-b-qty[readonly] {
+    cursor: text;
+    background-color: var(--bs-secondary-bg);
+}
+
+
+/* collapse elements */
+.collapse-chevron {
+    transition: transform 300ms ease-in-out;
+}
+
+/* utility classes */
+.clickable {
+    cursor: pointer;
+}
+
+h6[aria-expanded="true"] .collapse-chevron {
+    transform: rotate(90deg);
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease-in-out;
+    vertical-align: middle;
+}
+
+.icon-btn:hover { opacity: 1; }
+
+.notes-row > td {
+    background-color: var(--bs-tertiary-bg);
+}
+
+textarea.notes-editor[readonly] {
+    cursor: text;
+    background-color: var(--bs-tertiary-bg); /* Match the row background */
+    resize: none;
+}
+
+/* custom thead dark */
+.thead-custom-dark {
+    background-color: var(--bs-gray-900); /* A standard "almost black" */
+    color: var(--bs-white);
+    border-color: var(--bs-gray-700);
+}
+
+/* Toast header styling based on data attribute */
+#app-toast[data-toast-type="error"] .toast-header {
+    background-color: var(--bs-danger);
+    color: var(--bs-white);
+}
+
+#app-toast[data-toast-type="success"] .toast-header {
+    background-color: var(--bs-success);
+    color: var(--bs-white);
+}
+
+/* Date sort icon hover effect */
+.sort-icon {
+    /* Use Bootstrap's variable for a muted text color */
+    color: var(--bs-secondary-color);
+    transition: color 0.15s ease-in-out;
+}
+
+#date-header:hover .sort-icon {
+    color: var(--bs-body-color);
+}
+
+/* table striping */
+
+/* Apply the striped color to the 'odd' trade rows */
+#trade-log-table tbody tr.trade-row-odd > td {
+    background-color: var(--bs-table-striped-bg);
+}
+
+/* Apply a hover color to any trade row, which will correctly override the stripe color */
+#trade-log-table tbody tr:hover > td {
+    background-color: var(--bs-table-hover-bg);
+}

@@ -1,1 +1,25 @@
+- [x] the shared footer is missing from the home index file. the footer is required to trigger cache busting
+- [x] creating a new pair sets the initial quantity to 0. This means no trades can be added because there are no shares to swap. Need alert if QTY = 0 to set actual QTY in Pair Configuration collapse element
+- [ ] when the user presses enter on the Add Trade form, submit the form the same as is actioned by the Save button (validate first?)
+- [ ] ISSUE - MSTR/TSLA - if sell at a loss, the system doesn't allow the actual number repurchased to be entered as lower than the auto calculated value - how to workaround this?
+- [x] the Close Trade Position modal has a section for Swap To stock with a Price input field #close-to-price. add a Ratio column with div element to show the closing ratio. dynamically update the ratio on each keypress
+- [ ] cache busting version does not appear in css or js asset link/script tags. see call at end of header.js
+        // Apply versioning to assets for cache busting first.
+        applyCacheBusting();
+- [x] update the buttons for close and delete from buttons to the same style as the .notes-icon-btn, that is the slim profile icon without the actual button. the delete icon should be red.
+- [x] when adding a new pair, the pair name field is first. rearrange the order so the stock ticker fields are first, then the pair name field. as the user types in the ticker fields buld the pair name dynamically in the pair name field
+      in the format STOCK--TICKER/STOCK-B-TICKER. allow the user to adjust the name, if they do, stop dynamically building the pair name so their changes are preserved
+
+- [ ] there is no allowance for Crypto tickers at this time - figure option to map crypto names to tickrs eg. SOL > SOLUSD and use these to fetch live prices. Or use to ignore price for Crypto tickers
+
+
+- [ ] curency converter
+      - how is currency dropdown populated
+      - set gbp as default from and usd as default to
+- [x] BUG - dismiss privacy notice icon does not hide the notice
+- [x] update Global Settings from standalone page to modal window that opens over the current page
 - [x] move shared css to separate file in /assets/css/styles.css
+
+
+- [ ] find an option to limit access to the google drive files
+    - specified users only by gmail address

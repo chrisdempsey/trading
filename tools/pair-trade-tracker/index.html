@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Pair Trade Tracker</title>
+    <!-- Bootstrap 5.3.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Google Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="/trading/assets/css/styles.css">
+</head>
+<body class="mb-5 pb-5">
+    <div id="header-placeholder"></div>
+    <div id="navbar-placeholder"></div>
+
+    <main class="container mt-4">
+        <h1 class="mb-3">Pair Trade Tracker</h1>
+
+        <!-- Pair Management -->
+        <section id="pair-management" class="mb-4 p-3 border rounded bg-body-tertiary">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <label for="pair-selector" class="form-label fw-bold">Trade Pair:</label>
+                    <select id="pair-selector" class="form-select"></select>
+                </div>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    <div class="d-flex justify-content-md-end gap-2">
+                    <button id="delete-pair-btn" class="btn btn-outline-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete selected pair" aria-label="Delete selected pair">
+                            <span class="material-symbols-outlined icon-inline-sm">delete</span>
+                        </button>
+                    <button id="new-pair-btn" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#pair-config-modal">
+                            <span class="material-symbols-outlined icon-inline-sm">add</span>
+                            New Pair
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- Pair Configuration -->
+            <div id="pair-configuration" class="mt-2 d-none">
+                <h6 class="text-muted d-flex align-items-center mb-2 clickable" data-bs-toggle="collapse" data-bs-target="#pair-configuration-content" aria-expanded="false" aria-controls="pair-configuration-content">
+                    <span>Configuration</span>
+                    <span class="material-symbols-outlined collapse-chevron ms-2">chevron_forward</span>
+                </h6>
+                <div id="pair-configuration-content" class="collapse">
+                    <div class="p-3 border rounded bg-body-secondary">
+                        <div class="row">
+                             <div class="col-md-6">
+                                <label for="config-stock-a-qty" class="form-label" id="config-stock-a-label">Stock A Initial Qty</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="config-stock-a-qty" min="0" step="any" readonly>
+                                </div>
+                             </div>
+                             <div class="col-md-6 mt-2 mt-md-0">
+                                <label for="config-stock-b-qty" class="form-label" id="config-stock-b-label">Stock B Initial Qty</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="config-stock-b-qty" min="0" step="any" readonly>
+                                </div>
+                             </div>
+                        </div>
+                        <div class="form-text mt-2">Note: double click to edit the quantity fields.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content Area -->
+        <div id="main-content" class="d-none">
+            <!-- Current Holdings -->
+            <section id="current-holdings-section" class="mb-4">
+                <h3 class="mb-3 clickable d-flex align-items-center" data-bs-toggle="collapse" data-bs-target="#current-holdings-collapse" aria-expanded="true" aria-controls="current-holdings-collapse">
+                    <span>Current Holdings</span>
+                    <span class="material-symbols-outlined collapse-chevron ms-2">chevron_forward</span>
+                </h3>
+                <div id="current-holdings-collapse" class="collapse show">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row text-center align-items-center">
+                                <div class="col-md-4 border-end">
+                                    <h5 id="holdings-stock-a-ticker" class="card-title text-muted">--</h5>
+                                    <p id="holdings-stock-a-qty" class="card-text fs-4 fw-bold">0</p>
+                                    <p id="holdings-stock-a-value" class="card-text text-muted small">&nbsp;</p>
+                                </div>
+                                <div class="col-md-4 border-end">
+                                    <h5 id="holdings-stock-b-ticker" class="card-title text-muted">--</h5>
+                                    <p id="holdings-stock-b-qty" class="card-text fs-4 fw-bold">0</p>
+                                    <p id="holdings-stock-b-value" class="card-text text-muted small">&nbsp;</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <h5 class="card-title text-muted text-uppercase">Total Value</h5>
+                                    <p id="holdings-total-value" class="card-text fs-4 fw-bold">$0.00</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Trade Log -->
+            <section id="trades-section" class="mb-4">
+                <h3 class="mb-3">Trades</h3>
+
+                <h4 class="mt-4">Add Trade</h4>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle" id="new-trade-table">
+                        <thead class="thead-custom-dark align-middle">
+                            <tr>
+                                <th></th>
+                                <th colspan="3" class="text-center" id="new-trade-swap-from-header">Swap From</th>
+                                <th colspan="3" class="text-center" id="new-trade-swap-to-header">Swap To</th>
+                                <th class="text-center">Tools</th>
+                            </tr>
+                            <tr>
+                                <th>Date</th>
+                                <th>Direction</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Ratio</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="new-trade-body">
+                            <!-- New trade row will be rendered here by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <h4 class="mt-4">Trade Log</h4>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle" id="trade-log-table">
+                        <thead class="thead-custom-dark align-middle">
+                            <tr>
+                                <th rowspan="2" class="text-center align-middle">Trade #</th>
+                                <th colspan="4" class="text-center">Swap From</th>
+                                <th colspan="3" class="text-center">Swap To</th>
+                                <th rowspan="2" class="text-center align-middle">Actions + Outcome</th>
+                            </tr>
+                            <tr>
+                                <th id="date-header" class="clickable" title="Click to sort by date">Date <span id="date-sort-icon" class="ms-1"></span></th>
+                                <th>Direction</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th class="text-center">Ratio</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trade-log-body">
+                            <!-- Existing trades will be rendered here by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Collapsible Sections Toggles -->
+            <div class="d-flex align-items-center gap-4 mt-4">
+                <h6 class="text-muted d-flex align-items-center mb-0 clickable" data-bs-toggle="collapse" data-bs-target="#performance-collapse" aria-expanded="false" aria-controls="performance-collapse">
+                    <span>Outcome &amp; Performance</span>
+                    <span class="material-symbols-outlined collapse-chevron ms-2">chevron_forward</span>
+                </h6>
+                <h6 class="text-muted d-flex align-items-center mb-0 clickable" data-bs-toggle="collapse" data-bs-target="#settings-collapse" aria-expanded="false" aria-controls="settings-collapse">
+                    <span>Settings</span>
+                    <span class="material-symbols-outlined collapse-chevron ms-2">chevron_forward</span>
+                </h6>
+                <h6 class="text-muted d-flex align-items-center mb-0 clickable" data-bs-toggle="collapse" data-bs-target="#data-management-collapse" aria-expanded="false" aria-controls="data-management-collapse">
+                    <span>Data Management</span>
+                    <span class="material-symbols-outlined collapse-chevron ms-2">chevron_forward</span>
+                </h6>
+            </div>
+
+            <!-- Outcome &amp; Performance Content -->
+            <div id="main-accordion">
+                <div class="collapse" id="performance-collapse" data-bs-parent="#main-accordion">
+                    <div class="p-3 border rounded mt-2">
+                        <h5 class="mb-3">Outcome &amp; Performance</h5>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Started With</h5>
+                                        <div id="initial-state">
+                                            <p class="card-text text-muted">Configure a pair to see starting values.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Currently Have</h5>
+                                        <div id="current-state">
+                                            <p class="card-text text-muted">No trades logged yet.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Performance Metrics</h5>
+                                        <div id="performance-metrics">
+                                             <p class="card-text text-muted">Awaiting trade data for calculations.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Content -->
+                <div class="collapse" id="settings-collapse" data-bs-parent="#main-accordion">
+                    <div class="p-3 border rounded mt-2">
+                        <h5 class="mb-3">Settings</h5>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="fractional-shares-switch" />
+                            <label class="form-check-label" for="fractional-shares-switch">Allow Fractional Shares</label>
+                        </div>
+                        <p class="text-muted small mt-2">API Cache status: <span id="api-cache-status" class="fw-bold"></span></p>
+                    </div>
+                </div>
+
+                <!-- Data Management Content -->
+                <div class="collapse" id="data-management-collapse" data-bs-parent="#main-accordion">
+                    <div class="p-3 border rounded mt-2">
+                        <h5 class="mb-3">Data Management</h5>
+                        <div class="d-flex gap-3 flex-wrap justify-content-between align-items-start">
+                            <div>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <button id="export-csv-btn" class="btn btn-outline-secondary">
+                                        <span class="material-symbols-outlined icon-inline-sm">download</span>
+                                        Export to CSV
+                                    </button>
+                                    <label for="import-csv-input" class="btn btn-outline-secondary">
+                                        <span class="material-symbols-outlined icon-inline-sm">upload</span>
+                                        Import from CSV
+                                    </label>
+                                    <input type="file" id="import-csv-input" class="d-none" accept=".csv">
+                                </div>
+                                <div class="form-text mt-2">Export the current trading pair to CSV or import a backup of the current trading pair.</div>
+                            </div>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button id="add-demo-data-btn" class="btn btn-outline-info" data-bs-toggle="tooltip" title="Adds test data to this trade pair">
+                                    <span class="material-symbols-outlined icon-inline-sm">auto_stories</span>
+                                    Add Demo Data
+                                </button>
+                                <button id="clear-log-btn" class="btn btn-outline-danger">
+                                    <span class="material-symbols-outlined icon-inline-sm">playlist_remove</span>
+                                    Clear Trade Log
+                                </button>
+                                <button id="clear-db-btn" class="btn btn-danger">
+                                    <span class="material-symbols-outlined icon-inline-sm">delete_forever</span>
+                                    Clear Database
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Welcome Message -->
+        <div id="welcome-message" class="text-center p-5 border rounded bg-body-tertiary">
+            <h2>Pair Trade Tracker</h2>
+            <p class="lead text-muted">To get started, please create a new trading pair.</p>
+            <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#pair-config-modal">Create your first pair</button>
+            <p class="text-muted mt-5"><strong>Note</strong>: you can export your data as a backup to prevent loss</p>
+        </div>
+
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <!-- New Pair Configuration Modal -->
+    <div class="modal fade" id="pair-config-modal" tabindex="-1" aria-labelledby="pairConfigModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="pairConfigModalLabel">Configure New Trading Pair</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="new-pair-form">
+                        <div class="row">
+                            <!-- Stock A Column -->
+                            <div class="col-6 border-end pe-3">
+                                <h5 class="text-center text-muted">Stock A</h5>
+                                <div class="mb-3">
+                                    <label for="stock-a-ticker" class="form-label">Ticker</label>
+                                    <input type="text" class="form-control text-uppercase" id="stock-a-ticker" placeholder="MSTR" required>
+                                </div>
+                                <div>
+                                    <label for="stock-a-initial-qty" class="form-label">Initial Quantity</label>
+                                    <input type="number" class="form-control" id="stock-a-initial-qty" placeholder="0" min="0" step="any">
+                                </div>
+                            </div>
+                            <!-- Stock B Column -->
+                            <div class="col-6 ps-3">
+                                <h5 class="text-center text-muted">Stock B</h5>
+                                <div class="mb-3">
+                                    <label for="stock-b-ticker" class="form-label">Ticker</label>
+                                    <input type="text" class="form-control text-uppercase" id="stock-b-ticker" placeholder="TSLA" required>
+                                </div>
+                                <div>
+                                    <label for="stock-b-initial-qty" class="form-label">Initial Quantity</label>
+                                    <input type="number" class="form-control" id="stock-b-initial-qty" placeholder="0" min="0" step="any">
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-12 mt-2">
+                                <label for="pair-name" class="form-label">Pair Name</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="pair-name" placeholder="" required>
+                                    <span id="reset-pair-name-btn" class="input-group-text" data-bs-toggle="tooltip" title="Reset to auto-generated name" style="cursor: pointer;">
+                                        <span class="material-symbols-outlined">restart_alt</span>
+                                    </span>
+                                </div>
+                                <div class="form-text">This is generated automatically but can be overridden.</div>
+                            </div>
+                        </div>
+                        <div class="form-check mt-3">
+                            <input class="form-check-input" type="checkbox" id="add-demo-data-checkbox">
+                            <label class="form-check-label" for="add-demo-data-checkbox">
+                                Add test data
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" id="save-pair-btn" class="btn btn-primary">Save Pair</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generic Confirmation Modal -->
+    <div class="modal fade" id="confirm-action-modal" tabindex="-1" aria-labelledby="confirmActionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="confirm-action-modal-title">Confirm Action</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="confirm-action-modal-body">
+                    <!-- Dynamic content here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="confirm-action-btn" class="btn btn-danger">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Close Trade Modal -->
+    <div class="modal fade" id="close-trade-modal" tabindex="-1" aria-labelledby="closeTradeModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="closeTradeModalLabel">Close Trade Position</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="close-trade-form">
+                        <input type="hidden" id="close-trade-id">
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <label for="close-date" class="form-label">Close Date</label>
+                                <input type="date" class="form-control" id="close-date" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <p class="fw-bold">Swap From: <span id="close-from-ticker-label"></span></p>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label for="close-from-qty" class="form-label">Qty</label>
+                                <input type="number" class="form-control" id="close-from-qty" min="0" step="any" required>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label for="close-from-price" class="form-label">Price</label>
+                                <input type="number" class="form-control" id="close-from-price" min="0" step="0.01" required>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row align-items-end">
+                            <div class="col-12">
+                                <p class="fw-bold">Swap To: <span id="close-to-ticker-label"></span></p>
+                            </div>
+                            <div class="col-8 mb-3">
+                                <label for="close-to-price" class="form-label">Price</label>
+                                <input type="number" class="form-control" id="close-to-price" min="0" step="0.01" required>
+                            </div>
+                            <div class="col-4 mb-3">
+                                <label class="form-label">Ratio</label>
+                                <div id="close-trade-ratio" class="form-control-plaintext text-center fw-bold pb-1">&nbsp;</div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="confirm-close-trade-btn" class="btn btn-primary">Confirm Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container for notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="app-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto" id="toast-title">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toast-body">
+                <!-- Message here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery 3.7.1 -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <!-- Bootstrap 5.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Shared Header Script -->
+    <script src="/trading/assets/js/header.js"></script>
+    <!-- Global Config & API Helper -->
+    <script src="/trading/assets/js/config.js"></script>
+    <script src="/trading/assets/js/alpaca-api.js"></script>
+    <!-- App Logic -->
+    <script src="/trading/assets/js/app--pair-trades-tracker.js"></script>
+
+</body>
+</html>

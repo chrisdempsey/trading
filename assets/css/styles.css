@@ -18,3 +18,205 @@ body {
     vertical-align: text-bottom;
     font-size: 1.15em;
 }
+
+
+/**
+  *
+  * pair trades tracker
+ */
+
+/* Make table inputs a bit wider for better visibility */
+.trade-input {
+    min-width: 100px;
+}
+
+/* Ensure dropdowns in the table don't overflow */
+.trade-select {
+    min-width: 120px;
+}
+
+/* Increase specificity to override Bootstrap's default focus styles without !important */
+.form-control.is-invalid,
+.form-select.is-invalid {
+    border-color: var(--bs-danger);
+}
+
+.delete-trade-btn .material-symbols-outlined {
+    font-size: 1rem;
+    vertical-align: text-bottom;
+    pointer-events: none; /* Prevents icon from capturing click */
+}
+
+/* Add a hover effect to the delete icon */
+.delete-trade-btn .material-symbols-outlined.text-danger {
+    transition: color 300ms ease-in-out;
+}
+
+.delete-trade-btn:hover .material-symbols-outlined.text-danger {
+    /* A lighter, less intense red. Using !important to override .text-danger */
+    color: #E57373 !important;
+}
+
+/* Style for initial quantity inputs */
+#config-stock-a-qty[readonly], #config-stock-b-qty[readonly] {
+    cursor: text;
+    background-color: var(--bs-secondary-bg);
+}
+
+
+/* collapse elements */
+.collapse-chevron {
+    transition: transform 300ms ease-in-out;
+}
+
+/* utility classes */
+.clickable {
+    cursor: pointer;
+}
+
+[data-bs-toggle="collapse"][aria-expanded="true"] .collapse-chevron {
+    transform: rotate(90deg);
+}
+
+.asset-swap-calculator-page [data-bs-toggle="tooltip"] {
+    cursor: help;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease-in-out;
+    vertical-align: middle;
+}
+
+.icon-btn:hover { opacity: 1; }
+
+.notes-row > td {
+    background-color: var(--bs-tertiary-bg);
+}
+
+textarea.notes-editor[readonly] {
+    cursor: text;
+    background-color: var(--bs-tertiary-bg); /* Match the row background */
+    resize: none;
+}
+
+/* custom thead dark */
+.thead-custom-dark {
+    background-color: var(--bs-gray-900); /* A standard "almost black" */
+    color: var(--bs-white);
+    border-color: var(--bs-gray-700);
+}
+
+/* Toast header styling based on data attribute */
+#app-toast[data-toast-type="error"] .toast-header {
+    background-color: var(--bs-danger);
+    color: var(--bs-white);
+}
+
+#app-toast[data-toast-type="success"] .toast-header {
+    background-color: var(--bs-success);
+    color: var(--bs-white);
+}
+
+/* Date sort icon hover effect */
+.sort-icon {
+    /* Use Bootstrap's variable for a muted text color */
+    color: var(--bs-secondary-color);
+    transition: color 0.15s ease-in-out;
+}
+
+#date-header:hover .sort-icon {
+    color: var(--bs-body-color);
+}
+
+/* Improve UX for in-line editable cells in Pair Trade Tracker */
+.editable-cell {
+    cursor: default;
+}
+
+/* Custom striping for trade log to handle multi-row trades */
+/* Apply striped color only to the main trade rows, ignoring notes rows */
+#trade-log-table tbody tr.trade-row-odd.leg-row > td,
+#trade-log-table tbody tr.trade-row-odd.legacy-trade > td {
+    background-color: var(--bs-table-striped-bg);
+}
+
+/* Apply a hover color to all rows in a trade group when hovered */
+#trade-log-table tbody tr.trade-hover > td {
+    background-color: var(--bs-table-hover-bg);
+}
+
+/* Styling for the settings icon in the header */
+.settings-icon {
+    color: #adb5bd; /* A light, muted grey */
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+}
+
+.settings-icon:hover {
+    color: #fff; /* White on hover */
+}
+
+.settings-icon .material-symbols-outlined {
+    font-size: 20px; /* Makes the icon slightly smaller and more subtle */
+}
+
+/**
+  *
+  * Asset Swap Calculator page styles
+ */
+.asset-swap-calculator-page .container {
+    max-width: 800px;
+}
+
+.asset-swap-calculator-page .error-message {
+    display: none; /* Hidden by default */
+}
+
+.asset-swap-calculator-page .tooltip {
+    --bs-tooltip-max-width: 350px;
+}
+
+.asset-swap-calculator-page #copy-ratio-btn,
+.asset-swap-calculator-page #copy-log-btn,
+.asset-swap-calculator-page #swap-button {
+    opacity: 0.6;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.asset-swap-calculator-page #copy-ratio-btn:hover,
+.asset-swap-calculator-page #copy-log-btn:hover,
+.asset-swap-calculator-page #swap-button:hover {
+    opacity: 1;
+}
+
+.asset-swap-calculator-page #copy-ratio-btn.is-copied .material-symbols-outlined,
+.asset-swap-calculator-page #copy-log-btn.is-copied .material-symbols-outlined {
+    transform: scale(1.25);
+}
+
+/* Styling for the close icon in the shared footer notice */
+.footer-close-icon {
+    font-size: 1rem;
+    vertical-align: middle;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.footer-close-icon:hover {
+    opacity: 1;
+}
+
+/* Creates a clean, borderless gap between trade groups in the log */
+.trade-spacer-row td {
+    border: none;
+    padding: 0;
+    height: 1.5rem;
+}

@@ -1,3 +1,4 @@
+
 <!--
 
 TODO
@@ -11,6 +12,7 @@ TODO
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
     <title>Stock Swap Calculator</title>
     <!-- Bootstrap 5.3 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
@@ -18,54 +20,8 @@ TODO
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <!-- Shared Styles -->
     <link rel="stylesheet" href="/trading/assets/css/styles.css">
-    <style>
-        .container { max-width: 800px; }
-        .error-message {
-            display: none; /* Hidden by default */
-        }
-        .tooltip {
-            --bs-tooltip-max-width: 350px; /* Increase tooltip width */
-        }
-        #copy-ratio-btn, #copy-log-btn {
-            /* Reset button styles to be just an icon */
-            background: none;
-            border: none;
-            padding: 0;
-            cursor: pointer;
-            /* Styling */
-            opacity: 0.6;
-            transition: opacity 0.2s ease-in-out;
-            vertical-align: middle;
-            line-height: 1;
-        }
-        #copy-ratio-btn:hover, #copy-log-btn:hover {
-            opacity: 1;
-        }
-        #copy-ratio-btn .material-symbols-outlined, #copy-log-btn .material-symbols-outlined {
-            transition: color 0.3s ease, transform 0.3s ease;
-        }
-        #copy-ratio-btn.is-copied .material-symbols-outlined, #copy-log-btn.is-copied .material-symbols-outlined {
-            transform: scale(1.25);
-        }
-        #swap-button {
-            opacity: 0.6;
-            transition: opacity 0.2s ease-in-out;
-        }
-        #swap-button:hover {
-            opacity: 1;
-        }
-        [data-bs-toggle="tooltip"] {
-            cursor: help;
-        }
-        .collapse-chevron {
-            transition: transform 300ms ease-in-out;
-        }
-        h6[aria-expanded="true"] .collapse-chevron {
-            transform: rotate(90deg);
-        }
-    </style>
 </head>
-<body>
+<body class="asset-swap-calculator-page">
     <div id="header-placeholder"></div>
     <div id="navbar-placeholder"></div>
     <div class="container">
@@ -150,18 +106,25 @@ TODO
                             </div>
                         </div>
                         <div class="row g-3 mb-3">
-                            <div class="col-12">
+                            <div class="col-6">
                                 <label for="buy-price" class="form-label">Price</label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
                                     <input type="number" class="form-control" id="buy-price" placeholder="Enter Price" step="0.01">
                                 </div>
                             </div>
+                            <div class="col-6">
+                                <label for="buy-quantity" class="form-label">Quantity</label>
+                                <input type="number" class="form-control" id="buy-quantity" min="0" step="any" placeholder="Calculated" disabled>
+                            </div>
                         </div>
                         <div class="row g-3">
                             <div class="col-12">
-                                <label for="buy-available" class="form-label">Available to Buy</label>
-                                <input type="text" class="form-control" id="buy-available" disabled>
+                                <label for="buy-total" class="form-label">Total Value</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="text" class="form-control" id="buy-total" disabled>
+                                </div>
                                 <div class="form-text mt-2" id="ratio-achieved-container" style="display: none;">
                                     <div class="d-flex align-items-center">
                                         <span><span id="ratio-label">Swap Ratio</span>: <strong id="ratio-achieved"></strong></span>
@@ -170,6 +133,13 @@ TODO
                                         </button>
                                     </div>
                                 </div>
+                                <div class="form-text mt-2" id="cash-remainder-container" style="display: none;">
+                                    <span>Cash Remainder: <strong id="cash-remainder"></strong></span>
+                                </div>
+                                <!-- Scalp Mode Warning -->
+                                <div id="scalp-mode-warning" class="alert alert-warning p-2 mt-2 d-none" role="alert">
+                                    <small><span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: text-bottom;">warning</span> Total buy cost exceeds sell value. This trade requires additional cash.</small>
+                                </div>
                             </div>
                         </div>
                     </fieldset>
@@ -177,8 +147,8 @@ TODO
             </div>
 
             <!-- Action Buttons & Toggles -->
-            <div class="d-flex justify-content-between align-items-center mt-4">
-                <div class="d-flex align-items-center gap-4"> <!-- Toggles on the left -->
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 gap-3 gap-md-0">
+                <div class="d-flex align-items-center gap-4 order-md-1 order-2"> <!-- Toggles on the left -->
                     <h6 class="text-muted d-flex align-items-center mb-0" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#transaction-log-collapse" aria-expanded="false" aria-controls="transaction-log-collapse">
                         <span>Transaction Log</span>
                         <span class="material-symbols-outlined collapse-chevron ms-2">chevron_forward</span>
@@ -188,7 +158,7 @@ TODO
                         <span class="material-symbols-outlined collapse-chevron ms-2">chevron_forward</span>
                     </h6>
                 </div>
-                <div id="action-buttons-container" class="d-grid gap-2 d-md-flex"> <!-- Buttons on the right -->
+                <div id="action-buttons-container" class="d-grid gap-2 d-md-flex order-md-2 order-1 w-100 w-md-auto"> <!-- Buttons on the right -->
                     <button type="button" class="btn btn-outline-secondary btn-lg" id="reset-btn">Reset</button>
                     <button type="submit" class="btn btn-primary btn-lg" id="calculate-btn">Calculate</button>
                 </div>
@@ -197,11 +167,14 @@ TODO
             <!-- Transaction Log Content -->
             <div id="transaction-log-container">
                 <div class="collapse" id="transaction-log-collapse">
-                    <div class="border rounded p-3 mt-2 d-flex justify-content-between align-items-center">
-                        <span id="transaction-log-text" class="text-monospace" style="word-break: break-all;"></span>
-                        <button type="button" id="copy-log-btn" title="Copy Log" class="ms-3 flex-shrink-0">
-                            <span class="material-symbols-outlined">content_copy</span>
-                        </button>
+                    <div class="border rounded p-3 mt-2">
+                        <div class="text-uppercase text-secondary small mb-2">Transaction Log</div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span id="transaction-log-text" class="text-monospace" style="word-break: break-all;"></span>
+                            <button type="button" id="copy-log-btn" title="Copy Log" class="ms-3 flex-shrink-0">
+                                <span class="material-symbols-outlined">content_copy</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -210,13 +183,31 @@ TODO
             <div id="configuration-container">
                 <div class="collapse" id="configuration-collapse">
                     <div class="p-3 border rounded mt-2">
+                        <div class="text-uppercase text-secondary small mb-3">Configuration</div>
                         <div class="form-check form-switch mb-2">
                             <input class="form-check-input" type="checkbox" role="switch" id="show-help-icons-switch" checked>
                             <label class="form-check-label" for="show-help-icons-switch">Show Help</label>
                         </div>
-                        <div class="form-check form-switch">
+                        <div class="form-check form-switch mb-2">
                             <input class="form-check-input" type="checkbox" role="switch" id="reverse-ratio-switch">
-                            <label class="form-check-label" for="reverse-ratio-switch">Reverse Ratio</label>
+                            <label class="form-check-label" for="reverse-ratio-switch">
+                                Reverse Ratio
+                                <span class="material-symbols-outlined ms-1 help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Reverses the text output of the swap ratio and tickers eg. MSTR/TSLA: 1.3281 becomes TSLA/MSTR: 0.7529">info</span>
+                            </label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="fractional-shares-switch">
+                            <label class="form-check-label" for="fractional-shares-switch">
+                                Allow Fractional Shares
+                                <span class="material-symbols-outlined ms-1 help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Enable if your broker allows fractional shares. This allows the Buying Quantity field to have decimal places.">info</span>
+                            </label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="scalp-mode-switch">
+                            <label class="form-check-label" for="scalp-mode-switch">
+                                Scalp Mode
+                                <span class="material-symbols-outlined ms-1 help-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Enable to: make the Buy Ticker match the Sell Ticker and allows the Buy Quantity to be adjusted. This is useful eg. if you can sell 100x shares to buy back 101x of the same asset.">info</span>
+                            </label>
                         </div>
                         <div id="api-config-settings" class="d-none">
                             <hr class="my-3">
@@ -239,23 +230,30 @@ TODO
         </form>
     </div>
 
+    <div id="footer-placeholder"></div>
+
     <!-- jQuery 3.7.1 -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <!-- Bootstrap 5.3 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <!-- Shared Header Script -->
     <script src="/trading/assets/js/header.js"></script>
+    <!-- Global Config -->
+    <script src="/trading/assets/js/config.js"></script>
+    <!-- Alpaca API Helper -->
+    <script src="/trading/assets/js/alpaca-api.js"></script>
 
     <script>
         $(document).ready(function() {
             // Load and initialize header
-            $("#header-placeholder").load("/trading/assets/includes/_header.html?v=" + new Date().getTime(), function() {
+            $("#header-placeholder").load("/trading/assets/includes/_header.html", function() {
                 initializeHeader();
             });
             // Load navbar
-            $("#navbar-placeholder").load("/trading/assets/includes/_navbar.html?v=" + new Date().getTime());
+            $("#navbar-placeholder").load("/trading/assets/includes/_navbar.html");
+            // Load footer
+            $("#footer-placeholder").load("/trading/assets/includes/_footer.html");
 
-            // --- Cookie Helpers ---
             function setCookie(name, value, days) {
                 let expires = "";
                 if (days) {
@@ -297,6 +295,8 @@ TODO
                 state.buyTickerOverride = $('#buy-ticker-override').val();
                 state.showHelpIcons = $('#show-help-icons-switch').is(':checked');
                 state.isRatioReversed = $('#reverse-ratio-switch').is(':checked');
+                state.isFractionalShares = $('#fractional-shares-switch').is(':checked');
+                state.isScalpMode = $('#scalp-mode-switch').is(':checked');
                 state.isConfigExpanded = $('#configuration-collapse').hasClass('show');
                 state.isLogExpanded = $('#transaction-log-collapse').hasClass('show');
 
@@ -331,6 +331,8 @@ TODO
                         const showHelp = state.showHelpIcons === undefined ? true : state.showHelpIcons;
                         $('#show-help-icons-switch').prop('checked', showHelp);
                         $('#reverse-ratio-switch').prop('checked', state.isRatioReversed || false);
+                        $('#fractional-shares-switch').prop('checked', state.isFractionalShares || false);
+                        $('#scalp-mode-switch').prop('checked', state.isScalpMode || false);
 
                         if (state.isConfigExpanded) {
                             const configCollapse = new bootstrap.Collapse('#configuration-collapse', {
@@ -368,6 +370,7 @@ TODO
                 $('#error-container').hide().empty();
                 $modeToggle.prop('checked', false);
                 setCalculatorMode(false);
+                setScalpMode(false);
                 $('#configuration-collapse').collapse('hide');
                 $('#transaction-log-collapse').collapse('hide');
                 updateFinalCalculations();
@@ -399,6 +402,8 @@ TODO
             const $apiWarningMessage = $('#api-warning-message');
             const $calculateBtn = $('#calculate-btn');
 
+            let scalpModeUserBuyQuantity = null;
+
             function setCalculatorMode(isApiMode) {
                 if (isApiMode) {
                     $modeLabel.text('API');
@@ -416,6 +421,20 @@ TODO
                     $apiWarningMessage.addClass('d-none');
                 }
                 updateFinalCalculations(); // Recalculate, which will clear results
+            }
+
+            // --- Scalp Mode ---
+            function setScalpMode(isScalpMode) {
+                const $buyQuantityInput = $('#buy-quantity');
+                if (isScalpMode) {
+                    $buyQuantityInput.prop('disabled', false).attr('placeholder', 'Enter Quantity');
+                    // Sync tickers from sell to buy
+                    $('#buy-ticker-select').val($('#sell-ticker-select').val());
+                    $('#buy-ticker-override').val($('#sell-ticker-override').val());
+                } else {
+                    $buyQuantityInput.prop('disabled', true).attr('placeholder', 'Calculated');
+                    scalpModeUserBuyQuantity = null; // Reset the user-defined value when exiting scalp mode
+                }
             }
 
             // Event handler for the switch
@@ -442,12 +461,6 @@ TODO
                 $calculateBtn.prop('disabled', false).text(originalBtnText);
             }
 
-            // IMPORTANT: Replace with your actual keys from Alpaca.markets
-            const ALPACA_API_KEY_ID = 'PKKDH97Z8AR3ZRNFL6Z4';
-            const ALPACA_SECRET_KEY = 'RVZoAFqkwcY5XE4n4SWlgxJlnY6dJ2pHi2ObrtrI';
-            // Easily update these lists with new tickers. They will be sorted automatically.
-            const commonStocks = ['MSTR', 'TSLA', 'MSFT', 'NVDA', 'PLTR', 'GOOGL', 'META'];
-            const commonCrypto = ['BTC-USD', 'ETH-USD', 'SOL-USD'];
             // Client-side cache to reduce API calls
             let apiCache = {};
             let CACHE_DURATION_MS = 3 * 60 * 1000; // 3 minutes
@@ -458,85 +471,17 @@ TODO
             const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
             const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
+            // Easily update these lists with new tickers. They will be sorted automatically.
+            const commonStocks = ['MSTR', 'TSLA', 'MSFT', 'NVDA', 'PLTR', 'GOOGL', 'META'];
+            const commonCrypto = ['BTC-USD', 'ETH-USD', 'SOL-USD'];
+
             $('#cache-duration-input').val(CACHE_DURATION_MS / (60 * 1000));
             populateTickerDropdowns();
             loadStateFromCookie(); // Populates the form controls from cookie if it exists
+            setScalpMode($('#scalp-mode-switch').is(':checked')); // Apply scalp mode state from cookie
             toggleHelpIcons($helpIconSwitch.is(':checked')); // Set initial visibility of help icons
             setCalculatorMode($modeToggle.is(':checked')); // Updates UI visibility based on (potentially loaded) mode
             updateFinalCalculations(); // Calculates results based on (potentially loaded) values
-
-            /**
-             * Fetches the latest trade price for a stock or crypto ticker from Alpaca.
-             * It returns a jQuery Promise to handle the asynchronous nature of a real API call.
-             */
-            function getAlpacaStockPrice(ticker) {
-                const deferred = $.Deferred();
-                const upperTicker = ticker.toUpperCase();
-                let isCrypto = false;
-                let apiTicker = upperTicker;
-
-                // Check if the ticker is a crypto pair and format it for the Alpaca API
-                if (upperTicker.includes('-')) {
-                    apiTicker = upperTicker.replace('-', '/'); // 'BTC-USD' -> 'BTC/USD'
-                    isCrypto = true;
-                }
-
-                const cacheKey = apiTicker; // Use the formatted ticker as the cache key
-
-                // 1. Check cache first for a fresh entry if enabled
-                if (isCacheEnabled) {
-                    const cachedData = apiCache[cacheKey];
-                    if (cachedData && (Date.now() - cachedData.timestamp < CACHE_DURATION_MS)) {
-                        console.log(`Using cached price for ${cacheKey}.`);
-                        deferred.resolve(cachedData.price);
-                        return deferred.promise();
-                    }
-                }
-
-                // 2. If not in cache or stale, proceed with API call
-                if (ALPACA_API_KEY_ID === 'YOUR_API_KEY_ID' || ALPACA_SECRET_KEY === 'YOUR_SECRET_KEY') {
-                    deferred.reject('Please add your Alpaca API Key ID and Secret Key to the script.');
-                    return deferred.promise();
-                }
-
-                // Use the `?symbols=` query parameter for both stocks and crypto for robustness.
-                // This avoids issues with special characters like '/' in the URL path.
-                const baseUrl = isCrypto ?
-                    'https://data.alpaca.markets/v1beta2/crypto/latest/trades' :
-                    'https://data.alpaca.markets/v2/stocks/trades/latest';
-
-                const apiUrl = `${baseUrl}?symbols=${encodeURIComponent(apiTicker)}`;
-
-                console.log(`Fetching new price for ${apiTicker} from Alpaca API.`);
-                $.ajax({
-                    url: apiUrl,
-                    method: 'GET',
-                    headers: {
-                        'APCA-API-KEY-ID': ALPACA_API_KEY_ID,
-                        'APCA-API-SECRET-KEY': ALPACA_SECRET_KEY
-                    },
-                    success: function(response) {
-                        // The response for a query with `symbols` is a map of symbols to trades.
-                        // The key in the map is the UNENCODED symbol, e.g., "BTC/USD".
-                        if (response && response.trades && response.trades[apiTicker]) {
-                            const price = response.trades[apiTicker].p;
-                            apiCache[cacheKey] = { price: price, timestamp: Date.now() };
-                            deferred.resolve(price);
-                        } else {
-                            deferred.reject(`Ticker '${ticker}' not found or no data available from Alpaca. Please enter price manually.`);
-                        }
-                    },
-                    error: function(jqXHR) {
-                        let errorMessage = `API request failed for '${ticker}'. Check your connection or API keys.`;
-                        if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
-                            errorMessage += ` (Error: ${jqXHR.responseJSON.message})`;
-                        }
-                        deferred.reject(errorMessage);
-                    }
-                });
-
-                return deferred.promise();
-            }
 
 
             // Populates dropdowns with common tickers from the array
@@ -575,7 +520,7 @@ TODO
             }
 
             // Main function to orchestrate the fetching and calculations
-            function initiateCalculations() {
+            async function initiateCalculations() {
                 // 1. Reset UI state and disable button
                 $calculateBtn.prop('disabled', true).text('Working...');
                 $('#error-container').hide().empty();
@@ -604,34 +549,47 @@ TODO
 
                 // 4. Branch logic based on mode
                 if (isApiMode) {
-                    // --- API Mode Logic ---
-                    $('#sell-total, #buy-available').val(''); // Clear results before fetching
+                    // --- API Mode Logic using the shared AlpacaAPI module ---
+                    $('#sell-total, #buy-quantity, #buy-total').val(''); // Clear results before fetching
                     $('#ratio-achieved-container').hide();
                     const isBuySideConfigured = !!buyTicker;
-                    const sellPricePromise = getAlpacaStockPrice(sellTicker);
 
                     if (!isBuySideConfigured) {
                         showError('Asset to buy not configured.');
                         $('#buy-ticker-select, #buy-ticker-override').addClass('is-invalid');
-                        
-                        sellPricePromise.done(price => {
-                            $('#sell-price').val(price.toFixed(2));
-                            updateFinalCalculations();
-                            saveStateToCookie(); // Persist the fetched API price
-                        }).fail(error => {
-                            showError(error);
-                            unlockPriceField('#sell-price');
-                        }).always(enableButton);
-                        return;
                     }
 
-                    const buyPricePromise = getAlpacaStockPrice(buyTicker);
-                    sellPricePromise.done(price => $('#sell-price').val(price.toFixed(2))).fail(error => { showError(error); unlockPriceField('#sell-price'); });
-                    buyPricePromise.done(price => $('#buy-price').val(price.toFixed(2))).fail(error => { showError(error); unlockPriceField('#buy-price'); });
-                    $.when(sellPricePromise, buyPricePromise).done(function() {
+                    const pricePromises = [AlpacaAPI.getLatestPrice(sellTicker)];
+                    if (isBuySideConfigured) {
+                        pricePromises.push(AlpacaAPI.getLatestPrice(buyTicker));
+                    }
+
+                    try {
+                        const prices = await Promise.all(pricePromises);
+                        const [sellPrice, buyPrice] = prices; // buyPrice will be undefined if not configured
+
+                        if (sellPrice !== null) {
+                            $('#sell-price').val(sellPrice.toFixed(2));
+                        } else {
+                            showError(`Could not fetch price for ${sellTicker}.`);
+                            unlockPriceField('#sell-price');
+                        }
+
+                        if (isBuySideConfigured && buyPrice !== null) {
+                            $('#buy-price').val(buyPrice.toFixed(2));
+                        } else if (isBuySideConfigured) {
+                            showError(`Could not fetch price for ${buyTicker}.`);
+                            unlockPriceField('#buy-price');
+                        }
+
                         updateFinalCalculations();
                         saveStateToCookie(); // Persist the fetched API prices
-                    }).always(enableButton);
+                    } catch (error) {
+                        console.error("Error during API price fetch:", error);
+                        showError("An unexpected error occurred while fetching prices.");
+                    } finally {
+                        enableButton();
+                    }
                 } else {
                     // --- Manual Mode Logic ---
                     const sellPrice = parseFloat($('#sell-price').val());
@@ -663,6 +621,8 @@ TODO
                 const sellQuantity = parseFloat($('#sell-quantity').val());
                 const buyPrice = parseFloat($('#buy-price').val());
                 const isRatioReversed = $('#reverse-ratio-switch').is(':checked');
+                const isFractionalSharesSelected = $('#fractional-shares-switch').is(':checked');
+                const isScalpMode = $('#scalp-mode-switch').is(':checked');
                 const sellTicker = getTickerValue('sell');
                 const buyTicker = getTickerValue('buy');
 
@@ -671,29 +631,84 @@ TODO
                 const buyTickerLabel = buyTicker.toUpperCase() || 'BUY';
                 const tickerPair = isRatioReversed ? `${buyTickerLabel}/${sellTickerLabel}` : `${sellTickerLabel}/${buyTickerLabel}`;
                 $('#ratio-label').text(`Swap Ratio (${tickerPair})`);
+                $('#cash-remainder-container').hide(); // Hide by default on each run
+                $('#scalp-mode-warning').addClass('d-none'); // Hide scalp warning by default
 
                 // --- Perform calculations ---
                 let sellTotal, buyAvailable, ratio;
                 // Calculate total value of the asset to sell
                 if (!isNaN(sellPrice) && sellPrice > 0 && !isNaN(sellQuantity) && sellQuantity > 0) {
                     sellTotal = sellPrice * sellQuantity;
-                    $('#sell-total').val(sellTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                    const formattedSellTotal = sellTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    $('#sell-total').val(formattedSellTotal);
 
                     // Calculate how many units of the new asset can be bought and the ratio
                     if (!isNaN(buyPrice) && buyPrice > 0) {
-                        buyAvailable = sellTotal / buyPrice;
-                        $('#buy-available').val(buyAvailable.toLocaleString(undefined, {minimumFractionDigits: 4, maximumFractionDigits: 4}));
+                        if (isScalpMode) {
+                            // In Scalp Mode, the buy quantity is user-defined and preserved across toggles.
+                            // If scalpModeUserBuyQuantity is null, it's the first run after enabling scalp mode.
+                            // Initialize it with the value calculated from the sell side.
+                            if (scalpModeUserBuyQuantity === null) {
+                                const calculatedQuantity = sellTotal / buyPrice;
+                                // Use toString() to preserve full precision from the calculation
+                                scalpModeUserBuyQuantity = isNaN(calculatedQuantity) ? '' : calculatedQuantity.toString();
+                            }
+                            buyAvailable = parseFloat(scalpModeUserBuyQuantity);
+                            if (isNaN(buyAvailable)) buyAvailable = 0;
+                        } else {
+                            // In Normal Mode, it's always calculated.
+                            buyAvailable = sellTotal / buyPrice;
+                        }
+
+                        // If "Allow Fractional Shares" is NOT checked, round down.
+                        if (!isFractionalSharesSelected) {
+                            buyAvailable = Math.floor(buyAvailable);
+                        }
+
+                        // Now calculate the actual total value for the buy side based on the (potentially rounded) quantity
+                        const buyTotal = buyAvailable * buyPrice;
+                        $('#buy-total').val(buyTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+
+                        // Show cash remainder if rounding occurred (i.e., fractionals disallowed) or if in scalp mode.
+                        if (!isFractionalSharesSelected || isScalpMode) {
+                            const cashRemainder = sellTotal - buyTotal;
+                            if (Math.abs(cashRemainder) > 0.001) {
+                                $('#cash-remainder').text(cashRemainder.toLocaleString('en-US', { style: 'currency', currency: 'USD' }));
+                                $('#cash-remainder-container').show();
+                            }
+                        }
+
+                        // Show warning if in scalp mode and buy total exceeds sell total
+                        if (isScalpMode && !isNaN(buyTotal) && !isNaN(sellTotal) && buyTotal > sellTotal) {
+                            $('#scalp-mode-warning').removeClass('d-none');
+                        }
+
+                        // Update the buy quantity field.
+                        if (!isScalpMode) {
+                            // In normal mode, always set the calculated value.
+                            $('#buy-quantity').val(buyAvailable.toFixed(4));
+                        } else {
+                            // In scalp mode, format the display value.
+                            let displayValue = buyAvailable;
+                            if (isFractionalSharesSelected) {
+                                // Format to exactly 4 decimal places for consistency with other fields.
+                                displayValue = buyAvailable.toFixed(4);
+                            }
+                            $('#buy-quantity').val(displayValue);
+                        }
 
                         ratio = isRatioReversed ? buyPrice / sellPrice : sellPrice / buyPrice;
                         $('#ratio-achieved').text(ratio.toFixed(4));
                         $('#ratio-achieved-container').show();
                     } else {
-                        $('#buy-available').val('');
+                        $('#buy-quantity').val('');
+                        $('#buy-total').val('');
                         $('#ratio-achieved-container').hide();
                     }
                 } else {
                     $('#sell-total').val('');
-                    $('#buy-available').val('');
+                    $('#buy-total').val('');
+                    $('#buy-quantity').val('');
                     $('#ratio-achieved-container').hide();
                 }
 
@@ -824,8 +839,9 @@ TODO
                 $('#sell-quantity').val(sellQuantity);
 
                 // Clear calculated values (Buy Available, Ratio, Total Value)
-                $('#buy-available').val('');
+                $('#buy-quantity').val('');
                 $('#sell-total').val('');
+                $('#buy-total').val('');
                 $('#ratio-achieved').text('');
                 $('#ratio-achieved-container').hide();
 
@@ -833,7 +849,12 @@ TODO
             });
 
             // Recalculate when ratio direction is changed
-            $('#reverse-ratio-switch').on('change', updateFinalCalculations);
+            $('#reverse-ratio-switch, #fractional-shares-switch').on('change', updateFinalCalculations);
+
+            $('#scalp-mode-switch').on('change', function() {
+                setScalpMode($(this).is(':checked'));
+                updateFinalCalculations();
+            });
 
             $('#cache-duration-input').on('change', function() {
                 const newDurationMinutes = parseFloat($(this).val());
@@ -858,6 +879,15 @@ TODO
                 }, 1500);
             });
 
+            // Sync tickers when in Scalp Mode
+            $('#sell-ticker-select, #sell-ticker-override').on('input change', function() {
+                if ($('#scalp-mode-switch').is(':checked')) {
+                    // In scalp mode, keep the buy ticker in sync with the sell ticker.
+                    $('#buy-ticker-select').val($('#sell-ticker-select').val());
+                    $('#buy-ticker-override').val($('#sell-ticker-override').val());
+                }
+            });
+
             // Clear override when select is used and vice-versa for a better UX
             $('#sell-ticker-select, #buy-ticker-select').on('change', function() {
                 const overrideId = `#${this.id.replace('-select', '-override')}`;
@@ -873,6 +903,14 @@ TODO
 
             // Add live recalculation when a user manually changes a price or quantity
             $('#sell-price, #sell-quantity, #buy-price').on('input', updateFinalCalculations);
+            $('#buy-quantity').on('input', function() {
+                if ($('#scalp-mode-switch').is(':checked')) {
+                    // When user types, update our source-of-truth variable.
+                    // This ensures that toggling "Allow Partial Shares" doesn't lose the user's fractional input.
+                    scalpModeUserBuyQuantity = $(this).val();
+                }
+                updateFinalCalculations();
+            });
         });
     </script>
 

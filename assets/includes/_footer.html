@@ -1,0 +1,30 @@
+<footer class="footer mt-auto py-2 bg-body-tertiary fixed-bottom">
+    <div class="container text-center">
+        <p class="text-muted small mb-0"><a href="https://github.com/chrisdempsey/trading" target="_blank">GitHub</a></p>
+    </div>
+</footer>
+
+<script>
+    (function() {
+        'use strict';
+        // Use the version from config.js if available, otherwise fallback.
+        const appVersion = (typeof AppConfig !== 'undefined' && AppConfig.APP_VERSION) ? AppConfig.APP_VERSION : '1.0.0';
+
+        const applyCacheBusting = (selector, attribute) => {
+            document.querySelectorAll(selector).forEach(element => {
+                const url = new URL(element[attribute], window.location.href);
+                // We only want to bust cache for local files, not external CDNs
+                if (url.hostname === window.location.hostname) {
+                    // Only add the version parameter if it doesn't already exist.
+                    if (!url.searchParams.has('v')) {
+                        url.searchParams.set('v', appVersion);
+                        element[attribute] = url.href;
+                    }
+                }
+            });
+        };
+
+        applyCacheBusting('link[rel="stylesheet"]', 'href');
+        applyCacheBusting('script[src]', 'src');
+    })();
+</script>

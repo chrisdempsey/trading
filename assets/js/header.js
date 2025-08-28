@@ -61,3 +61,109 @@ function initializeHeader() {
     setTheme(savedTheme);
     $('body').on('change', '#theme-switch-input', () => setTheme($('#theme-switch-input').is(':checked') ? 'dark' : 'light'));
 }
+
+/**
+ * Logic for the Global Settings Modal
+ */
+$(document).on('show.bs.modal', '#global-settings-modal', function () {
+    const modalBody = $('#global-settings-modal-body');
+    const configUrl = '/trading/tools/config.html';
+
+    // Load the main content from the config page into the modal.
+    // The callback function runs after the content is loaded.
+    modalBody.load(configUrl + ' main', function(response, status, xhr) {
+        if (status === "error") {
+            modalBody.html(`<p class="text-danger">Error loading settings: ${xhr.statusText}</p>`);
+            return;
+        }
+
+        // The content is loaded, now we need to make it functional.
+        // This logic is adapted from config.html to work in the modal context.
+        function initializeSettings() {
+            // --- API Key Display ---
+            $('#global-settings-modal #api-key-id').val(AppConfig.ALPACA_API.KEY_ID);
+            $('#global-settings-modal #api-secret-key').val(AppConfig.ALPACA_API.SECRET_KEY);
+
+            // --- Cache Settings ---
+            const CACHE_ENABLED_KEY = 'apiCacheEnabled';
+            const CACHE_DURATION_KEY = 'apiCacheDurationSeconds';
+            const CACHE_DATA_KEY = 'apiPriceCache';
+
+            const isEnabled = localStorage.getItem(CACHE_ENABLED_KEY) === 'true';
+            const duration = localStorage.getItem(CACHE_DURATION_KEY) || 180;
+            $('#global-settings-modal #enable-api-cache-switch').prop('checked', isEnabled);
+            $('#global-settings-modal #cache-duration').val(duration);
+
+            $('#global-settings-modal').on('change', '#enable-api-cache-switch, #cache-duration', function() {
+                localStorage.setItem(CACHE_ENABLED_KEY, $('#global-settings-modal #enable-api-cache-switch').is(':checked'));
+                localStorage.setItem(CACHE_DURATION_KEY, $('#global-settings-modal #cache-duration').val());
+            });
+
+            $('#global-settings-modal').on('click', '#clear-cache-btn', function() {
+                localStorage.removeItem(CACHE_DATA_KEY);
+                const btn = $(this);
+                btn.text('Cache Cleared!').addClass('btn-success').removeClass('btn-outline-danger');
+                setTimeout(() => btn.text('Clear API Cache').removeClass('btn-success').addClass('btn-outline-danger'), 2000);
+            });
+        }
+
+        // Ensure AppConfig is available before initializing.
+        if (typeof AppConfig !== 'undefined') {
+            initializeSettings();
+        } else {
+            // If config.js hasn't been loaded on the current page, load it now.
+            $.getScript('/trading/assets/js/config.js', initializeSettings);
+        }
+    });
+});
+
+/**
+ * Initializes Bootstrap tooltips on any new elements added to the page.
+ * This is a global utility that runs on all pages that include header.js.
+ */
+(function() {
+    /**
+     * Finds and initializes any uninitialized Bootstrap tooltips within a given element.
+     * @param {HTMLElement} parentElement The element to search within.
+     */
+    function initializeTooltipsInElement(parentElement) {
+        const tooltipTriggerList = parentElement.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltipTriggerList.forEach(tooltipTriggerEl => {
+            // Check if a tooltip instance already exists to avoid re-initialization
+            if (!bootstrap.Tooltip.getInstance(tooltipTriggerEl)) {
+                new bootstrap.Tooltip(tooltipTriggerEl);
+            }
+        });
+    }
+
+    // Use a MutationObserver to watch for when new content is added to initialize tooltips.
+    const observer = new MutationObserver((mutationsList) => {
+        for (const mutation of mutationsList) {
+            mutation.addedNodes.forEach(node => {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    initializeTooltipsInElement(node);
+                }
+            });
+        }
+    });
+
+    // Start observing the document body for changes to the direct children and the entire subtree.
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // --- Global Privacy Notice (runs after the document is fully loaded) ---
+    $(document).ready(function() {
+        const NOTICE_DISMISSED_KEY = 'globalPrivacyNoticeDismissed';
+        if (localStorage.getItem(NOTICE_DISMISSED_KEY) !== 'true') {
+            const noticeHtml = `
+                <div class="alert alert-info alert-dismissible fade show rounded-0 mb-0 text-center" role="alert" id="global-privacy-notice">
+                    <strong>Note:</strong> no data is sent to the server, all information is private and stored in your browser's local storage.
+                    This will be lost if you clear your cache - make sure you export a backup using the Data Management tool first.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            $('body').prepend(noticeHtml);
+            // Use a delegated event handler for reliability with dynamically added elements
+            $('body').on('close.bs.alert', '#global-privacy-notice', () => localStorage.setItem(NOTICE_DISMISSED_KEY, 'true'));
+        }
+    });
+})();
