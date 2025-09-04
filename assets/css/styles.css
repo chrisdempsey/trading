@@ -82,17 +82,18 @@ body {
     cursor: help;
 }
 
+/* A reusable class for buttons that should only display an icon */
 .icon-btn {
     background: none;
     border: none;
     padding: 0;
     cursor: pointer;
-    opacity: 0.7;
+    opacity: 0.6; /* A subtle default opacity */
     transition: opacity 0.2s ease-in-out;
     vertical-align: middle;
 }
 
-.icon-btn:hover { opacity: 1; }
+.icon-btn:hover { opacity: 1; } /* Full opacity on hover */
 
 .notes-row > td {
     background-color: var(--bs-tertiary-bg);
@@ -183,19 +184,6 @@ textarea.notes-editor[readonly] {
     --bs-tooltip-max-width: 350px;
 }
 
-.asset-swap-calculator-page #copy-ratio-btn,
-.asset-swap-calculator-page #copy-log-btn,
-.asset-swap-calculator-page #swap-button {
-    opacity: 0.6;
-    transition: opacity 0.2s ease-in-out;
-}
-
-.asset-swap-calculator-page #copy-ratio-btn:hover,
-.asset-swap-calculator-page #copy-log-btn:hover,
-.asset-swap-calculator-page #swap-button:hover {
-    opacity: 1;
-}
-
 .asset-swap-calculator-page #copy-ratio-btn.is-copied .material-symbols-outlined,
 .asset-swap-calculator-page #copy-log-btn.is-copied .material-symbols-outlined {
     transform: scale(1.25);
@@ -219,4 +207,39 @@ textarea.notes-editor[readonly] {
     border: none;
     padding: 0;
     height: 1.5rem;
+}
+
+/**
+  *
+  * Calculator page styles
+ */
+
+/* Add a hover effect to the card body on the calculator index page */
+.card-hover-effect .card-body {
+    transition: background-color 300ms ease-in-out;
+}
+.card-hover-effect:hover .card-body {
+    background-color: #262a2e;
+}
+
+/**
+  *
+  * Bootstrap Extensions
+ */
+
+/* A non-interactive header item for a list-group component */
+.list-group-header {
+    padding: var(--bs-list-group-item-padding-y) var(--bs-list-group-item-padding-x);
+    color: var(--bs-secondary-color); /* Muted text color to de-emphasize */
+    background-color: #1a1d20; /* A dark gray between the navbar and body background */
+    border-top: var(--bs-list-group-border-width) solid var(--bs-list-group-border-color);
+    border-right: var(--bs-list-group-border-width) solid var(--bs-list-group-border-color);
+    border-left: var(--bs-list-group-border-width) solid var(--bs-list-group-border-color);
+    border-bottom: var(--bs-list-group-border-width) solid var(--bs-list-group-border-color);
+    margin-bottom: -1px; /* Overlap borders like a normal list-group-item */
+}
+
+/* Remove the top border of a header if it directly follows another list item to prevent double borders */
+.list-group-item + .list-group-header {
+    border-top: none;
 }

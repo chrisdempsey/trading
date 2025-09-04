@@ -22,11 +22,14 @@ TODO
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <!-- Shared Styles -->
     <link rel="stylesheet" href="/trading/assets/css/styles.css">
+    <!-- Global App Config -->
+    <script src="/trading/assets/js/config.js"></script>
 </head>
-<body class="percentage-change-calculator-page">
+<body class="percentage-change-calculator-page d-flex flex-column vh-100">
     <div id="header-placeholder"></div>
     <div id="navbar-placeholder"></div>
-    <div class="container">
+    <main class="flex-grow-1">
+        <div class="container py-4">
         <h1 class="mb-4 text-center">Percentage Change Calculator</h1>
         <p class="text-center text-muted mb-4">Calculate the difference, percentage change, and multiplier between two numbers.</p>
 
@@ -35,17 +38,31 @@ TODO
                 <form id="percentage-change-form" onsubmit="return false;">
                     <div class="row g-3 align-items-center">
                         <div class="col-md-5">
-                            <label for="initial-value" class="form-label">Initial Value</label>
-                            <input type="number" class="form-control form-control-lg" id="initial-value" step="any" placeholder="e.g. 100">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label for="initial-value" class="form-label mb-0">Initial Value</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="allow-negative-initial">
+                                    <label class="form-check-label small" for="allow-negative-initial">Allow Negative</label>
+                                </div>
+                            </div>
+                            <input type="number" class="form-control form-control-lg" id="initial-value" step="any" placeholder="Enter value" min="0">
+                            <input type="range" class="form-range mt-2" id="initial-value-slider" min="0" max="1000" step="1">
                         </div>
-                        <div class="col-md-2 text-center">
-                            <button type="button" id="swap-values-btn" class="btn btn-link text-secondary px-0" title="Swap Values" style="padding-top: 2rem;">
+                        <div class="col-md-2 text-center d-flex align-items-center justify-content-center pb-3">
+                            <button type="button" id="swap-values-btn" class="btn btn-link text-secondary px-0 icon-btn" title="Swap Values">
                                 <span class="material-symbols-outlined fs-1">swap_horiz</span>
                             </button>
                         </div>
                         <div class="col-md-5">
-                            <label for="final-value" class="form-label">Final Value</label>
-                            <input type="number" class="form-control form-control-lg" id="final-value" step="any" placeholder="e.g. 150">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label for="final-value" class="form-label mb-0">Final Value</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="allow-negative-final">
+                                    <label class="form-check-label small" for="allow-negative-final">Allow Negative</label>
+                                </div>
+                            </div>
+                            <input type="number" class="form-control form-control-lg" id="final-value" step="any" placeholder="Enter value" min="0">
+                            <input type="range" class="form-range mt-2" id="final-value-slider" min="0" max="1000" step="1">
                         </div>
                     </div>
                 </form>
@@ -58,7 +75,7 @@ TODO
                     <div class="card h-100"><div class="card-body">
                         <h6 class="card-subtitle mb-2 text-muted d-flex justify-content-center align-items-center">
                             <span>Difference</span>
-                            <button type="button" class="btn-copy ms-2" data-copy-target="#result-difference" title="Copy Difference">
+                            <button type="button" class="btn-copy ms-2 icon-btn" data-copy-target="#result-difference" title="Copy Difference">
                                 <span class="material-symbols-outlined">content_copy</span>
                             </button>
                         </h6>
@@ -68,7 +85,7 @@ TODO
                     <div class="card h-100"><div class="card-body">
                         <h6 class="card-subtitle mb-2 text-muted d-flex justify-content-center align-items-center">
                             <span>Percentage Change</span>
-                            <button type="button" class="btn-copy ms-2" data-copy-target="#result-percentage" title="Copy Percentage Change">
+                            <button type="button" class="btn-copy ms-2 icon-btn" data-copy-target="#result-percentage" title="Copy Percentage Change">
                                 <span class="material-symbols-outlined">content_copy</span>
                             </button>
                         </h6><p class="card-text fs-4" id="result-percentage">-</p></div></div>
@@ -77,7 +94,7 @@ TODO
                     <div class="card h-100"><div class="card-body">
                         <h6 class="card-subtitle mb-2 text-muted d-flex justify-content-center align-items-center">
                             <span>Multiplier</span>
-                            <button type="button" class="btn-copy ms-2" data-copy-target="#result-multiplier" title="Copy Multiplier">
+                            <button type="button" class="btn-copy ms-2 icon-btn" data-copy-target="#result-multiplier" title="Copy Multiplier">
                                 <span class="material-symbols-outlined">content_copy</span>
                             </button>
                         </h6><p class="card-text fs-4" id="result-multiplier">-</p></div></div>
@@ -102,8 +119,8 @@ TODO
         <div id="transaction-log-container">
             <div class="collapse" id="transaction-log-collapse">
                 <div class="border rounded p-3 mt-2 d-flex justify-content-between align-items-center">
-                    <span id="transaction-log-text" class="text-monospace" style="word-break: break-all;"></span>
-                    <button type="button" class="btn-copy ms-3 flex-shrink-0" id="copy-log-btn" title="Copy Log">
+                    <span id="transaction-log-text" class="text-monospace" style="word-break: break-all;">Enter the initial and final values to reveal a transaction log for the calculation.</span>
+                    <button type="button" class="btn-copy ms-3 flex-shrink-0 icon-btn" id="copy-log-btn" title="Copy Log" disabled>
                         <span class="material-symbols-outlined">content_copy</span>
                     </button>
                 </div>
@@ -111,6 +128,7 @@ TODO
         </div>
 
     </div>
+    </main>
 
     <div id="footer-placeholder"></div>
 
@@ -132,6 +150,39 @@ TODO
             // Load footer
             $("#footer-placeholder").load("/trading/assets/includes/_footer.html");
 
+            // --- Persist Form Inputs using localStorage ---
+            const formInputIds = ['#initial-value', '#final-value', '#allow-negative-initial', '#allow-negative-final'];
+            const storageKey = 'percentageChangeCalculatorInputs';
+
+            function saveFormState() {
+                const state = {};
+                formInputIds.forEach(id => {
+                    const $el = $(id);
+                    if ($el.is(':checkbox')) {
+                        state[id] = $el.is(':checked');
+                    } else {
+                        state[id] = $el.val();
+                    }
+                });
+                localStorage.setItem(storageKey, JSON.stringify(state));
+            }
+
+            function loadFormState() {
+                const savedState = JSON.parse(localStorage.getItem(storageKey));
+                if (savedState) {
+                    formInputIds.forEach(id => {
+                        const $el = $(id);
+                        if (savedState[id] !== undefined) {
+                            if ($el.is(':checkbox')) {
+                                $el.prop('checked', savedState[id]);
+                            } else {
+                                $el.val(savedState[id]);
+                            }
+                        }
+                    });
+                }
+            }
+
             // --- Calculator Logic ---
             const $initialValue = $('#initial-value');
             const $finalValue = $('#final-value');
@@ -141,6 +192,8 @@ TODO
             const $resultMultiplier = $('#result-multiplier');
             const $swapBtn = $('#swap-values-btn');
             const $transactionLogText = $('#transaction-log-text');
+            const $copyLogBtn = $('#copy-log-btn');
+            const defaultLogMessage = 'Enter the initial and final values to reveal a transaction log for the calculation.';
 
             function calculateAndDisplay() {
                 const initial = parseFloat($initialValue.val());
@@ -148,10 +201,11 @@ TODO
 
                 if (isNaN(initial) || isNaN(final)) {
                     $resultsContainer.hide();
-                    $transactionLogText.text('');
+                    $transactionLogText.text(defaultLogMessage);
+                    $copyLogBtn.prop('disabled', true);
                     return;
                 }
-
+                $copyLogBtn.prop('disabled', false);
                 $resultsContainer.show();
 
                 // 1. Difference
@@ -197,13 +251,76 @@ TODO
                 $transactionLogText.text(logMessage);
             }
 
+            // --- Slider and Toggle Controls ---
+            const controls = [
+                { input: $('#initial-value'), slider: $('#initial-value-slider'), toggle: $('#allow-negative-initial') },
+                { input: $('#final-value'), slider: $('#final-value-slider'), toggle: $('#allow-negative-final') }
+            ];
+
+            function syncSliders() {
+                controls.forEach(control => {
+                    const val = parseFloat(control.input.val()) || 0;
+                    const currentMax = parseFloat(control.slider.attr('max'));
+                    const currentMin = parseFloat(control.slider.attr('min'));
+
+                    if (val > currentMax) {
+                        control.slider.attr('max', val * 1.5);
+                    }
+                    if (val < currentMin) {
+                        control.slider.attr('min', val * 1.5);
+                    }
+                    control.slider.val(val);
+                });
+            }
+
+            function handleNegativeToggles() {
+                controls.forEach(control => {
+                    const allowNegative = control.toggle.is(':checked');
+                    const newMin = allowNegative ? -1000 : 0;
+
+                    control.input.attr('min', allowNegative ? null : 0);
+                    control.slider.attr('min', newMin);
+
+                    if (!allowNegative && parseFloat(control.input.val()) < 0) {
+                        control.input.val(0).trigger('input');
+                    }
+                });
+                syncSliders();
+            }
+
+            // --- Event Listeners ---
+            loadFormState(); // Load saved state first
+
+            // Setup listeners for sliders and toggles
+            controls.forEach(control => {
+                control.slider.on('input', function() {
+                    control.input.val($(this).val()).trigger('input');
+                });
+                control.toggle.on('change', function() {
+                    handleNegativeToggles();
+                    saveFormState(); // Save state when toggle changes
+                });
+            });
+
+            // Initialize controls based on loaded state
+            handleNegativeToggles();
+            syncSliders();
+
             $('#reset-btn').on('click', function() {
                 $('#percentage-change-form')[0].reset();
+                // Manually reset toggles as .reset() doesn't affect them
+                $('#allow-negative-initial, #allow-negative-final').prop('checked', false);
                 $('#transaction-log-collapse').collapse('hide');
+                handleNegativeToggles(); // Re-apply constraints
+                saveFormState(); // Clear saved state
                 calculateAndDisplay();
             });
 
-            $('#percentage-change-form input').on('input', calculateAndDisplay);
+            $('#percentage-change-form input[type="number"]').on('input', function() {
+                syncSliders();
+                calculateAndDisplay();
+                saveFormState();
+            });
 
             $swapBtn.on('click', function() {
                 const initial = $initialValue.val();
@@ -211,6 +328,7 @@ TODO
                 $initialValue.val(final);
                 $finalValue.val(initial);
                 calculateAndDisplay();
+                saveFormState();
             });
 
             // Copy button handler
@@ -255,7 +373,7 @@ TODO
                 const logValue = $transactionLogText.text();
                 const icon = $button.find('.material-symbols-outlined');
 
-                if (logValue && navigator.clipboard && !$button.hasClass('is-copied')) {
+                if (navigator.clipboard && !$button.hasClass('is-copied')) {
                     navigator.clipboard.writeText(logValue).then(() => {
                         $button.addClass('is-copied');
                         icon.addClass('text-success');
@@ -266,6 +384,9 @@ TODO
                     }).catch(err => { console.error('Failed to copy log to clipboard: ', err); });
                 }
             });
+
+            // Initial calculation on page load
+            calculateAndDisplay();
         });
     </script>
 </body>

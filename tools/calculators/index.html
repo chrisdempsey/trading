@@ -11,53 +11,92 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <!-- Shared Styles -->
     <link rel="stylesheet" href="/trading/assets/css/styles.css">
+    <!-- Global App Config -->
+    <script src="/trading/assets/js/config.js"></script>
 </head>
-<body class="financial-tools-index-page">
+<body class="financial-tools-index-page d-flex flex-column vh-100">
     <div id="header-placeholder"></div>
     <div id="navbar-placeholder"></div>
-    <div class="container">
+    <main class="flex-grow-1">
+        <div class="container py-4">
         <h1 class="mb-4 text-center">Trading Calculators</h1>
         <p class="text-center text-muted mb-5">A collection of simple calculators to aid financial analysis.</p>
 
-        <div class="row">
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card h-100">
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">Stock Swap Calculator</h5>
-                        <p class="card-text">Calculate the number of shares of an asset you can acquire by selling another.</p>
-                        <a href="/trading/tools/calculators/asset-swap-calculator.html" class="btn btn-primary mt-auto">Open</a>
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="mb-0">Trading Specific</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 col-lg-3 mb-4">
+                        <div class="card h-100 card-hover-effect">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">Stock Swap</h5>
+                                <p class="card-text">Calculate the number of shares of an asset you can acquire by selling another.</p>
+                                <a href="/trading/tools/calculators/asset-swap-calculator.html" class="btn btn-primary mt-auto">Open</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3 mb-4">
+                        <div class="card h-100 card-hover-effect">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">Percentage Change</h5>
+                                <p class="card-text">Calculate the difference, percentage change, and multiplier between two numbers.</p>
+                                <a href="/trading/tools/calculators/percentage-change-calculator.html" class="btn btn-primary mt-auto">Open</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3 mb-4">
+                        <div class="card h-100 card-hover-effect">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">Currency Converter</h5>
+                                <p class="card-text">Convert between different currencies using real-time exchange rates.</p>
+                                <a href="/trading/tools/calculators/convert-currency.html" class="btn btn-primary mt-auto">Open</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3 mb-4">
+                        <div class="card h-100 card-hover-effect">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">Compound Growth</h5>
+                                <p class="card-text">Calculate an investment's potential growth over time with compounding interest.</p>
+                                <a href="/trading/tools/calculators/compound-growth.html" class="btn btn-primary mt-auto">Open</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3 mb-4">
+                        <div class="card h-100 card-hover-effect">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">Spread Betting Calculator</h5>
+                                <p class="card-text">Calculate the potential profit, loss, and margin for a spread bet.</p>
+                                <a href="/trading/tools/calculators/spread-betting-calculator.html" class="btn btn-primary mt-auto">Open</a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card h-100">
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">Percentage Change Calculator</h5>
-                        <p class="card-text">Calculate the difference, percentage change, and multiplier between two numbers.</p>
-                        <a href="/trading/tools/calculators/percentage-change-calculator.html" class="btn btn-primary mt-auto">Open</a>
-                    </div>
-                </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="mb-0">General Purpose</h4>
             </div>
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card h-100">
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">Currency Converter</h5>
-                        <p class="card-text">Convert between different currencies using real-time exchange rates.</p>
-                        <a href="/trading/tools/calculators/convert-currency.html" class="btn btn-primary mt-auto">Open</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-3 mb-4">
-                <div class="card h-100">
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title">VAT Calculator</h5>
-                        <p class="card-text">Calculate VAT amounts and totals from a net or gross figure.</p>
-                        <a href="/trading/tools/calculators/vat-calculator.html" class="btn btn-primary mt-auto">Open</a>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 col-lg-3 mb-4">
+                        <div class="card h-100 card-hover-effect">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">VAT Calculator</h5>
+                                <p class="card-text">Calculate Value Added Tax (VAT) by adding or removing it from a price.</p>
+                                <a href="/trading/tools/calculators/vat-calculator.html" class="btn btn-primary mt-auto">Open</a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    </main>
 
     <div id="footer-placeholder"></div>
 

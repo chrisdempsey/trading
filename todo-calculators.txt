@@ -1,0 +1,24 @@
+Currency
+-
+- [x] Add options for USD and GBP to SATS
+
+
+
+
+spread bet calculator
+-
+write one for trading app
+
+specifically to calculate decay
+
+Spread Betting Calculator For UK Financial Trading
+https://www.spread-bet.co.uk/betting/calculator/
+
+
+Spread Betting Calculator: Calculate Your Margin, Profit and Loss - IG UK
+https://www.ig.com/uk/spread-betting/spread-betting-calculator
+
+
+
+Compounding
+- [x] add slider to ramp up inputs, recalculate on each tick. Include setting for step size?

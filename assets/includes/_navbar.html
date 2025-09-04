@@ -1,5 +1,5 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-custom-dark fixed-top" style="top: 36px;">
-    <div class="container-fluid px-3">
+    <div class="container">
         <a class="navbar-brand" href="/trading/index.html" title="Home">
             <span class="material-symbols-outlined">home</span>
         </a>
@@ -14,6 +14,9 @@
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="tools-dropdown">
                         <li><a class="dropdown-item" href="/trading/tools/pair-trade-tracker/">Pair Trade Tracker</a></li>
+                        <li><h6 class="dropdown-header">IN PROGRESS</h6></li>
+                        <li><a class="dropdown-item" href="/trading/tools/portfolio/index.html">Portfolio Tracker</a></li>
+                        <li><a class="dropdown-item" href="/trading/tools/cbbi.html">CBBI Bitcoin Index</a></li>
                     </ul>
                 </li>
                 <li class="nav-item dropdown">
@@ -23,9 +26,15 @@
                     <ul class="dropdown-menu" aria-labelledby="calculators-dropdown">
                         <li><a class="dropdown-item" href="/trading/tools/calculators/">All Calculators</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="/trading/tools/calculators/asset-swap-calculator.html">Stock Swap Calculator</a></li>
+                        <li><h6 class="dropdown-header">Trading Specific</h6></li>
+                        <li><a class="dropdown-item" href="/trading/tools/calculators/asset-swap-calculator.html">Stock Swap</a></li>
+                        <li><a class="dropdown-item" href="/trading/tools/calculators/percentage-change-calculator.html">Percentage Change</a></li>
                         <li><a class="dropdown-item" href="/trading/tools/calculators/convert-currency.html">Currency Converter</a></li>
-                        <li><a class="dropdown-item" href="/trading/tools/calculators/percentage-change-calculator.html">Percentage Change Calculator</a></li>
+                        <li><a class="dropdown-item" href="/trading/tools/calculators/compound-growth.html">Compound Growth</a></li>
+                        <li><a class="dropdown-item" href="/trading/tools/calculators/spread-betting-calculator.html">Spread Betting Calculator</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header">General Purpose</h6></li>
+                        <li><a class="dropdown-item" href="/trading/tools/calculators/vat-calculator.html">VAT Calculator</a></li>
                     </ul>
                 </li>
                 <li class="nav-item dropdown">
@@ -33,19 +42,153 @@
                         Workflow
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="workflow-dropdown">
-                        <li><a class="dropdown-item" href="/trading/tradingview/indicators-free.html">Free TradingView Indicators - IN PROGRESS</a></li>
+                        <li><h6 class="dropdown-header">SOPs + IFTTT</h6></li>
+                        <li><a class="dropdown-item" href="/trading/workflow/_setup.html">Setup</a></li>
                     </ul>
                 </li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="misc-dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Misc
+                    <a class="nav-link dropdown-toggle" href="#" id="knowledgebase-dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Knowledgebase
                     </a>
-                    <ul class="dropdown-menu" aria-labelledby="misc-dropdown">
+                    <ul class="dropdown-menu" aria-labelledby="knowledgebase-dropdown">
+                        <li><h6 class="dropdown-header">IN PROGRESS</h6></li>
                         <li><a class="dropdown-item" href="/trading/tools/misc/ia-uk-resources.html">IA-UK Resources</a></li>
-                        <li><a class="dropdown-item" href="/trading/tools/calculators/vat-calculator.html">VAT Calculator</a></li>
+                        <li><h6 class="dropdown-header">TradingView</h6></li>
+                        <li><a class="dropdown-item" href="/trading/resources/indicators-free.html">Free Indicators</a></li>
+                        <li><a class="dropdown-item" href="/trading/resources/indicators-toolkit.html">Indicator Toolkit</a></li>
+                        <li><a class="dropdown-item" href="/trading/resources/indicators-investigate.html">Indicators to investigate</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="thirdparty-dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Third Party Tools
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="thirdparty-dropdown">
+                        <li><h6 class="dropdown-header">External Tools</h6></li>
+                        <li><a class="dropdown-item" href="https://www.coinglass.com/pro/futures/LiquidationHeatMapNew">Crypto Liquidation Heatmap (Coinglass)</a></li>
+                        <li><a class="dropdown-item" href="https://intel.arkm.com/explorer/entity/wintermute">Arkham Intel (Wintermute)</a></li>
+                        <li><a class="dropdown-item" href="https://truflation.com/">Truflation (Inflation Data)</a></li>
+                        <li><a class="dropdown-item" href="https://fred.stlouisfed.org/">FRED Economic Data</a></li>
+                        <li><a class="dropdown-item" href="https://coinledger.io/wallet-balance-check">CoinLedger Wallet Balance Check</a></li>
+                        <li><a class="dropdown-item" href="https://strategytracker.com/">Strategy Tracker</a></li>
+                        <li><a class="dropdown-item" href="https://feargreedmeter.com/fear-and-greed-index">Fear + Greed Index</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header">MicroStrategy Related</h6></li>
+                        <li><a class="dropdown-item" href="https://mstrnetwork.com/">MSTR Network</a></li>
+                        <li><a class="dropdown-item" href="https://www.mstrmoon.com/">MSTR Moon</a></li>
+                        <li><a class="dropdown-item" href="https://microstrategist.com/ballistic.html">MicroStrategist Ballistic Model</a></li>
+                        <li><a class="dropdown-item" href="https://optioncharts.io/options/MSTR/max-pain?expiration_dates=2025-01-17:m">MSTR Max Pain (OptionCharts.io)</a></li>
                     </ul>
                 </li>
             </ul>
+
+            <!-- Search Form -->
+            <form class="d-flex ms-auto position-relative" role="search" onsubmit="event.preventDefault();">
+                <input class="form-control" style="padding-right: 2.5rem;" type="search" id="navbarSearchInput" placeholder="Search pages..." aria-label="Search" autocomplete="off">
+                <span class="material-symbols-outlined position-absolute text-muted" id="navbarSearchClear" style="display: none; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; z-index: 4;">
+                    close
+                </span>
+                <div id="navbarSearchResults" class="list-group position-absolute top-100 start-0 mt-1 shadow-sm" style="display: none; z-index: 1060; width: 300px;">
+                    <!-- Search results will be injected here by JavaScript -->
+                </div>
+            </form>
         </div>
     </div>
 </nav>
+
+<script>
+function initNavbarSearch() {
+    logger.log('Navbar Search: Initializing...');
+
+    const searchInput = document.getElementById('navbarSearchInput');
+    const resultsContainer = document.getElementById('navbarSearchResults');
+    const clearIcon = document.getElementById('navbarSearchClear');
+    logger.log('Navbar Search: Input element found?', searchInput);
+    logger.log('Navbar Search: Results container found?', resultsContainer);
+    
+    if (!searchInput || !resultsContainer) {
+        logger.error('Navbar Search: Critical element(s) missing. Script cannot run.');
+        return;
+    }
+    
+    const searchableItems = [];
+    document.querySelectorAll('#main-navbar .nav-item.dropdown').forEach(dropdown => {
+        const categoryTitle = dropdown.querySelector('.nav-link.dropdown-toggle').textContent.trim();
+        dropdown.querySelectorAll('a.dropdown-item').forEach(link => {
+            if (link.hasAttribute('href') && link.getAttribute('href') !== '#') {
+                searchableItems.push({ linkElement: link, category: categoryTitle });
+            }
+        });
+    });
+    logger.log(`Navbar Search: Found ${searchableItems.length} links to search.`);
+    
+    const performSearch = () => {
+        const query = searchInput.value.trim().toLowerCase();
+        logger.log(`Navbar Search: Searching for query: "${query}"`);
+
+        // Show or hide the clear icon based on whether the input has text
+        clearIcon.style.display = searchInput.value.length > 0 ? 'block' : 'none';
+  
+        if (query.length < 3) {
+            resultsContainer.innerHTML = '';
+            resultsContainer.style.display = 'none';
+            return;
+        }
+  
+        const matches = searchableItems.filter(item => {
+            const linkText = (item.linkElement.textContent || '').toLowerCase();
+            return linkText.includes(query);
+        });
+        logger.log(`Navbar Search: Found ${matches.length} matches.`);
+  
+        if (matches.length > 0) {
+            // Group matches by category
+            const groupedMatches = matches.reduce((acc, item) => {
+                (acc[item.category] = acc[item.category] || []).push(item.linkElement);
+                return acc;
+            }, {});
+
+            let resultsHtml = '';
+            for (const category in groupedMatches) {
+                resultsHtml += `<div class="list-group-header small text-uppercase fw-bold">${category}</div>`;
+                resultsHtml += groupedMatches[category].map(link => 
+                    `<a href="${link.href}" class="list-group-item list-group-item-action small py-2 ps-4">${link.textContent}</a>`
+                ).join('');
+            }
+            resultsContainer.innerHTML = resultsHtml;
+        } else {
+            resultsContainer.innerHTML = '<span class="list-group-item list-group-item-disabled small py-2">No results found</span>';
+        }
+        resultsContainer.style.display = 'block';
+    };
+    
+    searchInput.addEventListener('keyup', performSearch);
+    searchInput.addEventListener('focus', performSearch);
+
+    clearIcon.addEventListener('click', () => {
+        searchInput.value = ''; // Clear the input field
+        resultsContainer.innerHTML = ''; // Clear search results
+        resultsContainer.style.display = 'none'; // Hide the results container
+        clearIcon.style.display = 'none'; // Hide the clear icon
+        searchInput.focus(); // Return focus to the input field
+    });
+
+    logger.log('Navbar Search: Event listeners attached.');
+  
+     // Hide results when clicking anywhere outside the search input or its results
+     document.addEventListener('click', function(e) {
+         if (!searchInput.contains(e.target) && !resultsContainer.contains(e.target)) {
+             resultsContainer.style.display = 'none';
+         }
+     });
+}
+
+if (document.readyState === 'loading') {
+    // The document is still loading, so we wait for the event.
+    document.addEventListener('DOMContentLoaded', initNavbarSearch);
+} else {
+    // The DOM is already ready, so we can execute our function immediately.
+    logger.log('Navbar Search: DOMContentLoaded already fired, running init function now.');
+    initNavbarSearch();
+}
+</script>

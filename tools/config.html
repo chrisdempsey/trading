@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <!-- Shared Styles -->
     <link rel="stylesheet" href="/trading/assets/css/styles.css">
+    <!-- global app config -->
+    <script src="/trading/assets/js/config.js"></script>
 </head>
 <body class="mb-5 pb-5">
     <div id="header-placeholder"></div>
@@ -56,6 +58,22 @@
                 <button class="btn btn-sm btn-outline-danger" id="clear-cache-btn">Clear API Cache</button>
             </div>
         </div>
+
+        <h2 class="mt-5">Debug Settings</h2>
+        <p class="text-muted mb-4">Control application-wide debugging and console logging.</p>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                Debug Mode
+            </div>
+            <div class="card-body">
+                <p class="card-text text-muted small">When enabled, diagnostic messages will be printed to the browser's console. This should be disabled in a production environment. The setting is saved in your browser's local storage.</p>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="enable-debug-mode-switch">
+                    <label class="form-check-label" for="enable-debug-mode-switch">Enable Debug Mode</label>
+                </div>
+            </div>
+        </div>
     </main>
 
     <div id="footer-placeholder"></div>
@@ -66,51 +84,79 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <!-- Shared Header Script -->
     <script src="/trading/assets/js/header.js"></script>
-    <!-- Global Config -->
-    <script src="/trading/assets/js/config.js"></script>
     <script>
-        $(document).ready(function() {
-            // Load shared components
+            // --- Component Loading ---
             $("#header-placeholder").load("/trading/assets/includes/_header.html", function() {
-                // Call the function from header.js to initialize its dynamic content
-                initializeHeader();
+                if (typeof initializeHeader === 'function') initializeHeader();
             });
             $("#navbar-placeholder").load("/trading/assets/includes/_navbar.html");
             $("#footer-placeholder").load("/trading/assets/includes/_footer.html");
 
-            // --- API Key Display ---
-            $('#api-key-id').val(AppConfig.ALPACA_API.KEY_ID);
-            $('#api-secret-key').val(AppConfig.ALPACA_API.SECRET_KEY);
+            // --- Page-Specific Settings Initialization ---
+            // Using event delegation for robustness. Listeners are attached to the static `document`
+            // and will catch events from child elements, avoiding timing conflicts.
 
-            // --- Cache Settings ---
-            const CACHE_ENABLED_KEY = 'apiCacheEnabled';
-            const CACHE_DURATION_KEY = 'apiCacheDurationSeconds';
-            const CACHE_DATA_KEY = 'apiPriceCache'; // The key for the actual cache data
+            // Setup Debug settings logic
+            (function setupDebugSettings() {
+                const STORAGE_KEY = 'debugModeEnabled';
+                const SELECTOR = '#enable-debug-mode-switch';
 
-            function loadCacheSettings() {
-                const isEnabled = localStorage.getItem(CACHE_ENABLED_KEY) === 'true';
-                const duration = localStorage.getItem(CACHE_DURATION_KEY) || 180; // Default to 3 minutes
+                function loadState() {
+                    const isEnabled = localStorage.getItem(STORAGE_KEY) === 'true';
+                    $(SELECTOR).prop('checked', isEnabled);
+                }
 
-                $('#enable-api-cache-switch').prop('checked', isEnabled);
-                $('#cache-duration').val(duration);
-            }
+                function saveState(event) {
+                    const isEnabled = $(event.currentTarget).is(':checked');
+                    localStorage.setItem(STORAGE_KEY, isEnabled);
+                    if (window.appConfig) {
+                        window.appConfig.Debug = isEnabled;
+                        logger.log(`Debug mode has been ${isEnabled ? 'enabled' : 'disabled'}.`);
+                    }
+                }
 
-            function saveCacheSettings() {
-                localStorage.setItem(CACHE_ENABLED_KEY, $('#enable-api-cache-switch').is(':checked'));
-                localStorage.setItem(CACHE_DURATION_KEY, $('#cache-duration').val());
-            }
+                $(document).on('change', SELECTOR, saveState);
+                loadState();
+            })();
 
-            $('#enable-api-cache-switch, #cache-duration').on('change', saveCacheSettings);
+            // Setup API Key display logic
+            (function setupApiKeyDisplay() {
+                $('#api-key-id').val(window.appConfig?.ALPACA_API?.KEY_ID || 'Not Set');
+                $('#api-secret-key').val(window.appConfig?.ALPACA_API?.SECRET_KEY || 'Not Set');
+            })();
 
-            $('#clear-cache-btn').on('click', function() {
-                localStorage.removeItem(CACHE_DATA_KEY);
-                const btn = $(this);
-                btn.text('Cache Cleared!').addClass('btn-success').removeClass('btn-outline-danger');
-                setTimeout(() => btn.text('Clear API Cache').removeClass('btn-success').addClass('btn-outline-danger'), 2000);
-            });
+            // Setup Cache settings logic
+            (function setupCacheSettings() {
+                const ENABLED_KEY = 'apiCacheEnabled';
+                const DURATION_KEY = 'apiCacheDurationSeconds';
+                const DATA_KEY = 'apiPriceCache';
+                const ENABLE_SELECTOR = '#enable-api-cache-switch';
+                const DURATION_SELECTOR = '#cache-duration';
+                const CLEAR_BTN_SELECTOR = '#clear-cache-btn';
 
-            loadCacheSettings();
-        });
+                function loadState() {
+                    const isEnabled = localStorage.getItem(ENABLED_KEY) === 'true';
+                    const duration = localStorage.getItem(DURATION_KEY) || 180;
+                    $(ENABLE_SELECTOR).prop('checked', isEnabled);
+                    $(DURATION_SELECTOR).val(duration);
+                }
+
+                function saveState() {
+                    localStorage.setItem(ENABLED_KEY, $(ENABLE_SELECTOR).is(':checked'));
+                    localStorage.setItem(DURATION_KEY, $(DURATION_SELECTOR).val());
+                }
+
+                function clearCache(event) {
+                    const $clearBtn = $(event.currentTarget);
+                    localStorage.removeItem(DATA_KEY);
+                    $clearBtn.text('Cache Cleared!').addClass('btn-success').removeClass('btn-outline-danger');
+                    setTimeout(() => $clearBtn.text('Clear API Cache').removeClass('btn-success').addClass('btn-outline-danger'), 2000);
+                }
+
+                $(document).on('change', `${ENABLE_SELECTOR}, ${DURATION_SELECTOR}`, saveState);
+                $(document).on('click', CLEAR_BTN_SELECTOR, clearCache);
+                loadState();
+            })();
     </script>
 </body>
 </html>

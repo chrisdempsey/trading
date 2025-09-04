@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Spread Betting Calculator</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Google Material Symbols -->
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <!-- Shared CSS -->
+    <link rel="stylesheet" href="/trading/assets/css/styles.css">
+    <!-- Global App Config -->
+    <script src="/trading/assets/js/config.js"></script>
+    <style>
+        /* Make collapse triggers clickable */
+        [data-bs-toggle="collapse"] {
+            cursor: pointer;
+        }
+        /* Rotate the chevron icon when the collapse element is expanded */
+        .collapse-chevron {
+            transition: transform 0.3s ease-in-out;
+        }
+        [data-bs-toggle="collapse"][aria-expanded="true"] .collapse-chevron {
+            transform: rotate(90deg);
+        }
+    </style>
+</head>
+
+<body class="d-flex flex-column vh-100">
+    <div id="header-placeholder"></div>
+    <div id="navbar-placeholder"></div>
+
+    <main class="container mt-4 flex-grow-1">
+        <div class="col-lg-8 mx-auto">
+            <h1 class="text-center">Spread Betting Calculator</h1>
+            <p class="lead text-center text-muted mb-4">Calculate the potential profit, loss, and margin for a spread bet.</p>
+
+            <div class="card">
+                <div class="card-body">
+                    <form id="spread-bet-form" onsubmit="return false;">
+                        <div class="row g-3">
+                            <!-- Trade Direction -->
+                            <div class="col-12">
+                                <label class="form-label">Trade Direction</label>
+                                <div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="trade-direction" id="direction-buy" value="buy" checked>
+                                        <label class="form-check-label" for="direction-buy">Buy</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="trade-direction" id="direction-sell" value="sell">
+                                        <label class="form-check-label" for="direction-sell">Sell</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Inputs -->
+                            <div class="col-md-6">
+                                <label for="stake-size" class="form-label">Stake Size (per point)</label>
+                                <input type="number" class="form-control" id="stake-size" step="0.1" min="0" placeholder="e.g. 10" value="10">
+                                <input type="range" class="form-range mt-2" id="stake-size-slider" min="0" max="100" step="0.1">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="margin-rate" class="form-label">Margin Rate (%)</label>
+                                <input type="number" class="form-control" id="margin-rate" step="0.1" min="0" placeholder="e.g. 5" value="5">
+                                <input type="range" class="form-range mt-2" id="margin-rate-slider" min="0" max="100" step="0.1">
+                                <div class="form-text">The percentage of the trade's full value required to open the position.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="opening-price" class="form-label">Opening Price</label>
+                                <input type="number" class="form-control" id="opening-price" step="0.1" min="0" max="1000" placeholder="e.g. 7500" value="100">
+                                <input type="range" class="form-range mt-2" id="opening-price-slider" min="0" max="1000" step="0.1">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="closing-price" class="form-label">Closing Price</label>
+                                <input type="number" class="form-control" id="closing-price" step="0.1" min="0" max="1000" placeholder="e.g. 7550" value="100">
+                                <input type="range" class="form-range mt-2" id="closing-price-slider" min="0" max="1000" step="0.1">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="card mt-4">
+                <div class="card-header text-uppercase">Results</div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h6 class="text-muted">Profit / Loss</h6>
+                            <p class="fs-4 fw-bold" id="result-pnl">-</p>
+                            <div class="mt-2">
+                                <h6 class="text-muted small d-flex align-items-center" data-bs-toggle="collapse" data-bs-target="#pnl-breakdown-collapse">
+                                    <span>Calculation Breakdown</span>
+                                    <span class="material-symbols-outlined collapse-chevron ms-1">chevron_forward</span>
+                                </h6>
+                                <div class="collapse" id="pnl-breakdown-collapse"><div id="pnl-calculation-breakdown" class="small text-muted"></div></div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-muted">Margin Required</h6>
+                            <p class="fs-4 fw-bold" id="result-margin">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <button type="button" id="reset-btn" class="btn btn-secondary">Reset</button>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <!-- Core Scripts -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Shared Header Script -->
+    <script src="/trading/assets/js/header.js"></script>
+
+    <script>
+        // Load shared components
+        $(function() {
+            $("#header-placeholder").load("/trading/assets/includes/_header.html", function() {
+                if (typeof initializeHeader === 'function') {
+                    initializeHeader();
+                }
+            });
+            $("#navbar-placeholder").load("/trading/assets/includes/_navbar.html");
+            $("#footer-placeholder").load("/trading/assets/includes/_footer.html");
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            const formInputIds = [
+                '#stake-size', '#margin-rate', '#opening-price', '#closing-price',
+                'input[name="trade-direction"]'
+            ];
+            const controls = [
+                { input: $('#stake-size'), slider: $('#stake-size-slider') },
+                { input: $('#margin-rate'), slider: $('#margin-rate-slider') },
+                { input: $('#opening-price'), slider: $('#opening-price-slider') },
+                { input: $('#closing-price'), slider: $('#closing-price-slider') }
+            ];
+            const storageKey = 'spreadBettingCalculatorInputs';
+
+            // --- State Management ---
+            function saveFormState() {
+                const state = {};
+                formInputIds.forEach(selector => {
+                    const $el = $(selector);
+                    if ($el.is(':radio')) {
+                        if ($el.filter(':checked').length) {
+                           state[selector] = $el.filter(':checked').val();
+                        }
+                    } else {
+                        state[selector] = $el.val();
+                    }
+                });
+                localStorage.setItem(storageKey, JSON.stringify(state));
+            }
+
+            function loadFormState() {
+                const savedState = JSON.parse(localStorage.getItem(storageKey));
+                if (savedState) {
+                    formInputIds.forEach(selector => {
+                        const $el = $(selector);
+                        if (savedState[selector] !== undefined) {
+                            if ($el.is(':radio')) {
+                                $el.filter(`[value="${savedState[selector]}"]`).prop('checked', true);
+                            } else {
+                                $el.val(savedState[selector]);
+                            }
+                        }
+                    });
+                }
+            }
+
+            // --- Slider Synchronization ---
+            function syncSliders() {
+                controls.forEach(control => {
+                    const val = parseFloat(control.input.val()) || 0;
+                    const currentMax = parseFloat(control.slider.attr('max'));
+
+                    // Dynamically adjust max range if needed
+                    if (val > currentMax) {
+                        control.slider.attr('max', val * 1.5);
+                    }
+
+                    control.slider.val(val);
+                });
+            }
+
+            // --- Calculation Logic ---
+            function calculateAndDisplay() {
+                const direction = $('input[name="trade-direction"]:checked').val();
+                const stake = parseFloat($('#stake-size').val());
+                const marginRate = parseFloat($('#margin-rate').val());
+                const openPrice = parseFloat($('#opening-price').val());
+                const closePrice = parseFloat($('#closing-price').val());
+
+                const $pnlResult = $('#result-pnl');
+                const $marginResult = $('#result-margin');
+                const $pnlBreakdown = $('#pnl-calculation-breakdown');
+
+                // Reset display if inputs are invalid
+                if (isNaN(stake) || isNaN(openPrice)) {
+                    $pnlResult.text('-').removeClass('text-success text-danger');
+                    $pnlBreakdown.html('');
+                    $marginResult.text('-');
+                    return;
+                }
+
+                // Calculate Margin Required
+                const marginRequired = (openPrice * stake) * (marginRate / 100);
+                $marginResult.text(isNaN(marginRequired) ? '-' : `$${marginRequired.toFixed(2)}`);
+
+                // Calculate Profit/Loss
+                if (isNaN(closePrice)) {
+                    $pnlResult.text('-').removeClass('text-success text-danger');
+                    $pnlBreakdown.html('');
+                    return;
+                }
+
+                let pnl = 0;
+                if (direction === 'buy') {
+                    pnl = (closePrice - openPrice) * stake;
+                } else { // sell
+                    pnl = (openPrice - closePrice) * stake;
+                }
+
+                $pnlResult.text(`$${pnl.toFixed(2)}`);
+                if (pnl > 0) {
+                    $pnlResult.removeClass('text-danger').addClass('text-success');
+                } else if (pnl < 0) {
+                    $pnlResult.removeClass('text-success').addClass('text-danger');
+                } else {
+                    $pnlResult.removeClass('text-success text-danger');
+                }
+
+                // Build and display the calculation breakdown
+                const priceDiff = direction === 'buy' ? closePrice - openPrice : openPrice - closePrice;
+                let breakdownHtml;
+
+                if (direction === 'buy') {
+                    breakdownHtml = `
+                        <code class="d-block text-start">${stake} x (${closePrice} - ${openPrice})</code>
+                        <code class="d-block text-start">${stake} x (${priceDiff.toFixed(2)})</code>
+                        <code class="d-block text-start">= $${pnl.toFixed(2)}</code>
+                    `;
+                } else { // sell
+                    breakdownHtml = `
+                        <code class="d-block text-start">${stake} x (${openPrice} - ${closePrice})</code>
+                        <code class="d-block text-start">${stake} x (${priceDiff.toFixed(2)})</code>
+                        <code class="d-block text-start">= $${pnl.toFixed(2)}</code>
+                    `;
+                }
+                $pnlBreakdown.html(breakdownHtml);
+            }
+
+            // --- Event Listeners ---
+            $('#spread-bet-form').on('input', 'input[type="number"], input[type="radio"]', function() {
+                syncSliders();
+                calculateAndDisplay();
+                saveFormState();
+            });
+
+            controls.forEach(control => {
+                control.slider.on('input', function() {
+                    control.input.val($(this).val()).trigger('input');
+                });
+            });
+
+            $('#reset-btn').on('click', function() {
+                $('#spread-bet-form')[0].reset();
+                // Restore default values after reset
+                $('#stake-size').val(10);
+                $('#margin-rate').val(5);
+                $('#opening-price').val(7500);
+                $('#closing-price').val(7550);
+                // Manually reset radio to default
+                $('#direction-buy').prop('checked', true);
+                localStorage.removeItem(storageKey);
+                calculateAndDisplay();
+            });
+
+            // Initial Load
+            loadFormState();
+            calculateAndDisplay();
+        });
+    </script>
+</body>
+</html>

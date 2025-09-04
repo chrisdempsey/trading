@@ -1,0 +1,28 @@
+
+
+
+- build indicators individually, then merge into The Trding Suite
+- indicator list
+    - moving averages
+    - bollinger clouds
+    - auto fib levels
+    - core momentum
+    - dual linreg?
+    - ZLEMA - mirror, remove box levels, anything else to add?
+    - Lorentzian - any option for just the trend line, no flags (or at least disable flags?)
+    - RSIz?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

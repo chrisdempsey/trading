@@ -28,3 +28,28 @@
         applyCacheBusting('script[src]', 'src');
     })();
 </script>
+
+<script>
+    // This script dynamically adds padding to the bottom of the body
+    // to prevent the fixed footer from overlapping content.
+    (function() {
+        'use strict';
+
+        function adjustBodyPadding() {
+            const footer = document.querySelector('.footer.fixed-bottom');
+            if (footer) {
+                const footerHeight = footer.offsetHeight;
+                // Apply padding to the main content area, not the body,
+                // to work correctly with the flexbox sticky footer layout.
+                const mainElement = document.querySelector('main');
+                if (mainElement) {
+                    mainElement.style.paddingBottom = footerHeight + 'px';
+                }
+            }
+        }
+
+        // Adjust when the script runs and on window resize.
+        adjustBodyPadding();
+        window.addEventListener('resize', adjustBodyPadding);
+    })();
+</script>

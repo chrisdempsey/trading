@@ -1,0 +1,79 @@
+LuxAlgo - Price Action Concepts (no cost alternative: Fair Value Gap [JacobMagleby])
+
+IA Optimized Trend (no cost alternatve: ChartPrime - Zero-Lag MA Trend Levels)
+
+ChartPrime - Zero-Lag MA Trend Levels (this one is like IA optimised trend)
+> The Zero-Lag MA Trend Levels [ChartPrime] indicator combines a Zero-Lag Moving Average (ZLMA) with a standard Exponential Moving Average (EMA) to provide a dynamic view of the market trend. This indicator uses a color-changing cloud to represent shifts in trend momentum and plots key levels when trend reversals are detected. The addition of trend level boxes helps identify significant price zones where market shifts occur, with retest signals aiding in spotting potential continuation or reversal points.
+- NOTE: disable the Trend Levels option in settings, it's not particularly useful
+https://www.tradingview.com/script/pP2FhzAX-Zero-Lag-MA-Trend-Levels-ChartPrime/
+
+
+jdehorty: Machine Learning: Lorentzian Classification
+> A Lorentzian Distance Classifier (LDC) is a Machine Learning classification algorithm capable of categorizing historical data from a multi-dimensional feature space. This indicator demonstrates how Lorentzian Classification can also be used to predict the direction of future price movements when used as the distance metric for a novel implementation of an Approximate Nearest Neighbors (ANN) algorithm.
+- NOTE: used specifically for the clean trend line shown by the Kernel line
+https://www.tradingview.com/script/WhBzgfDu-Machine-Learning-Lorentzian-Classification/
+
+
+[DIP] Many Moving Averages
+- Highly customizable set of moving Averages
+Supports:
+- Up to 8 Moving Averages ( SMA , EMA , HMA , RMA, VWMA , WMA )
+- Each moving average can be configured with its own Period, Type, Source and Timeframe.
+
+Supports:
+- Up to 8 Moving Averages ( SMA , EMA , HMA , RMA, VWMA , WMA )
+- Each moving average can be configured with its own Period, Type, Source and Timeframe.
+https://www.tradingview.com/script/1WiFqn3I-DIP-Many-Moving-Averages/
+
+
+
+
+[DIP] EMA Band / Trend
+- For those who like to have a trend indicator to base a market bias off of. Its basically a faster, noisier Larsson line that I personally use to double check my Short or Long bias for daytrading.
+- Includes a preset to mirror the Larsson Line.
+https://www.tradingview.com/script/W4dydDvX-DIP-EMA-Band-Trend/
+
+include link to profile page and direct script links in IA COMMUNITY - where to find this?
+
+
+
+
+SIMI
+AlgoAlpha - Zero Lag Signals (bullish and bearish trend)
+> Zero Lag Trend Signals, a precision-engineered Pine Script™ indicator designed to eliminate lag and provide rapid trend insights across multiple timeframes. 💡 This tool blends zero-lag EMA (ZLEMA) logic with volatility bands, trend-shift markers, and dynamic alerts. The result? Timely signals with minimal noise for clearer decision-making, whether you're trading intraday or on longer horizons. 🔄
+https://www.tradingview.com/script/tHK4O1Fi-Zero-Lag-Trend-Signals-MTF-AlgoAlpha/
+
+Pair Backtester — Indicator by simipanda — TradingView
+> Backtester that allows you to test variety of pair trading strategies ie: MSTR/TSLA swaps, using external indicators.
+
+Features include:
+-compatibility with external source signals with values 1 (true) and 0 (false)
+- compatibility with external source trend indicators (fast and slot plots)
+- variety of swap methods (percentages, static share amount etc.)
+- slippage
+- fees
+https://www.tradingview.com/script/PmyfWTbA-Pair-Backtester/
+
+- good result on MSTR/TSLA using Optimized Trend only
+https://discord.com/channels/1319333104787132476/1329824552771125268/1404122071155609702
+
+- trading process notes on what works best
+https://discord.com/channels/1319333104787132476/1329824552771125268/1403781408035573891
+
+
+
+MILO
+
+Bollock Bands (invite only)
+
+> Bollock Bands is like Bollinger Bands, only with more bollocks
+
+Simply put, Bollock Bands is a long-term pair trading tool that gives you around 2-4 swap signals per month, designed for heavier swaps. It's made up of 2 main parts - the Bollock Trend line (tells you when to swap) and the Bollock Bands (tells you how heavy to swap). The Bollock Bands are very similar to the IA Confluence indicator.
+
+On the other hand, Bollock Scalper is a separate indicator that is designed for 2-5 trades per week. It identifies local tops and bottoms, but doesn't see long-term price action, so make sure you're swapping much smaller amounts (otherwise you might end up on the wrong train at the wrong time). Bollock Scalper is based on a composite score of RSI, MACD and an EMA indicator, tuned to the same settings that James uses (or has used in the past).
+
+Both seem to work well on the 2h chart using regular candles. But I prefer using MSTRx/TSLAx for Bollock Scalper, rather than normal MSTR/TSLA.
+
+You can use both indicators at once when scalping (but I recommend ignoring the trend line if you do that, as it lags too much to be useful for these 1-2 day swaps).
+
+https://www.tradingview.com/script/HsyhPI5S-Bollock-Bands/

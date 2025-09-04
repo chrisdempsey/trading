@@ -1,15 +1,16 @@
-/**
- * This file contains global configuration settings for the application.
- * Include this file in the <head> of your HTML pages to make these
- * settings available on all pages.
- */
+<!--
+This file contains global configuration settings for the application.
+Include this file in the <head> of your main layout template to make these
+settings available on all pages.
+-->
+<script>
 window.appConfig = {
     /**
      * Debug Settings
-     * When true, enables console logging. This value is controlled from the
-     * config.html page and stored in localStorage. It defaults to false.
+     * When true, enables console logging and other diagnostic features.
+     * Set to false for production environments.
      */
-    Debug: localStorage.getItem('debugModeEnabled') === 'true',
+    Debug: true,
 
     /**
      * API Settings
@@ -30,3 +31,4 @@ window.logger = {
     warn: (...args) => window.appConfig?.Debug && console.warn(...args),
     info: (...args) => window.appConfig?.Debug && console.info(...args),
 };
+</script>

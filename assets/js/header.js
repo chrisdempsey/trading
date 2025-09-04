@@ -28,19 +28,22 @@ function initializeHeader() {
     const $ipAddressSpan = $('#ip-address');
     $.getJSON('https://api.ipify.org?format=json', function(data) {
         const ip = data.ip;
-        const originalText = 'Your IP: ' + ip;
 
-        $ipAddressSpan.text(originalText)
-            .css('cursor', 'pointer')
-            .attr('title', 'Click to copy IP');
+        // Create the new structure
+        const labelHtml = '<span title="IP address provided via api.ipify.org, your details are not sent to our server.">Your IP: </span>';
+        const valueHtml = `<span id="ip-address-value" style="cursor: pointer;" title="Click to copy IP">${ip}</span>`;
 
-        // .off() prevents multiple handlers from being attached if this function is ever called more than once.
-        $ipAddressSpan.off('click').on('click', function() {
+        $ipAddressSpan.html(labelHtml + valueHtml);
+
+        const $ipValueSpan = $('#ip-address-value');
+
+        // Attach click event only to the IP address value
+        $ipValueSpan.on('click', function() {
             navigator.clipboard.writeText(ip).then(() => {
-                // On success, provide visual feedback
-                $ipAddressSpan.text('Copied!');
+                const originalIp = $ipValueSpan.text();
+                $ipValueSpan.text('Copied!');
                 setTimeout(() => {
-                    $ipAddressSpan.text(originalText);
+                    $ipValueSpan.text(originalIp);
                 }, 1500);
             }).catch(err => {
                 console.error('Failed to copy IP to clipboard: ', err);
@@ -65,53 +68,79 @@ function initializeHeader() {
 /**
  * Logic for the Global Settings Modal
  */
-$(document).on('show.bs.modal', '#global-settings-modal', function () {
-    const modalBody = $('#global-settings-modal-body');
+$(document).on('show.bs.modal', '#global-settings-modal', function() {
+    const $modal = $(this);
+    const modalBody = $modal.find('.modal-body');
     const configUrl = '/trading/tools/config.html';
 
-    // Load the main content from the config page into the modal.
-    // The callback function runs after the content is loaded.
+    // Load the main content from config.html into the modal body.
+    // The selector ' main' ensures we only grab the content, not the whole page.
     modalBody.load(configUrl + ' main', function(response, status, xhr) {
         if (status === "error") {
             modalBody.html(`<p class="text-danger">Error loading settings: ${xhr.statusText}</p>`);
             return;
         }
 
-        // The content is loaded, now we need to make it functional.
-        // This logic is adapted from config.html to work in the modal context.
+        // This function initializes all settings logic within the modal.
+        // It's designed to run *after* the content is loaded.
         function initializeSettings() {
-            // --- API Key Display ---
-            $('#global-settings-modal #api-key-id').val(AppConfig.ALPACA_API.KEY_ID);
-            $('#global-settings-modal #api-secret-key').val(AppConfig.ALPACA_API.SECRET_KEY);
+            // Use namespaced events for robust cleanup.
+            $modal.off('.settingsModal');
 
-            // --- Cache Settings ---
-            const CACHE_ENABLED_KEY = 'apiCacheEnabled';
-            const CACHE_DURATION_KEY = 'apiCacheDurationSeconds';
-            const CACHE_DATA_KEY = 'apiPriceCache';
+            function setupDebugToggle() {
+                const STORAGE_KEY = 'debugModeEnabled';
+                const $toggle = $modal.find('#enable-debug-mode-switch');
+                $toggle.prop('checked', localStorage.getItem(STORAGE_KEY) === 'true');
 
-            const isEnabled = localStorage.getItem(CACHE_ENABLED_KEY) === 'true';
-            const duration = localStorage.getItem(CACHE_DURATION_KEY) || 180;
-            $('#global-settings-modal #enable-api-cache-switch').prop('checked', isEnabled);
-            $('#global-settings-modal #cache-duration').val(duration);
+                $modal.on('change.settingsModal', '#enable-debug-mode-switch', function() {
+                    const isEnabled = $(this).is(':checked');
+                    localStorage.setItem(STORAGE_KEY, isEnabled);
+                    if (window.appConfig) {
+                        window.appConfig.Debug = isEnabled;
+                        logger.log(`Debug mode has been ${isEnabled ? 'enabled' : 'disabled'}.`);
+                    }
+                });
+            }
 
-            $('#global-settings-modal').on('change', '#enable-api-cache-switch, #cache-duration', function() {
-                localStorage.setItem(CACHE_ENABLED_KEY, $('#global-settings-modal #enable-api-cache-switch').is(':checked'));
-                localStorage.setItem(CACHE_DURATION_KEY, $('#global-settings-modal #cache-duration').val());
-            });
+            function setupApiDisplay() {
+                $modal.find('#api-key-id').val(window.appConfig?.ALPACA_API?.KEY_ID || 'Not Set');
+                $modal.find('#api-secret-key').val(window.appConfig?.ALPACA_API?.SECRET_KEY || 'Not Set');
+            }
 
-            $('#global-settings-modal').on('click', '#clear-cache-btn', function() {
-                localStorage.removeItem(CACHE_DATA_KEY);
-                const btn = $(this);
-                btn.text('Cache Cleared!').addClass('btn-success').removeClass('btn-outline-danger');
-                setTimeout(() => btn.text('Clear API Cache').removeClass('btn-success').addClass('btn-outline-danger'), 2000);
-            });
+            function setupCacheControls() {
+                const ENABLED_KEY = 'apiCacheEnabled';
+                const DURATION_KEY = 'apiCacheDurationSeconds';
+                const DATA_KEY = 'apiPriceCache';
+                const $toggle = $modal.find('#enable-api-cache-switch');
+                const $duration = $modal.find('#cache-duration');
+
+                $toggle.prop('checked', localStorage.getItem(ENABLED_KEY) === 'true');
+                $duration.val(localStorage.getItem(DURATION_KEY) || 180);
+
+                $modal.on('change.settingsModal', '#enable-api-cache-switch, #cache-duration', function() {
+                    localStorage.setItem(ENABLED_KEY, $toggle.is(':checked'));
+                    localStorage.setItem(DURATION_KEY, $duration.val());
+                }).on('click.settingsModal', '#clear-cache-btn', function() {
+                    localStorage.removeItem(DATA_KEY);
+                    const btn = $(this);
+                    btn.text('Cache Cleared!').addClass('btn-success').removeClass('btn-outline-danger');
+                    setTimeout(() => btn.text('Clear API Cache').removeClass('btn-success').addClass('btn-outline-danger'), 2000);
+                });
+            }
+
+            // Initialize all settings components
+            setupDebugToggle();
+            setupApiDisplay();
+            setupCacheControls();
         }
 
-        // Ensure AppConfig is available before initializing.
-        if (typeof AppConfig !== 'undefined') {
+        // Ensure the global appConfig object is available before initializing settings.
+        // This is crucial because config.js might not be loaded on every page.
+        if (typeof window.appConfig !== 'undefined') {
             initializeSettings();
         } else {
-            // If config.js hasn't been loaded on the current page, load it now.
+            // If config.js hasn't been loaded on the current page, load it dynamically
+            // and then initialize the settings logic in the callback.
             $.getScript('/trading/assets/js/config.js', initializeSettings);
         }
     });
@@ -156,8 +185,8 @@ $(document).on('show.bs.modal', '#global-settings-modal', function () {
         if (localStorage.getItem(NOTICE_DISMISSED_KEY) !== 'true') {
             const noticeHtml = `
                 <div class="alert alert-info alert-dismissible fade show rounded-0 mb-0 text-center" role="alert" id="global-privacy-notice">
-                    <strong>Note:</strong> no data is sent to the server, all information is private and stored in your browser's local storage.
-                    This will be lost if you clear your cache - make sure you export a backup using the Data Management tool first.
+                    <strong>Note:</strong> no data is sent to the server, all information is private and held in your browser's local storage.
+                    CRITICAL - your data will be lost if you clear your browser's cache without first creating a backup using the Data Management tool.
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             `;

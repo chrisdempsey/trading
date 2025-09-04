@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 <head>
+    <!--
+
+    NOTES
+    - prices fom api.frankfurter.app, is a free, open-source service specifically designed for this use case, and it sources its data from the European Central Bank, which is a very reliable provider.
+
+    -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
@@ -11,11 +17,14 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <!-- Shared Styles -->
     <link rel="stylesheet" href="/trading/assets/css/styles.css">
+    <!-- Global App Config -->
+    <script src="/trading/assets/js/config.js"></script>
 </head>
-<body class="currency-converter-page">
+<body class="currency-converter-page d-flex flex-column vh-100">
     <div id="header-placeholder"></div>
     <div id="navbar-placeholder"></div>
-    <div class="container">
+    <main class="flex-grow-1">
+        <div class="container py-4">
         <h1 class="mb-4 text-center">Currency Converter</h1>
         <p class="text-center text-muted mb-4">Convert between different currencies using real-time exchange rates.</p>
 
@@ -32,15 +41,22 @@
                                 <span class="material-symbols-outlined fs-1">swap_horiz</span>
                             </button>
                         </div>
-                        <div class="col-md-5">
+                        <div class="col-md-3">
                             <label for="to-currency" class="form-label">To</label>
                             <select class="form-select form-select-lg" id="to-currency"></select>
                         </div>
+                        <div class="col-md-2">
+                            <label for="custom-to-currency" class="form-label">Or Custom</label>
+                            <input type="text" class="form-control form-control-lg" id="custom-to-currency" placeholder="eg. AUD" maxlength="4">
+                        </div>
                     </div>
-                    <div class="row g-3">
-                        <div class="col-12">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-6">
                             <label for="amount" class="form-label">Amount</label>
                             <input type="number" class="form-control form-control-lg" id="amount" value="1" step="any">
+                        </div>
+                        <div class="col-md-12">
+                            <input type="range" class="form-range" id="amount-slider" value="1" min="1" max="1000" step="1">
                         </div>
                     </div>
                 </form>
@@ -58,6 +74,7 @@
         </div>
 
     </div>
+    </main>
 
     <div id="footer-placeholder"></div>
 
@@ -80,10 +97,16 @@
             $("#footer-placeholder").load("/trading/assets/includes/_footer.html");
 
             // --- Currency Converter Logic ---
-            const API_URL = 'https://api.frankfurter.app';
+            const FRANKFURTER_API_URL = 'https://api.frankfurter.app';
+            const COINGECKO_API_URL = 'https://api.coingecko.com/api/v3/simple/price';
+            const CRYPTO_SYMBOLS = ['BTC', 'SATS'];
+            const SATS_IN_BTC = 100_000_000;
+
             const $fromCurrency = $('#from-currency');
             const $toCurrency = $('#to-currency');
             const $amount = $('#amount');
+            const $amountSlider = $('#amount-slider');
+            const $customToCurrency = $('#custom-to-currency');
             const $swapBtn = $('#swap-currencies');
             const $resultsContainer = $('#results-container');
             const $resultFrom = $('#result-text-from');
@@ -92,16 +115,31 @@
             let conversionTimeout;
 
             // 1. Fetch currencies and populate dropdowns
-            $.getJSON(`${API_URL}/currencies`)
+            function initializeDropdowns() {
+                const cryptoOptGroup = '<optgroup label="Crypto"></optgroup>';
+                const fiatOptGroup = '<optgroup label="Fiat"></optgroup>';
+                $fromCurrency.append(cryptoOptGroup).append(fiatOptGroup);
+                $toCurrency.append(cryptoOptGroup).append(fiatOptGroup);
+
+                $fromCurrency.find('optgroup[label="Crypto"]').append('<option value="BTC">BTC - Bitcoin</option><option value="SATS">SATS - Satoshis</option>');
+                $toCurrency.find('optgroup[label="Crypto"]').append('<option value="BTC">BTC - Bitcoin</option><option value="SATS">SATS - Satoshis</option>');
+            }
+
+            initializeDropdowns();
+
+            $.getJSON(`${FRANKFURTER_API_URL}/currencies`)
                 .done(function(currencies) {
+                    const allowedFiat = ['EUR', 'GBP', 'JPY', 'USD'];
                     $.each(currencies, function(code, name) {
-                        const option = `<option value="${code}">${code} - ${name}</option>`;
-                        $fromCurrency.append(option);
-                        $toCurrency.append(option);
+                        if (allowedFiat.includes(code)) {
+                            const option = `<option value="${code}">${code} - ${name}</option>`;
+                            $fromCurrency.find('optgroup[label="Fiat"]').append(option);
+                            $toCurrency.find('optgroup[label="Fiat"]').append(option);
+                        }
                     });
                     // Set default values
-                    $fromCurrency.val('USD');
-                    $toCurrency.val('EUR');
+                    $fromCurrency.val('GBP');
+                    $toCurrency.val('USD');
                     // Trigger initial calculation
                     convert();
                 })
@@ -114,42 +152,121 @@
             function convert() {
                 const amount = parseFloat($amount.val());
                 const from = $fromCurrency.val();
-                const to = $toCurrency.val();
+                const customTo = $customToCurrency.val().trim();
+                let to = $toCurrency.val();
 
-                if (isNaN(amount) || !from || !to || amount <= 0) {
+                if (customTo.length > 0) {
+                    to = customTo; // Override 'to' currency with sanitized custom input
+                }
+
+                if (isNaN(amount) || !from || !to || amount < 0) {
                     $resultsContainer.hide();
                     return;
                 }
 
                 $resultsContainer.show();
                 $resultTo.html('<div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div>');
+                $resultFrom.text(`${amount.toLocaleString()} ${from} =`);
 
                 if (from === to) {
                     displayResult(amount, amount, 1, from, to);
                     return;
                 }
 
-                $.getJSON(`${API_URL}/latest?amount=${amount}&from=${from}&to=${to}`)
+                const fromIsCrypto = CRYPTO_SYMBOLS.includes(from);
+                const toIsCrypto = CRYPTO_SYMBOLS.includes(to);
+
+                if (!fromIsCrypto && !toIsCrypto) {
+                    handleFiatToFiat(amount, from, to);
+                } else if (fromIsCrypto && toIsCrypto) {
+                    handleCryptoToCrypto(amount, from, to);
+                } else {
+                    handleMixedConversion(amount, from, to);
+                }
+            }
+
+            function handleFiatToFiat(amount, from, to) {
+                $.getJSON(`${FRANKFURTER_API_URL}/latest?amount=${amount}&from=${from}&to=${to}`)
                     .done(function(data) {
                         const result = data.rates[to];
                         const rate = result / amount;
                         displayResult(amount, result, rate, from, to);
                     })
                     .fail(function() {
-                        $resultTo.html('<span class="text-danger">Conversion failed.</span>');
+                        $resultTo.html('<span class="text-danger">Fiat conversion failed.</span>');
+                    });
+            }
+
+            function handleCryptoToCrypto(amount, from, to) {
+                let result, rate;
+                if (from === 'BTC' && to === 'SATS') {
+                    rate = SATS_IN_BTC;
+                    result = amount * rate;
+                } else { // SATS to BTC
+                    rate = 1 / SATS_IN_BTC;
+                    result = amount * rate;
+                }
+                displayResult(amount, result, rate, from, to);
+            }
+
+            function handleMixedConversion(amount, from, to) {
+                const fromIsCrypto = CRYPTO_SYMBOLS.includes(from);
+                const cryptoSymbol = fromIsCrypto ? from : to;
+                const fiatSymbol = fromIsCrypto ? to : from;
+
+                // Convert SATS to BTC equivalent for API call
+                const amountInBtc = (from === 'SATS') ? amount / SATS_IN_BTC : amount;
+
+                $.getJSON(`${COINGECKO_API_URL}?ids=bitcoin&vs_currencies=${fiatSymbol.toLowerCase()}`)
+                    .done(function(data) {
+                        const btcPriceInFiat = data.bitcoin[fiatSymbol.toLowerCase()];
+                        if (!btcPriceInFiat) {
+                            $resultTo.html(`<span class="text-danger">Price for ${fiatSymbol} not available.</span>`);
+                            return;
+                        }
+
+                        let result, rate;
+                        if (fromIsCrypto) { // Crypto to Fiat (e.g., BTC to USD)
+                            rate = btcPriceInFiat;
+                            result = amountInBtc * rate;
+                        } else { // Fiat to Crypto (e.g., USD to BTC)
+                            rate = 1 / btcPriceInFiat;
+                            result = amount * rate;
+                            // If converting to SATS, adjust the final result
+                            if (to === 'SATS') {
+                                result *= SATS_IN_BTC;
+                            }
+                        }
+                        displayResult(amount, result, rate, from, to);
+                    })
+                    .fail(function() {
+                        $resultTo.html('<span class="text-danger">Crypto conversion failed.</span>');
                     });
             }
 
             function displayResult(amount, result, rate, from, to) {
+                let resultOptions = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
+                if (to === 'BTC') {
+                    resultOptions = { minimumFractionDigits: 2, maximumFractionDigits: 8 };
+                } else if (to === 'SATS') {
+                    resultOptions = { minimumFractionDigits: 0, maximumFractionDigits: 0 };
+                }
+
                 $resultFrom.text(`${amount.toLocaleString()} ${from} =`);
-                $resultTo.text(`${result.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${to}`);
+                $resultTo.text(`${result.toLocaleString(undefined, resultOptions)} ${to}`);
                 $rateInfo.html(`1 ${from} = ${rate.toFixed(4)} ${to} &nbsp;&bull;&nbsp; <span class="text-muted">Updated: ${new Date().toLocaleDateString()}</span>`);
             }
 
             // 3. Event Handlers
-            $('#currency-converter-form').on('input change', function() {
+            // General handler for dropdowns and custom currency input
+            $('select, #custom-to-currency').on('input change', function() {
+                convert();
+            });
+
+            // Debounced handler specifically for the amount text input
+            $amount.on('input', function() {
                 clearTimeout(conversionTimeout);
-                conversionTimeout = setTimeout(convert, 300); // Debounce input
+                conversionTimeout = setTimeout(convert, 300);
             });
 
             $swapBtn.on('click', function() {
@@ -158,6 +275,38 @@
                 $toCurrency.val(fromVal);
                 convert();
             });
+
+            // --- Slider and Text Input Sync ---
+            $amountSlider.on('input', function() {
+                // Only update the text value while dragging, do not trigger any events
+                $amount.val($(this).val());
+            }).on('mouseup', function() {
+                // Trigger conversion only when the mouse is released
+                convert();
+            });
+
+            // This handler is now only for syncing the slider when the user types
+            // It does not trigger conversion, that's handled by the debounced handler above.
+            $amount.on('keyup', function() {
+                const val = parseFloat($(this).val());
+
+                // Also update the slider's max value if a user types a larger number
+                if (!isNaN(val) && val > 0) {
+                    if (val > parseFloat($amountSlider.attr('max'))) $amountSlider.attr('max', val);
+                    $amountSlider.val(val);
+                }
+            });
+        });
+
+        // --- Custom Currency Input Handler ---
+        $('#custom-to-currency').on('input', function() {
+            // Sanitize input to be uppercase letters only
+            this.value = this.value.toUpperCase().replace(/[^A-Z]/g, '');
+
+            // Disable swap button and 'To' dropdown if a custom currency is entered
+            const hasCustomValue = this.value.length > 0;
+            $('#swap-currencies').prop('disabled', hasCustomValue).toggleClass('text-muted', hasCustomValue);
+            $('#to-currency').prop('disabled', hasCustomValue);
         });
     </script>
 </body>
