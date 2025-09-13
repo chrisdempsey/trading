@@ -1,14 +1,13 @@
-- [ ] new - spread betting calculator
-- [x] compound growth
-    - [x] add outcome field for `monthly interest available to withdraw` between principal value and Total Income Withdrawn
-    - [x] rename Reinvest Gains to Compound Gains
-    - [x] update step on growth rate to 0.1 instead of 0.01
-    - [x] the #termValue field allows negative numbers and zero - update this so that the minimum value is 1 and only integers greater than or equal to this are allowed
+- [ ] publish and add links to refactored tradingview indicators
 - [ ] there is no allowance for Crypto tickers at this time - figure option to map crypto names to tickrs eg. SOL > SOLUSD and use these to fetch live prices. Or use to ignore price for Crypto tickers
 - [ ] find an option to limit access to the google drive files
     - specified users only by gmail address
-- [x] BUG - /trading/tools/pair-trade-tracker/index.html
-      - Settings and other collapse elements at the foot of the page are inaccessible as they are covered by the Github footer element
+- [ ] combine the workflow and knowlegebase dropdowns - need a term to use as the heading
+      - playbook
+      - framework
+      - opsbase - Our Operational Praxis
+      - praxis (A more sophisticated term for the integration of theory (knowledge) and practice (workflow).)
+      - 
 - [ ] change the Settings collapse element to be accessed via the main settings cog in the header
       - this should be a flyout with
           - application settings
@@ -17,32 +16,47 @@
           - the settings cog is unintuitive
           - maybe leave as a collapse element at the end of the page?
 - [ ] add search function to Settings pages and have the settings in closed collpse elements to start?
-- [x] copy icon buttons have button styles on Percentage Change Calculator but should be small icon only
 - [ ] integrate api cache from global settings and Alpaca, with frankfurter.api from currency conversion
-- [x] add Chrome bookmarks to tools list
-
 - [ ] write page to extract information from Colin Talks Crypto cycle peak calculator? reverse engineer the javascript used to produce the CBBI data display
       https://colintalkscrypto.com/cbbi/
       https://colintalkscrypto.com/cbbi/data/latest.json
 
       - only shows 6 of 9 metrics to toggle on/off
       - confidence score doesn't match
-
+- [ ] add global help text like OPNsense - toggle with global setting
 - [ ] mirror MOP ROTATION sheet from Excel - need to manually describe the functionality and provide the cell formulas
 
 - [ ] build portfolio sheet into an app
 
-
+- [ ] when the user presses enter on the Add Trade form, submit the form the same as is actioned by the Save button (validate first?)
+- [ ] ISSUE - MSTR/TSLA - if sell at a loss, the system doesn't allow the actual number repurchased to be entered as lower than the auto calculated value - how to workaround this?
+- [ ] local storage and data format issues
+      - ideally need backup to single file, not tracker depenendent - pair tracker, portfolio tracker
+      - useful to also backup user settings
+      - full blown system is higher maintenance and security concern - can't custody user data
+      - can this be done with JSON?
+          - if so, can specific parts be restored rather than full app restore?
+      - if above can be resolved, figure option for device sync eg. desktop to mobile
+- [x] new - spread betting calculator
+- [x] compound growth
+    - [x] add outcome field for `monthly interest available to withdraw` between principal value and Total Income Withdrawn
+    - [x] rename Reinvest Gains to Compound Gains
+    - [x] update step on growth rate to 0.1 instead of 0.01
+    - [x] the #termValue field allows negative numbers and zero - update this so that the minimum value is 1 and only integers greater than or equal to this are allowed
+- [x] BUG - /trading/tools/pair-trade-tracker/index.html
+      - Settings and other collapse elements at the foot of the page are inaccessible as they are covered by the Github footer element
+- [x] copy icon buttons have button styles on Percentage Change Calculator but should be small icon only
+- [x] add Chrome bookmarks to tools list
 - [x] move the Debug card fron the top of the global configuration page to the bottom
 - [x] the shared footer is missing from the home index file. the footer is required to trigger cache busting
 - [x] creating a new pair sets the initial quantity to 0. This means no trades can be added because there are no shares to swap. Need alert if QTY = 0 to set actual QTY in Pair Configuration collapse element
 - [x] the Close Trade Position modal has a section for Swap To stock with a Price input field #close-to-price. add a Ratio column with div element to show the closing ratio. dynamically update the ratio on each keypress
 - [x] update the buttons for close and delete from buttons to the same style as the .notes-icon-btn, that is the slim profile icon without the actual button. the delete icon should be red.
 - [x] when adding a new pair, the pair name field is first. rearrange the order so the stock ticker fields are first, then the pair name field. as the user types in the ticker fields buld the pair name dynamically in the pair name field
-      in the format STOCK--TICKER/STOCK-B-TICKER. allow the user to adjust the name, if they do, stop dynamically building the pair name so their changes are preserved- [ ] when the user presses enter on the Add Trade form, submit the form the same as is actioned by the Save button (validate first?)
+      in the format STOCK--TICKER/STOCK-B-TICKER. allow the user to adjust the name, if they do, stop dynamically building the pair name so their changes are preserved
 - [x] BUG - dismiss privacy notice icon does not hide the notice
 - [x] update Global Settings from standalone page to modal window that opens over the current page
-- [x] move shared css to separate file in /assets/css/styles.css- [ ] ISSUE - MSTR/TSLA - if sell at a loss, the system doesn't allow the actual number repurchased to be entered as lower than the auto calculated value - how to workaround this?
+- [x] move shared css to separate file in /assets/css/styles.css
 - [x] compound gains calculator - initial value, %gain, period eg. wk/mth/hr, timeframe eg. 1,2,3 years.
 - [x] cache busting version does not appear in css or js asset link/script tags. see call at end of header.js
         // Apply versioning to assets for cache busting first.
@@ -50,14 +64,3 @@
 - [x] curency converter
       - how is currency dropdown populated
       - set gbp as default from and usd as default to
-
-
-
-
-
-
-
-
-
-
-

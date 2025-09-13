@@ -1,0 +1,22 @@
+- [ ] make all headings bootstrap collapse elements like Current Holdings is
+    - figure which should be open by default
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    

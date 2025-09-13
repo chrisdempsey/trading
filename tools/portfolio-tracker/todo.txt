@@ -1,0 +1,32 @@
+- [ ] under the Data Management collapse element in the /trading/tools/pair-trade-tracker/index.html file there is a button option to Add Demo Data. Figure how to add demo data to the portfolio
+      - clear any existing data
+      - add two dummy brokerage accounts Broker A and Broker Broker
+      - add 7 Assets: AAPL, AMZN, GOOG, META, NVDA, TSLA and PLTR
+      - add a random mix of assets and quantities to each brokerage account
+- [ ] add sort ASD/DESC to Portfolio Grid header to sort the grid rows in the selected direction onclick
+- [ ] add a setting to blur values like other portfolio apps?
+- [ ] when the cash curency is updated, the value cells change to `calculating ...` which causes the table cell width to change and an awkward flicker. Update the table to ensure the cell widths remain the same
+- [ ] add option to delete all brokerage accounts, assets and related stored data - where to add this?
+
+- [ ] How to use
+      - double click to edit fields
+      - press enter to commit or escape to cancel (clicking away will also cancel the operation in most cases)
+
+- [x] update the mouse cursor on hover for the bootstrap collapse triggers used eg. for Settings, Data Management and other collapse elements. The mouse should be a hand on hover to indicate the element has an action when clicked. Consider using the data-bs-toggle="collapse" attribute to target collapse elements in the main styles.css file
+- [x] the Add Asset button immediately adds a new row to the Portfolio grid. instead, use a modal window to collect the information required so that the new row is fully populated when it is addeded to the grid
+- [x] add an option to track cash - do this by assuming each Brokerage Account can have a cash balance. Add this as a new table below the Portfolio Grid with heading: Cash. The default value is for each input field is 0 and allow double click to edit the value
+      - howto handle USD vs GBP (II and IBKR both default the total to GBP)
+- [x] a cache buster querystring v=1.0.0 is dynamically added to the pair trade tracker css file, but not the js files in either the pair trade tracker or the portfolio tracker. can you find the file that includes this functionality (let me know if you need a file opened) and make the cache buster querystring a toggle setting in the Global Configuration page? Add this in the same style Card as the other settings, use the headng: Cache buster. Do you need any further detail or any file opened?
+      - this should be a toggle setting in the global configuration - Cache buster (dynamically adds querystring to css and js files)
+- [x] adding a non existent asset eg. xxx123 shows error in the console: API Error for TEST: no trade found for TEST alpaca-api.js:83:25. but there is no Toast message to alert the user. Can you update this?
+- [x] there is an issue with the Cash table. the headers draw correctly (IBKR | T212 | Total Cash) but the row wth the cash values is incomplete ($123 | the next two cells are merged with no final border)
+- [x] in the portfolio grid rows and Cash rows the default value for the input field is 0. Instead, show a placeholder to show the default 0. this makes it easier for user to click and enter the true value without first having to delete the default 0 when it is set as the field value
+- [x] selecting the Delete.remove-row-btn in the Portfolio grid immediately removes the row. Update this to first throw a Confirmation Modal
+- [x] update the Cash heading to be a bootstrap collapse element in the same style as is used for the Configuration heading ie. with the animated chevron. the default state should be closed and the last used state remembered by local storage
+- [x] update the configuration heading to remember the last used state (expanded or collapsed) using local storage
+- [x] portfolio tracker, cash table - usability would be better if cash was entered in the value selected in the dropdown - right now it is assumed USD but IBKR gives balance in GBP so easier to enter this way without manual conversion
+      - [x] When editing the cash value for a portfolio by double clicking the system assumes the value to be entered in USD. Update this so that if the user selected a different currency in the #cash-currency-select dropdown, the value entered is assumed to be in that currency. You must ensure the value stored in the database is converted to USD - do this seamlessly in the background by converting with the Frankfurter API
+- [x] move the #cash-currency-select dropdown from below the cash table to the Total Cash header cell. ensure the dropdown floats to the right
+- [x] when changing the cash table currency with the dropdown the currency conversion sometimes takes a few seconds. immediately on the value of the dropdown changing, change the .editable-cash cells to read `calculating...` so the user knows to expect the change shortly
+- [x] when no assets have been added to the database, the #add-portfolio-row-btn is visible, but when the Add Asset modal is thrown there are no assets to select from. Hide the #add-portfolio-row-btn button when there are no assets in the database
+- [x] update the modal window system so that for all modal windows, pressing enter triggers the Confirm button. ensure this applies throughout the app by configuring this in an existing central config file

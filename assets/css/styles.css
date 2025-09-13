@@ -65,17 +65,34 @@ body {
 
 
 /* collapse elements */
-.collapse-chevron {
-    transition: transform 300ms ease-in-out;
-}
-
-/* utility classes */
-.clickable {
+/* Make any collapse toggle element indicate it's clickable */
+[data-bs-toggle="collapse"] {
     cursor: pointer;
 }
 
+/* For single-icon chevrons that rotate */
+.collapse-chevron {
+    transition: transform 0.3s ease-in-out;
+}
 [data-bs-toggle="collapse"][aria-expanded="true"] .collapse-chevron {
     transform: rotate(90deg);
+}
+
+/* Hide the closed icon by default */
+.collapse-icon-closed {
+    display: inline-block;
+}
+/* Hide the open icon by default */
+.collapse-icon-open {
+    display: none;
+}
+/* When the collapse is open, show the open icon */
+[data-bs-toggle="collapse"][aria-expanded="true"] .collapse-icon-open {
+    display: inline-block;
+}
+/* When the collapse is open, hide the closed icon */
+[data-bs-toggle="collapse"][aria-expanded="true"] .collapse-icon-closed {
+    display: none;
 }
 
 .asset-swap-calculator-page [data-bs-toggle="tooltip"] {

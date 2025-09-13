@@ -29,15 +29,20 @@
                 API Keys
             </div>
             <div class="card-body">
-                <p class="card-text text-muted small">These keys are hardcoded in <code>/trading/assets/js/config.js</code> and are used by various tools for API requests. They are displayed here for reference.</p>
+                <p class="card-text text-muted small">Enter your Alpaca API keys here. They will be stored in your browser's local storage and will not be sent to our server.</p>
                 <div class="mb-3">
                     <label for="api-key-id" class="form-label">Alpaca API Key ID</label>
-                    <input type="text" class="form-control" id="api-key-id" readonly>
+                    <input type="text" class="form-control" id="api-key-id" placeholder="Enter your API Key ID">
                 </div>
                 <div class="mb-3">
                     <label for="api-secret-key" class="form-label">Alpaca Secret Key</label>
-                    <input type="password" class="form-control" id="api-secret-key" readonly>
+                    <input type="password" class="form-control" id="api-secret-key" placeholder="Enter your Secret Key">
                 </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" role="switch" id="api-paper-trading-switch">
+                    <label class="form-check-label" for="api-paper-trading-switch">Use Paper Trading Account</label>
+                </div>
+                <button class="btn btn-primary" id="save-api-keys-btn">Save API Keys</button>
             </div>
         </div>
 
@@ -56,6 +61,33 @@
                     <input type="number" class="form-control" id="cache-duration" min="0">
                 </div>
                 <button class="btn btn-sm btn-outline-danger" id="clear-cache-btn">Clear API Cache</button>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                Cache Buster
+            </div>
+            <div class="card-body">
+                <p class="card-text text-muted small">When enabled, a version querystring (e.g., <code>?v=1.0.0</code>) is added to CSS and JS files to prevent browsers from using old, cached versions during development.</p>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" role="switch" id="enable-cache-buster-switch">
+                    <label class="form-check-label" for="enable-cache-buster-switch">Enable Cache Buster</label>
+                </div>
+                <div id="cache-buster-options" class="mt-3">
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="cache-buster-version-input" placeholder="e.g., 1.0.1">
+                        <div class="form-text">Set the version string to apply.</div>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="cache-buster-js-switch">
+                        <label class="form-check-label" for="cache-buster-js-switch">Apply to JS files</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="cache-buster-css-switch">
+                        <label class="form-check-label" for="cache-buster-css-switch">Apply to CSS files</label>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -121,8 +153,26 @@
 
             // Setup API Key display logic
             (function setupApiKeyDisplay() {
-                $('#api-key-id').val(window.appConfig?.ALPACA_API?.KEY_ID || 'Not Set');
-                $('#api-secret-key').val(window.appConfig?.ALPACA_API?.SECRET_KEY || 'Not Set');
+                const KEY_ID_SELECTOR = '#api-key-id';
+                const SECRET_KEY_SELECTOR = '#api-secret-key';
+                const PAPER_TRADING_SELECTOR = '#api-paper-trading-switch';
+                const SAVE_BTN_SELECTOR = '#save-api-keys-btn';
+
+                function loadState() {
+                    $(KEY_ID_SELECTOR).val(localStorage.getItem('alpacaApiKeyId') || '');
+                    $(SECRET_KEY_SELECTOR).val(localStorage.getItem('alpacaApiSecretKey') || '');
+                    $(PAPER_TRADING_SELECTOR).prop('checked', localStorage.getItem('alpacaApiPaper') === 'true');
+                }
+
+                function saveState(event) {
+                    localStorage.setItem('alpacaApiKeyId', $(KEY_ID_SELECTOR).val());
+                    localStorage.setItem('alpacaApiSecretKey', $(SECRET_KEY_SELECTOR).val());
+                    localStorage.setItem('alpacaApiPaper', $(PAPER_TRADING_SELECTOR).is(':checked'));
+                    $(event.currentTarget).text('Saved!').addClass('btn-success').removeClass('btn-primary');
+                    setTimeout(() => $(event.currentTarget).text('Save API Keys').removeClass('btn-success').addClass('btn-primary'), 2000);
+                }
+                $(document).on('click', SAVE_BTN_SELECTOR, saveState);
+                loadState();
             })();
 
             // Setup Cache settings logic
@@ -155,6 +205,38 @@
 
                 $(document).on('change', `${ENABLE_SELECTOR}, ${DURATION_SELECTOR}`, saveState);
                 $(document).on('click', CLEAR_BTN_SELECTOR, clearCache);
+                loadState();
+            })();
+
+            // Setup Cache Buster settings logic
+            (function setupCacheBusterSettings() {
+                const ENABLED_KEY = 'cacheBusterEnabled';
+                const VERSION_KEY = 'cacheBusterVersion';
+                const JS_KEY = 'cacheBusterJsEnabled';
+                const CSS_KEY = 'cacheBusterCssEnabled';
+                const ENABLE_SELECTOR = '#enable-cache-buster-switch';
+                const VERSION_SELECTOR = '#cache-buster-version-input';
+                const JS_SELECTOR = '#cache-buster-js-switch';
+                const CSS_SELECTOR = '#cache-buster-css-switch';
+                const OPTIONS_SELECTOR = '#cache-buster-options';
+
+                function loadState() {
+                    const isEnabled = localStorage.getItem(ENABLED_KEY) === 'true';
+                    $(ENABLE_SELECTOR).prop('checked', isEnabled);
+                    $(VERSION_SELECTOR).val(localStorage.getItem(VERSION_KEY) || '1.0.0');
+                    $(JS_SELECTOR).prop('checked', localStorage.getItem(JS_KEY) === 'true');
+                    $(CSS_SELECTOR).prop('checked', localStorage.getItem(CSS_KEY) === 'true');
+                    $(OPTIONS_SELECTOR).toggle(isEnabled);
+                }
+
+                function saveState() {
+                    localStorage.setItem(ENABLED_KEY, $(ENABLE_SELECTOR).is(':checked'));
+                    localStorage.setItem(VERSION_KEY, $(VERSION_SELECTOR).val());
+                    localStorage.setItem(JS_KEY, $(JS_SELECTOR).is(':checked'));
+                    localStorage.setItem(CSS_KEY, $(CSS_SELECTOR).is(':checked'));
+                }
+
+                $(document).on('change', `${ENABLE_SELECTOR}, ${VERSION_SELECTOR}`, saveState);
                 loadState();
             })();
     </script>

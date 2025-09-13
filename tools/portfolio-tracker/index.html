@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Portfolio Tracker</title>
+    <!-- Bootstrap 5.3.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Google Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="/trading/assets/css/styles.css">
+</head>
+<body class="d-flex flex-column vh-100">
+    <div id="header-placeholder"></div>
+    <div id="navbar-placeholder"></div>
+
+    <main class="flex-grow-1">
+        <div class="container py-4">
+            <h1 class="mb-3">Portfolio Tracker</h1>
+
+            <!-- Configuration -->
+            <section id="configuration-section" class="mb-4">
+                <h3 class="mb-3 clickable d-flex align-items-center" data-bs-toggle="collapse" data-bs-target="#configuration-collapse" aria-expanded="true" aria-controls="configuration-collapse">
+                    <span>Configuration</span>
+                    <span class="material-symbols-outlined collapse-chevron ms-2">chevron_forward</span>
+                </h3>
+                <div id="configuration-collapse" class="collapse show">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- Brokerage Accounts -->
+                                <div class="col-md-6 border-end">
+                                    <h5>Brokerage Accounts</h5>
+                                    <div class="input-group mb-3">
+                                        <input type="text" id="new-account-name" class="form-control" placeholder="e.g., IBKR">
+                                        <button id="add-account-btn" class="btn btn-outline-secondary">Add</button>
+                                    </div>
+                                    <ul id="accounts-list" class="list-group"></ul>
+                                </div>
+                                <!-- Assets -->
+                                <div class="col-md-6">
+                                    <h5>Assets</h5>
+                                    <div class="input-group mb-3">
+                                        <input type="text" id="new-asset-ticker" class="form-control text-uppercase" placeholder="e.g., MSTR, TSLA">
+                                        <button id="add-asset-btn" class="btn btn-outline-secondary">Add</button>
+                                    </div>
+                                    <ul id="assets-list" class="list-group"></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Portfolio -->
+            <section id="portfolio-section" class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3>Portfolio</h3>
+                    <button id="add-portfolio-row-btn" class="btn btn-primary">
+                        <span class="material-symbols-outlined icon-inline-sm">add</span>
+                        Add Asset
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle" id="portfolio-table">
+                        <thead id="portfolio-head"></thead>
+                        <tbody id="portfolio-body"></tbody>
+                        <tfoot id="portfolio-foot"></tfoot>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Cash Balances -->
+            <section id="cash-section" class="mb-4">
+                <h3 class="mb-3 d-flex align-items-center" data-bs-toggle="collapse" data-bs-target="#cash-collapse" aria-expanded="false" aria-controls="cash-collapse">
+                    <span>Cash</span>
+                    <span class="material-symbols-outlined collapse-chevron ms-2">chevron_forward</span>
+                </h3>
+                <div id="cash-collapse" class="collapse">
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle" id="cash-table">
+                            <thead id="cash-head"></thead>
+                            <tbody id="cash-body"></tbody>
+                            <tfoot id="cash-foot"></tfoot>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Collapsible Sections Toggles -->
+            <div class="d-flex align-items-center gap-4 mt-4">
+                <h6 class="text-muted d-flex align-items-center mb-0 clickable" data-bs-toggle="collapse" data-bs-target="#settings-collapse" aria-expanded="false" aria-controls="settings-collapse">
+                    <span>Settings</span>
+                    <span class="material-symbols-outlined collapse-chevron ms-2">chevron_forward</span>
+                </h6>
+                <h6 class="text-muted d-flex align-items-center mb-0 clickable" data-bs-toggle="collapse" data-bs-target="#data-management-collapse" aria-expanded="false" aria-controls="data-management-collapse">
+                    <span>Data Management</span>
+                    <span class="material-symbols-outlined collapse-chevron ms-2">chevron_forward</span>
+                </h6>
+            </div>
+
+            <!-- Accordion for Settings and Data Management -->
+            <div id="main-accordion">
+                <!-- Settings Content -->
+                <div class="collapse" id="settings-collapse" data-bs-parent="#main-accordion">
+                    <div class="p-3 border rounded mt-2">
+                        <h5 class="mb-3">Settings</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="fractional-shares-switch" />
+                                    <label class="form-check-label" for="fractional-shares-switch">Allow Fractional Shares</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="currency-display-select" class="form-label">Currency Display</label>
+                                <select id="currency-display-select" class="form-select">
+                                    <option value="USD">USD</option>
+                                    <option value="GBP">GBP</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="api-cache-switch" checked>
+                                    <label class="form-check-label" for="api-cache-switch">Enable API Cache</label>
+                                </div>
+                                <div class="form-text">Caches API responses to prevent rate-limiting. Lasts 5 mins.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Management Content -->
+                <div class="collapse" id="data-management-collapse" data-bs-parent="#main-accordion">
+                    <div class="p-3 border rounded mt-2">
+                        <h5 class="mb-3">Data Management</h5>
+                        <div class="d-flex gap-3 flex-wrap justify-content-between align-items-start">
+                            <div>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <button id="export-csv-btn" class="btn btn-outline-secondary">
+                                        <span class="material-symbols-outlined icon-inline-sm">download</span>
+                                        Export to CSV
+                                    </button>
+                                    <label for="import-csv-input" class="btn btn-outline-secondary">
+                                        <span class="material-symbols-outlined icon-inline-sm">upload</span>
+                                        Import from CSV
+                                    </label>
+                                    <input type="file" id="import-csv-input" class="d-none" accept=".csv">
+                                </div>
+                                <div class="form-text mt-2">Export or import the portfolio data.</div>
+                            </div>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button id="clear-portfolio-btn" class="btn btn-outline-danger">
+                                    <span class="material-symbols-outlined icon-inline-sm">playlist_remove</span>
+                                    Clear Portfolio
+                                </button>
+                                <button id="clear-all-data-btn" class="btn btn-danger">
+                                    <span class="material-symbols-outlined icon-inline-sm">delete_forever</span>
+                                    Clear All Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <!-- Add Asset Modal -->
+    <div class="modal fade" id="add-asset-modal" tabindex="-1" aria-labelledby="addAssetModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="addAssetModalLabel">Add Asset to Portfolio</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-asset-form">
+                        <div class="mb-3">
+                            <label for="add-asset-select" class="form-label">Asset</label>
+                            <select id="add-asset-select" class="form-select" required></select>
+                        </div>
+                        <div id="add-asset-quantities">
+                            <!-- Quantity inputs will be dynamically inserted here -->
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="save-asset-btn" class="btn btn-primary">Add to Portfolio</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generic Confirmation Modal -->
+    <div class="modal fade" id="confirm-action-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="confirm-action-modal-title">Confirm Action</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="confirm-action-modal-body"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="confirm-action-btn" class="btn btn-danger">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container for notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="app-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto" id="toast-title">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toast-body"></div>
+        </div>
+    </div>
+
+    <!-- jQuery 3.7.1 -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <!-- Bootstrap 5.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Shared Header Script -->
+    <script src="/trading/assets/js/header.js"></script>
+    <!-- Global Config & API Helpers -->
+    <script src="/trading/assets/js/config.js"></script>
+    <script src="/trading/assets/js/alpaca-api.js"></script>
+    <!-- App Logic -->
+    <script src="/trading/tools/portfolio-tracker/assets/js/app.js"></script>
+</body>
+</html>

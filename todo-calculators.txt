@@ -3,6 +3,17 @@ Currency
 - [x] Add options for USD and GBP to SATS
 
 
+### VAT Calculator
+- [ ] change to single column?
+    - VAT rate
+        - update to make Custom an option in the dropdown - if selected show the custom rate field
+    - Amount
+        - add slider
+        - move Includes VAT toggle to beside Amount heading? (same as on Percentage Change Calculator - but order text then toggle)
+
+### Percentage Change Calculator
+- [ ] swap text for Allow Negative toggle to LHS, toggle on RHS
+    - same on Compound Growth Calculator
 
 
 spread bet calculator
@@ -22,3 +33,25 @@ https://www.ig.com/uk/spread-betting/spread-betting-calculator
 
 Compounding
 - [x] add slider to ramp up inputs, recalculate on each tick. Include setting for step size?
+
+
+### section index pages
+
+- [ ] list all pages as cards
+      https://dev.trading.git/trading/tools/calculators/index.html
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

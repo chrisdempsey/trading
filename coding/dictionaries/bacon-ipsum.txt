@@ -1,0 +1,63 @@
+alcatra
+amet
+andouille
+bacon
+beef
+beef ribs
+biltong
+bresaola
+brisket
+capicola
+chicken
+chuck
+corned beef
+cow
+cupim
+dolor
+doner
+drumstick
+fatback
+filet mignon
+flank
+frankfurter
+ground round
+ham
+ham hock
+ipsum
+jerky
+jowl
+kielbasa
+landjaeger
+leberkas
+meatball
+meatloaf
+pancetta
+pastrami
+pig
+picanha
+pork
+pork belly
+pork chop
+pork loin
+prosciutto
+ribeye
+rump
+salami
+sausage
+shank
+shankle
+short loin
+short ribs
+shoulder
+sirloin
+sit
+spare ribs
+strip steak
+t-bone
+tail
+tenderloin
+tongue
+tri-tip
+turducken
+turkey
+venison

@@ -1,0 +1,13 @@
+- indicator names
+    - uppercase, prefix with [67-25] or just [67]
+    - add prefix with consts method
+    - aim to make all names 8 UC characters for display alignment?
+    - RENAME indicators
+        - bollinger clouds
+        - mobing averages
+        - trend
+        - MACD TTS
+        - auto fib
+        - core momentum (RSIz)
+        - price targets
+- copyright and setup notes always the same

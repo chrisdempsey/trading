@@ -1,0 +1,7 @@
+- [ ] 
+
+add a user input to select the fill type: solid, gradient, none. The default should be gradient.
+
+add a user input named `transparency` with tooltip `Set the transparency for gradient fills.` The default should be `80`
+
+update the code on line 47 to implement the fill type and transparency option.

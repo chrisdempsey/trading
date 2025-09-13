@@ -1,14 +1,14 @@
 // This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
 // author: 67-25
-// credits: Mr.Dip | Twitter/x: xMrDip
+// credits: @mr.dip
 //@version=6
 
 // initialise variables
 var indicator_prefix = '[67-25]'
-var indicator_name = 'Moving Averages'
-var indicator_version = '0.2'
+var indicator_name = 'MOVING AVERAGES'
+var indicator_version = '0.1'
 
-indicator(indicator_prefix + indicator_name + ' (v' + indicator_version + ')', indicator_prefix + ' ' + indicator_name, true)
+indicator(indicator_prefix + ' ' + indicator_name + ' (v' + indicator_version + ')', indicator_prefix + ' ' + indicator_name, true)
 
 // Functions
 ma(simple string type, float source, simple int period) =>
@@ -31,15 +31,17 @@ type ma_settings
 
 // inputs
 global_settings_group = 'Global Settings'
+presets_group = 'Presets'
 ma_catagory = 'Settings: Enable / Period / Type / Source / Timeframe'
-
-preset = input.string('none', 'Preset', options = ['none', 'Krown Cross', 'Golden / Death Cross'], group = global_settings_group, tooltip = 'Selecting a preset will override all settings configured below.')
 
 bullish_color = input.color(defval = color.new(#338248, 20), title = 'Bullish', group = global_settings_group, inline = 'colors')
 bearish_color = input.color(defval = color.new(#C90202, 20), title = 'Bearish', group = global_settings_group, inline = 'colors')
 label_text_color = input.color(defval = color.new(color.white, 20), title = 'Text', group = global_settings_group, inline = 'colors')
-show_crossovers = input.bool(title = 'Show Crossovers', defval = true, group = global_settings_group, inline = 'show_cross')
-show_labels = input.bool(title = 'Show Labels', defval = false, group = global_settings_group, inline = 'show_cross')
+show_crossovers = input.bool(title = 'Highlight Crossovers', defval = true, group = global_settings_group, inline = 'show_cross')
+show_labels = input.bool(title = 'Crossover Labels', defval = false, group = global_settings_group, inline = 'show_cross', tooltip = 'MA Crossover Highlights and Labels are shown on the lowest value MAs')
+
+preset = input.string('none', 'Preset', options = ['none', 'AO (Awesome Oscillator)', 'Krown Cross', 'Golden / Death Cross'], group = presets_group, tooltip = 'Selecting a preset will override all settings configured below.')
+preset_ma_type = input.string('SMA', 'MA Type', options = ['SMA', 'EMA', 'HMA', 'RMA', 'VWMA', 'WMA'], group = presets_group, tooltip = 'This MA Type will be applied to all MAs when a preset is selected.')
 
 ma1_enable = input.bool(title = '1', defval = true, group = ma_catagory, inline = '1')
 ma1_period = input.int(title = '', defval = 25, group = ma_catagory, inline = '1')
@@ -94,21 +96,23 @@ ma8_tf = input.timeframe(title = '', defval = '', group = ma_catagory, inline = 
 // Determine final settings for each MA based on the preset. This ensures the compiler treats them as 'simple'.
 is_krown_cross = preset == 'Krown Cross'
 is_golden_cross = preset == 'Golden / Death Cross'
+is_ao = preset == 'AO (Awesome Oscillator)'
+is_preset_active = is_krown_cross or is_golden_cross or is_ao
 
-ma1_enable_final = is_krown_cross ? true : is_golden_cross ? true : ma1_enable
-ma1_period_final = is_krown_cross ? 21 : is_golden_cross ? 50 : ma1_period
-ma1_type_final = is_krown_cross ? 'SMA' : is_golden_cross ? 'SMA' : ma1_type
+ma1_enable_final = is_preset_active ? (is_krown_cross or is_golden_cross or is_ao) : ma1_enable
+ma1_period_final = is_krown_cross ? 21 : is_golden_cross ? 50 : is_ao ? 5 : ma1_period
+ma1_type_final = is_preset_active ? preset_ma_type : ma1_type
 
-ma2_enable_final = is_krown_cross ? true : is_golden_cross ? true : ma2_enable
-ma2_period_final = is_krown_cross ? 55 : is_golden_cross ? 200 : ma2_period
-ma2_type_final = is_krown_cross ? 'SMA' : is_golden_cross ? 'SMA' : ma2_type
+ma2_enable_final = is_preset_active ? (is_krown_cross or is_golden_cross or is_ao) : ma2_enable
+ma2_period_final = is_krown_cross ? 55 : is_golden_cross ? 200 : is_ao ? 34 : ma2_period
+ma2_type_final = is_preset_active ? preset_ma_type : ma2_type
 
-ma3_enable_final = is_krown_cross or is_golden_cross ? false : ma3_enable
-ma4_enable_final = is_krown_cross or is_golden_cross ? false : ma4_enable
-ma5_enable_final = is_krown_cross or is_golden_cross ? false : ma5_enable
-ma6_enable_final = is_krown_cross or is_golden_cross ? false : ma6_enable
-ma7_enable_final = is_krown_cross or is_golden_cross ? false : ma7_enable
-ma8_enable_final = is_krown_cross or is_golden_cross ? false : ma8_enable
+ma3_enable_final = is_krown_cross or is_golden_cross or is_ao ? false : ma3_enable
+ma4_enable_final = is_krown_cross or is_golden_cross or is_ao ? false : ma4_enable
+ma5_enable_final = is_krown_cross or is_golden_cross or is_ao ? false : ma5_enable
+ma6_enable_final = is_krown_cross or is_golden_cross or is_ao ? false : ma6_enable
+ma7_enable_final = is_krown_cross or is_golden_cross or is_ao ? false : ma7_enable
+ma8_enable_final = is_krown_cross or is_golden_cross or is_ao ? false : ma8_enable
 
 // Calculate each MA individually using the final 'simple' settings
 ma1 = request.security(syminfo.tickerid, ma1_tf, ma(ma1_type_final, ma1_src, ma1_period_final))
@@ -190,6 +194,7 @@ if show_crossovers
         bearish_cross := ta.crossunder(ma_short, ma_long)
 
 // Plot crossover shapes and labels
+// tiny, small, normal, large, huge, auto
 plotshape(show_crossovers and bullish_cross ? ma_short : na, style=shape.diamond, location=location.absolute, color=bullish_color, size=size.small, title='Bullish Crossover')
 plotshape(show_crossovers and bearish_cross ? ma_short : na, style=shape.diamond, location=location.absolute, color=bearish_color, size=size.small, title='Bearish Crossover')
 

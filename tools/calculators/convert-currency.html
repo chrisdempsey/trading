@@ -41,13 +41,12 @@
                                 <span class="material-symbols-outlined fs-1">swap_horiz</span>
                             </button>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-5">
                             <label for="to-currency" class="form-label">To</label>
-                            <select class="form-select form-select-lg" id="to-currency"></select>
-                        </div>
-                        <div class="col-md-2">
-                            <label for="custom-to-currency" class="form-label">Or Custom</label>
-                            <input type="text" class="form-control form-control-lg" id="custom-to-currency" placeholder="eg. AUD" maxlength="4">
+                            <div class="input-group input-group-lg">
+                                <select class="form-select" id="to-currency"></select>
+                                <input type="text" class="form-control" id="custom-to-currency" placeholder="or AUD" maxlength="4" style="flex: 0 1 140px;" title="Ender a custom currency symbol eg. AUD">
+                            </div>
                         </div>
                     </div>
                     <div class="row g-3 align-items-end">

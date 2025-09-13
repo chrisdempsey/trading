@@ -15,8 +15,11 @@ window.appConfig = {
      * API Settings
      * Placeholders for API keys, endpoints, etc.
      */
-    // ApiKey: 'your-api-key-here',
-    // ApiEndpoint: 'https://api.example.com/v1',
+    ALPACA_API: {
+        KEY_ID: localStorage.getItem('alpacaApiKeyId') || '',
+        SECRET_KEY: localStorage.getItem('alpacaApiSecretKey') || '',
+        PAPER: localStorage.getItem('alpacaApiPaper') === 'true',
+    }
 };
 
 /**

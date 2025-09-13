@@ -14,12 +14,38 @@
 
 
 
+- standardise indicator shortname length - ideally 8 characters or include spaces eg. [BOLLINGER-BANDS], [AUTO-FIBS      ]
+
+- add lassron line preset to MAs?
+    - see DIP EMA Bandfor calculation
 
 
+### MOVING AVERAGES
+
+- [ ] add override for Period
+      - it's time consuming to adjust individually when all are usually set to the same period
+      - single dropdown for SMA, EMA etc. - if selected it should override the individual period set
+- [ ] move MA type for the Presets group to same line as Presets dropdown?
 
 
+### CORE MOMENTUM
+- [ ] MR is clear signal - cuts through the noise of other indicators -- work on CM indicator to include with chart Layout and process
 
 
+### TTS
+- [ ] MACD lines - option for signal to be silver color for better clarity?
+- [ ] can TTS MACD crossover triangles have tooltip on click like DCAS?
+- [ ] BUG - Show SR elements, selections work except Pane Labels
+      - separate into checkboxes like Auto Fib levels for neater display
+      - fix the bug
+
+
+### SUPPORT/RESISTANCE
+
+- 12 inputs - timeframe?, level, support/resist (dropdown), color, thickness, style?
+- dispay horizontal line instead of drawing on screen as it's a pain to group and manipulate these
+- inhclude option to toggle line + label - or use price scale mark if it is applied, not sure it is as fib levels indicator doesn't mark price scale
+    - also label text eg. TGT, ATH, ATH-PREV
 
 
 

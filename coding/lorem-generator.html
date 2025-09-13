@@ -1,0 +1,370 @@
+
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Lorem Ipsum Generator</title>
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Google Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="/trading/assets/css/styles.css">
+    <!-- Global App Config -->
+    <script src="/trading/assets/js/config.js"></script>
+</head>
+<body class="lorem-generator-page d-flex flex-column vh-100">
+    <div id="header-placeholder"></div>
+    <div id="navbar-placeholder"></div>
+    <main class="flex-grow-1">
+        <div class="container py-4">
+            <h1 class="mb-2 text-center">Lorem Ipsum Generator</h1>
+            <p class="text-center text-muted mb-4">Generate placeholder text</p>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Settings</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6 col-lg-4">
+                            <label for="dictionary-select" class="form-label">Dictionary</label>
+                            <select id="dictionary-select" class="form-select">
+                                <option value="lorem-ipsum">Lorem Ipsum</option>
+                                <option value="samuel-l-jackson">Samuel L Jackson</option>
+                                <option value="bacon-ipsum">Bacon Ipsum</option>
+                                <option value="busey-ipsum">Busey Ipsum</option>
+                                <option value="hunter-s-thompson">Hunter S Thompson</option>
+                            </select>
+                            <div class="form-check form-switch form-check-danger mt-3">
+                                <input class="form-check-input" type="checkbox" role="switch" id="bunghole-toggle">
+                                <label class="form-check-label" for="bunghole-toggle">Do not toggle</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-4">
+                            <label for="word-count-input" class="form-label">Word Count</label>
+                            <input type="number" class="form-control" id="word-count-input" value="255" min="1">
+                            <input type="range" class="form-range mt-2" id="word-count-slider" min="1" max="1000" value="255">
+                        </div>
+                        <div class="col-md-6 col-lg-4">
+                            <label for="words-per-paragraph-input" class="form-label">Max words per paragraph</label>
+                            <input type="number" class="form-control" id="words-per-paragraph-input" value="70" min="1">
+                            <input type="range" class="form-range mt-2" id="words-per-paragraph-slider" min="10" max="200" value="70">
+                        </div>
+                    </div>
+                    <div class="text-center mt-4">
+                        <!-- Generate button removed for automatic updates -->
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="card">
+                <div class="card-body">
+                    <div id="output-container" class="bg-body-tertiary p-3 rounded border" style="height: 15rem; overflow-y: auto;">
+                        <!-- Generated text will appear here -->
+                    </div>
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                        <button id="copy-btn" class="btn btn-outline-secondary">
+                            <span class="material-symbols-outlined icon-inline-sm">content_copy</span>
+                            Copy
+                        </button>
+                        <button id="download-btn" class="btn btn-outline-secondary">
+                            <span class="material-symbols-outlined icon-inline-sm">download</span>
+                            Download
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <!-- jQuery 3.7.1 -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <!-- Bootstrap 5.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Shared Header Script -->
+    <script src="/trading/assets/js/header.js"></script>
+    <!-- Page specific styles -->
+    <style>
+        .form-check-danger .form-check-input:checked {
+            background-color: var(--bs-danger);
+            border-color: var(--bs-danger);
+        }
+        #output-container code {
+            /* Ensure the code tag doesn't break out of the paragraph flow */
+            white-space: normal;
+        }
+    </style>
+
+    <script>
+        $(document).ready(function() {
+            // --- Load Shared Components ---
+            $("#header-placeholder").load("/trading/assets/includes/_header.html", () => initializeHeader && initializeHeader());
+            $("#navbar-placeholder").load("/trading/assets/includes/_navbar.html");
+            $("#footer-placeholder").load("/trading/assets/includes/_footer.html");
+
+            // --- Constants and Selectors ---
+            const STORAGE_KEY = 'loremGeneratorState';
+            const $dictionarySelect = $('#dictionary-select');
+            const $wordCountInput = $('#word-count-input');
+            const $wordCountSlider = $('#word-count-slider');
+            const $wordsPerParagraphInput = $('#words-per-paragraph-input');
+            const $wordsPerParagraphSlider = $('#words-per-paragraph-slider');
+            const $outputContainer = $('#output-container');
+            const $copyBtn = $('#copy-btn');
+            const $downloadBtn = $('#download-btn');
+            const $bungholeToggle = $('#bunghole-toggle');
+
+            let dictionaryCache = {};
+
+            // --- State Management ---
+            function saveState() {
+                const state = {
+                    dictionary: $dictionarySelect.val(),
+                    wordCount: $wordCountInput.val(),
+                    wordsPerParagraph: $wordsPerParagraphInput.val(),
+                    bungholeEnabled: $bungholeToggle.is(':checked'),
+                    outputText: $outputContainer.html()
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            }
+
+            function loadState() {
+                const savedState = localStorage.getItem(STORAGE_KEY);
+                if (savedState) {
+                    const state = JSON.parse(savedState);
+                    $dictionarySelect.val(state.dictionary || 'lorem-ipsum');
+                    $wordCountInput.val(state.wordCount || '255');
+                    $wordsPerParagraphInput.val(state.wordsPerParagraph || '70');
+                    $bungholeToggle.prop('checked', state.bungholeEnabled || false);
+                    $outputContainer.html(state.outputText || '');
+                    syncSliders();
+
+                    // After loading, if the toggle was enabled, re-apply the bunghole words
+                    if ($bungholeToggle.is(':checked')) {
+                        toggleBungholeWords(true, true); // Re-apply without saving state again
+                    }
+                }
+            }
+
+            // --- Slider Synchronization ---
+            function syncSliders() {
+                const wordCount = parseInt($wordCountInput.val()) || 255;
+                if (wordCount > $wordCountSlider.attr('max')) {
+                    $wordCountSlider.attr('max', wordCount);
+                }
+                $wordCountSlider.val(wordCount);
+
+                const wordsPerPara = parseInt($wordsPerParagraphInput.val()) || 70;
+                if (wordsPerPara > $wordsPerParagraphSlider.attr('max')) {
+                    $wordsPerParagraphSlider.attr('max', wordsPerPara);
+                }
+                $wordsPerParagraphSlider.val(wordsPerPara);
+            }
+
+            // --- Core Logic ---
+            async function fetchDictionary(name) {
+                if (dictionaryCache[name]) {
+                    return dictionaryCache[name];
+                }
+                try {
+                    const response = await fetch(`/trading/coding/dictionaries/${name}.txt`);
+                    if (!response.ok) {
+                        throw new Error(`Dictionary not found: ${name}.txt`);
+                    }
+                    const text = await response.text();
+                    let words;
+                    if (name === 'bunghole') {
+                        // For bunghole, treat each line as a single phrase
+                        words = text.split(/\r?\n/).filter(Boolean);
+                    } else {
+                        words = text.split(/\s+/).filter(Boolean); // Split by any whitespace for other dictionaries
+                    }
+                    dictionaryCache[name] = words;
+                    return words;
+                } catch (error) {
+                    console.error("Error fetching dictionary:", error);
+                    $outputContainer.html(`<p class="text-danger">Error: Could not load the dictionary file.</p>`);
+                    return [];
+                }
+            }
+
+            // This is the main text generation function.
+            async function generateText(isInitialLoad = false) {
+                const dictionaryName = $dictionarySelect.val();
+                const wordCount = parseInt($wordCountInput.val());
+                const wordsPerParagraph = parseInt($wordsPerParagraphInput.val());
+
+                const dictionary = await fetchDictionary(dictionaryName);
+                if (dictionary.length === 0) return;
+
+                // If bunghole is enabled, we need that dictionary too.
+                let bungholeDictionary = [];
+                if ($bungholeToggle.is(':checked')) {
+                    bungholeDictionary = await fetchDictionary('bunghole');
+                }
+
+                let result = Array.from({ length: wordCount }, () => dictionary[Math.floor(Math.random() * dictionary.length)]);
+
+                let paragraphsHtml = '';
+                if (result.length > 0) {
+                    const paragraphs = [];
+                    for (let i = 0; i < result.length; i += wordsPerParagraph) {
+                        let paragraph = result.slice(i, i + wordsPerParagraph).join(' ');
+                        paragraphs.push(paragraph);
+                    }
+                    paragraphsHtml = paragraphs.map(p => `<p>${p}</p>`).join('');
+                }
+
+                $outputContainer.html(paragraphsHtml);
+
+                // After generating the base text, inject bunghole words if the toggle is on.
+                if ($bungholeToggle.is(':checked')) {
+                    await injectBungholeWords(bungholeDictionary, true); // Force add without saving state again
+                }
+
+                // Only save state if it's not the initial load with existing text.
+                if (!isInitialLoad) {
+                    saveState();
+                }
+            }
+
+            async function toggleBungholeWords(isEnabled, skipSave = false) {
+                if (isEnabled) {
+                    // When toggling ON, fetch the dictionary and inject the words.
+                    const bungholeDictionary = await fetchDictionary('bunghole');
+                    await injectBungholeWords(bungholeDictionary, skipSave);
+                } else {
+                    // When toggling OFF, just remove the words.
+                    removeBungholeWords(skipSave);
+                }
+            }
+
+            async function injectBungholeWords(bungholeDictionary, skipSave = false) {
+                if (!bungholeDictionary || bungholeDictionary.length === 0) return;
+
+                const injectionInterval = 70;
+                // First, remove any existing bunghole words to ensure a clean run.
+                $outputContainer.find('code').remove();
+
+                let wordCounter = 0;
+                $outputContainer.find('p').each(function() {
+                    let text = $(this).text();
+                    let words = text.split(' ');
+                    let newWords = [];
+
+                    for (let i = 0; i < words.length; i++) {
+                        newWords.push(words[i]);
+                        wordCounter++;
+                        if (wordCounter > 0 && wordCounter % injectionInterval === 0) {
+                            const bungholeWord = bungholeDictionary[Math.floor(Math.random() * bungholeDictionary.length)];
+                            newWords.push(`<code>${bungholeWord}</code>`);
+                        }
+                    }
+                    $(this).html(newWords.join(' '));
+
+                    // After injecting, ensure the paragraph ends with a full stop.
+                    if ($(this).html().trim().slice(-1) !== '.') {
+                        $(this).append('.');
+                    }
+                });
+
+                if (!skipSave) {
+                    saveState();
+                }
+            }
+
+            function removeBungholeWords(skipSave = false) {
+                // Remove the bunghole words by removing the <code> tags.
+                $outputContainer.find('code').remove();
+                // Clean up potential double spaces left after removal.
+                $outputContainer.find('p').each(function() {
+                    // Also ensure the full stop is still there after removal.
+                    let currentHtml = $(this).html().trim();
+                    if (currentHtml.slice(-1) !== '.') {
+                        $(this).html(currentHtml + '.');
+                    }
+                });
+                $outputContainer.find('p').each(function() {
+                    $(this).html($(this).html().replace(/\s\s+/g, ' '));
+                });
+
+                if (!skipSave) {
+                    saveState();
+                }
+            }
+            
+            function copyToClipboard() {
+                const textToCopy = $outputContainer.text();
+                if (!textToCopy) return;
+
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    const originalIcon = $copyBtn.find('.material-symbols-outlined').text();
+                    $copyBtn.find('.material-symbols-outlined').text('check').addClass('text-success');
+                    setTimeout(() => {
+                        $copyBtn.find('.material-symbols-outlined').text(originalIcon).removeClass('text-success');
+                    }, 1500);
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                    alert('Failed to copy text.');
+                });
+            }
+
+            function downloadText() {
+                const textToSave = $outputContainer.text();
+                if (!textToSave) return;
+
+                const now = new Date();
+                const year = now.getFullYear().toString().slice(-2);
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const dateStr = `${year}${month}${day}`;
+                const dictionaryName = $dictionarySelect.val();
+                const filename = `${dateStr} - ${dictionaryName}.txt`;
+
+                const blob = new Blob([textToSave], { type: 'text/plain' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
+            // --- Event Listeners ---
+            $copyBtn.on('click', copyToClipboard);
+            $downloadBtn.on('click', downloadText);
+
+            // Sliders and inputs
+            $wordCountSlider.on('input', function() {
+                $wordCountInput.val($(this).val()).trigger('input'); // Update input and trigger its event
+            });
+            $wordsPerParagraphSlider.on('input', function() {
+                $wordsPerParagraphInput.val($(this).val()).trigger('input'); // Update input and trigger its event
+            });
+
+            // Sync sliders when the text input is changed manually
+            $wordCountInput.on('input', syncSliders);
+            $wordsPerParagraphInput.on('input', syncSliders);
+
+            // Regenerate text when main settings change.
+            $('#dictionary-select, #word-count-input, #words-per-paragraph-input').on('change input', () => {
+                generateText();
+            });
+
+            // Only toggle bunghole words when this switch changes, without regenerating all text.
+            $bungholeToggle.on('change', function() {
+                toggleBungholeWords($(this).is(':checked'));
+            });
+
+            // --- Initial Load ---
+            loadState();
+        });
+    </script>
+</body>
+</html>

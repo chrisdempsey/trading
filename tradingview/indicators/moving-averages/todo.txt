@@ -1,6 +1,7 @@
 - global settings
     - presets for CORI
 - features
+    - [ ] add awesome oscillator preset? 5/34 SMA
     - [ ] alerts don't seem to be configurable correctly - verify how to add an alert for bullish or bearish crossover with the message having the same value as the crossover label
     - [ ] add label on right side for most recent crossovers in the same format used by auto fib levels and TTS MACD support/resistance
     - [x] flag crossovers with diamond

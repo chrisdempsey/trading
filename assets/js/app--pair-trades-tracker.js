@@ -184,12 +184,14 @@ $(document).ready(function() {
             selector.empty();
             if (pairs.length === 0) {
                 this.showMainContent(false);
+                $('#pair-management').addClass('d-none'); // Hide management section
                 selector.append('<option>No pairs created</option>');
             } else {
                 this.showMainContent(true);
                 pairs.forEach(pair => {
                     selector.append(`<option value="${pair.id}">${pair.pairName}</option>`);
                 });
+                $('#pair-management').removeClass('d-none'); // Show management section
             }
         },
         renderTradeLog: function(trades) {
