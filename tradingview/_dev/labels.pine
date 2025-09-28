@@ -1,0 +1,160 @@
+// @version=5
+// position input fields before their respective checkbox
+
+// long (first) title is the Script Name, shorttitle is displayed on chart label
+strategy("STRATEGY--IA-TREND-FLIP", shorttitle="STRATEGY--IA-TREND-FLIP", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=100, initial_capital=1000, commission_type=strategy.commission.percent, commission_value=0, precision=3)
+
+// define inputs
+signal = input(close, title="Signal (fast plot)")
+threshold = input(close, title="Threshold (slow plot)")
+start_date = input.time(defval=timestamp("2020-01-01"), title="Start Date")
+end_date = input.time(defval=timestamp("2040-01-01"), title="End Date")
+
+
+// GROUP: Entry Conditions
+int_entryConsecCandles = input(1, title="Consecutive green candles", group="Entry Conditions")
+bol_useConsecGreenCandles = input(false, title="Enable", group="Entry Conditions")
+
+// GROUP: Stop Loss
+int_stopLossPercentage = input.float(defval=-4, title="(%)", group="Stop Loss") // Input:stop loss percentage, default-4%
+bol_useStopLoss = input.bool(false, title="Enable", group="Stop Loss") // Checkbox: use stop loss
+
+
+// MISC
+// Add checkboxes for showing/hiding position summary labels and for enabling/disabling stop loss
+bol_showPositionSummaryLabels = input.bool(true, title="Show position summary labels", group="Misc")
+
+// EMA
+emaPeriod = input(21, title="EMA Period", group="Misc")
+bol_useEMA = input(false, title="Enable", group="Misc")
+
+
+// EMA Calculation based on user-defined period
+ema = ta.ema(close, emaPeriod)
+
+// Plot Signal, Threshold and EMA
+plot(signal, color=color.blue, title="Signal")
+plot(threshold, color=color.red, title="Threshold")
+plot(bol_useEMA ? ema : na, color=color.orange, title="EMA")
+
+// Calculate crossovers and crossunders
+crossover = ta.crossover(signal, threshold)
+crossunder = ta.crossunder(signal, threshold)
+
+// Tracking consecutive closes and candles
+int consecClosesAbove = 0
+int consecClosesBelow = 0
+int consecGreenCandles = 0
+var crossoverOccurred = false
+
+// New variable to track if a crossover happened recently
+var bool recentCrossover = false
+
+// Calculate crossover and update flags
+if crossover
+    crossoverOccurred := true
+    consecClosesAbove := 0 // Reset on crossover
+    consecGreenCandles := 0 // Reset on crossover
+    recentCrossover := true // Set recentCrossover to true when a crossover occurs
+
+// Increment counter after crossover if signal remains above threshold
+if crossoverOccurred and signal > threshold
+    consecClosesAbove += 1
+
+    // Check for green candle and increment consecGreenCandles
+    if close > open
+        consecGreenCandles += 1
+    else
+        consecGreenCandles := 0 // Reset if not a green candle
+
+// Reset conditions if signal crosses under threshold
+if crossunder
+    crossoverOccurred := false
+    consecClosesAbove := 0
+    consecGreenCandles := 0
+    recentCrossover := false // Reset recentCrossover on crossunder
+
+// Increment counter if signal is below threshold for exit condition
+if signal < threshold
+    consecClosesBelow += 1
+else
+    consecClosesBelow := 0 // Reset if condition is not met
+
+// Check if the current date is within the specified range
+in_date_range = (time >= start_date and time <= end_date)
+
+// Variables to track entry and exit
+var bool in_position = false
+var float entryPrice = na
+var float prevCapital = strategy.initial_capital // Track previous capital
+var float currentCapital = strategy.initial_capital // Track current capital
+
+// Strategy execution with date filter and conditions
+if in_date_range
+    // Entry conditions - modified to include recentCrossover and green candle check
+    if recentCrossover and not in_position and (close > open) 
+        // Check EMA condition if bol_useEMA is true
+        if not bol_useEMA or (bol_useEMA and close > ema)
+            // Check for consecutive green candles if bol_useConsecGreenCandles is true
+            if not bol_useConsecGreenCandles or (bol_useConsecGreenCandles and consecGreenCandles >= int_entryConsecCandles)
+                entryPrice := close // Store the entry price
+                strategy.entry("Long", strategy.long) // enter the position
+                crossoverOccurred := false // reset after entry
+                consecGreenCandles := 0 // reset after entry
+                in_position := true // track that a position is opened
+                recentCrossover := false // Reset recentCrossover after entry
+
+                // Calculate current capital after entry
+                currentCapital := strategy.equity
+
+                // Add an entry label only if the `bol_showPositionSummaryLabels` checkbox is checked
+                if bol_showPositionSummaryLabels
+                    // Display entry label
+                    label.new(bar_index + 1, high + (high * 0.01), 
+                              "Entry: " + "$" + str.tostring(currentCapital, "#.##") +
+                              " @" + str.tostring(entryPrice, "#.##"),
+                              color=color.green, style=label.style_label_down, 
+                              textcolor=color.white)
+
+    // Track percentage change between candles when in a long position
+    if in_position and bol_useStopLoss
+        percentageChange = ((close - entryPrice) / entryPrice) * 100
+        // Check if the percentage change goes below the stop-loss threshold
+        if percentageChange <= int_stopLossPercentage
+            strategy.close("Long")
+            in_position := false
+            // Add an exit label for stop-loss if `bol_showPositionSummaryLabels` checkbox is checked
+            if bol_showPositionSummaryLabels
+                // Update current capital and calculate percentage change
+                currentCapital := strategy.equity
+                capitalChange = currentCapital - prevCapital
+                label.new(bar_index + 1, low - (low * 0.01), 
+                          "Exit (Stop Loss): " + str.tostring(close, "#.##") + 
+                          "\nChange: " + str.tostring(percentageChange, "#.##") + "%" +
+                          "\nCapital: $" + str.tostring(currentCapital, "#.##") + 
+                          "\nChange: $" + str.tostring(capitalChange, "#.##"), 
+                          color=color.orange, style=label.style_label_up, 
+                          textcolor=color.white)
+
+    // Close position immediately if a crossunder occurs
+    if crossunder and in_position
+        exitPrice = close
+        strategy.close("Long")  // Close the position immediately when crossing under threshold
+        in_position := false // Track that the position is closed
+        
+        // Calculate percentage change between entry and exit
+        percentageChange = ((exitPrice - entryPrice) / entryPrice) * 100
+        
+        // Update current capital and calculate capital change
+        prevCapital := currentCapital
+        currentCapital := strategy.equity
+        capitalChange = currentCapital - prevCapital
+        
+        // Add an exit label if the bol_showPositionSummaryLabels checkbox is checked
+        if bol_showPositionSummaryLabels
+            // Position the exit label slightly below the lowest price of the bar
+            label.new(bar_index + 1, low - (low * 0.01),
+                      "Exit: $" + str.tostring(currentCapital, "#.##") + " @" + str.tostring(exitPrice, "#.##") +
+                      "\nChange: $" + str.tostring(capitalChange, "#.##") + " (" +str.tostring(percentageChange, "#.##") + ")",
+                      color=color.red, style=label.style_label_up,
+                      textcolor=color.white)

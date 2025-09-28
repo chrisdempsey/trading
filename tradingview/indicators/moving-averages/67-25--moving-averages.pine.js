@@ -30,18 +30,23 @@ type ma_settings
     string tf
 
 // inputs
-global_settings_group = 'Global Settings'
 presets_group = 'Presets'
+overrides_group = 'Overrides'
 ma_catagory = 'Settings: Enable / Period / Type / Source / Timeframe'
+colors_labels_group = 'Colors + Labels'
 
-bullish_color = input.color(defval = color.new(#338248, 20), title = 'Bullish', group = global_settings_group, inline = 'colors')
-bearish_color = input.color(defval = color.new(#C90202, 20), title = 'Bearish', group = global_settings_group, inline = 'colors')
-label_text_color = input.color(defval = color.new(color.white, 20), title = 'Text', group = global_settings_group, inline = 'colors')
-show_crossovers = input.bool(title = 'Highlight Crossovers', defval = true, group = global_settings_group, inline = 'show_cross')
-show_labels = input.bool(title = 'Crossover Labels', defval = false, group = global_settings_group, inline = 'show_cross', tooltip = 'MA Crossover Highlights and Labels are shown on the lowest value MAs')
+// --- Presets & Overrides ---
+preset = input.string('none', 'Preset', options = ['none', 'AO (Awesome Oscillator)', 'Krown Cross', 'Golden / Death Cross'], group = presets_group, inline = 'presets')
+preset_ma_type = input.string('SMA', 'MA', options = ['SMA', 'EMA', 'HMA', 'RMA', 'VWMA', 'WMA'], group = presets_group, inline = 'presets', tooltip = 'Selecting a preset will override the enabled MAs and their periods. The selected MA is applied to all MAs when a preset is active.')
 
-preset = input.string('none', 'Preset', options = ['none', 'AO (Awesome Oscillator)', 'Krown Cross', 'Golden / Death Cross'], group = presets_group, tooltip = 'Selecting a preset will override all settings configured below.')
-preset_ma_type = input.string('SMA', 'MA Type', options = ['SMA', 'EMA', 'HMA', 'RMA', 'VWMA', 'WMA'], group = presets_group, tooltip = 'This MA Type will be applied to all MAs when a preset is selected.')
+enable_type_override = input.bool(false, 'Type', group = overrides_group, inline = 'type_override', tooltip = 'Overrides all Types selected in Settings below.')
+override_ma_type = input.string('SMA', '', options = ['SMA', 'EMA', 'HMA', 'RMA', 'VWMA', 'WMA'], group = overrides_group, inline = 'type_override')
+
+enable_source_override = input.bool(false, 'Source', group = overrides_group, inline = 'source_override')
+override_ma_source = input.source(close, '', group = overrides_group, inline = 'source_override', tooltip = 'Overrides all Sources selected in Settings below.')
+
+enable_timeframe_override = input.bool(false, 'Timeframe', group = overrides_group, inline = 'tf_override')
+override_ma_timeframe = input.timeframe('', '', group = overrides_group, inline = 'tf_override', tooltip = 'Overrides all Timeframes selected in Settings below.')
 
 ma1_enable = input.bool(title = '1', defval = true, group = ma_catagory, inline = '1')
 ma1_period = input.int(title = '', defval = 25, group = ma_catagory, inline = '1')
@@ -91,6 +96,13 @@ ma8_type = input.string(title = '', defval = 'SMA', group = ma_catagory, options
 ma8_src = input.source(title = '', defval = close, group = ma_catagory, inline = '8')
 ma8_tf = input.timeframe(title = '', defval = '', group = ma_catagory, inline = '8')
 
+// --- Colors & Labels ---
+bullish_color = input.color(defval = color.new(#338248, 20), title = 'Bullish', group = colors_labels_group, inline = 'colors')
+bearish_color = input.color(defval = color.new(#C90202, 20), title = 'Bearish', group = colors_labels_group, inline = 'colors')
+label_text_color = input.color(defval = color.new(color.white, 20), title = 'Text', group = colors_labels_group, inline = 'colors')
+show_crossovers = input.bool(title = 'Highlight Crossovers', defval = true, group = colors_labels_group, inline = 'show_cross')
+show_labels = input.bool(title = 'Crossover Labels', defval = false, group = colors_labels_group, inline = 'show_cross', tooltip = 'MA Crossover Highlights and Labels are shown on the lowest value MAs')
+
 // --- Calculations ---
 
 // Determine final settings for each MA based on the preset. This ensures the compiler treats them as 'simple'.
@@ -101,11 +113,15 @@ is_preset_active = is_krown_cross or is_golden_cross or is_ao
 
 ma1_enable_final = is_preset_active ? (is_krown_cross or is_golden_cross or is_ao) : ma1_enable
 ma1_period_final = is_krown_cross ? 21 : is_golden_cross ? 50 : is_ao ? 5 : ma1_period
-ma1_type_final = is_preset_active ? preset_ma_type : ma1_type
+ma1_type_final = is_preset_active ? preset_ma_type : enable_type_override ? override_ma_type : ma1_type
+ma1_src_final = enable_source_override ? override_ma_source : ma1_src
+ma1_tf_final = enable_timeframe_override ? override_ma_timeframe : ma1_tf
 
 ma2_enable_final = is_preset_active ? (is_krown_cross or is_golden_cross or is_ao) : ma2_enable
 ma2_period_final = is_krown_cross ? 55 : is_golden_cross ? 200 : is_ao ? 34 : ma2_period
-ma2_type_final = is_preset_active ? preset_ma_type : ma2_type
+ma2_type_final = is_preset_active ? preset_ma_type : enable_type_override ? override_ma_type : ma2_type
+ma2_src_final = enable_source_override ? override_ma_source : ma2_src
+ma2_tf_final = enable_timeframe_override ? override_ma_timeframe : ma2_tf
 
 ma3_enable_final = is_krown_cross or is_golden_cross or is_ao ? false : ma3_enable
 ma4_enable_final = is_krown_cross or is_golden_cross or is_ao ? false : ma4_enable
@@ -114,15 +130,35 @@ ma6_enable_final = is_krown_cross or is_golden_cross or is_ao ? false : ma6_enab
 ma7_enable_final = is_krown_cross or is_golden_cross or is_ao ? false : ma7_enable
 ma8_enable_final = is_krown_cross or is_golden_cross or is_ao ? false : ma8_enable
 
+// Determine final settings for MAs 3-8, applying defaults if specified
+ma3_type_final = enable_type_override ? override_ma_type : ma3_type
+ma3_src_final = enable_source_override ? override_ma_source : ma3_src
+ma3_tf_final = enable_timeframe_override ? override_ma_timeframe : ma3_tf
+ma4_type_final = enable_type_override ? override_ma_type : ma4_type
+ma4_src_final = enable_source_override ? override_ma_source : ma4_src
+ma4_tf_final = enable_timeframe_override ? override_ma_timeframe : ma4_tf
+ma5_type_final = enable_type_override ? override_ma_type : ma5_type
+ma5_src_final = enable_source_override ? override_ma_source : ma5_src
+ma5_tf_final = enable_timeframe_override ? override_ma_timeframe : ma5_tf
+ma6_type_final = enable_type_override ? override_ma_type : ma6_type
+ma6_src_final = enable_source_override ? override_ma_source : ma6_src
+ma6_tf_final = enable_timeframe_override ? override_ma_timeframe : ma6_tf
+ma7_type_final = enable_type_override ? override_ma_type : ma7_type
+ma7_src_final = enable_source_override ? override_ma_source : ma7_src
+ma7_tf_final = enable_timeframe_override ? override_ma_timeframe : ma7_tf
+ma8_type_final = enable_type_override ? override_ma_type : ma8_type
+ma8_src_final = enable_source_override ? override_ma_source : ma8_src
+ma8_tf_final = enable_timeframe_override ? override_ma_timeframe : ma8_tf
+
 // Calculate each MA individually using the final 'simple' settings
-ma1 = request.security(syminfo.tickerid, ma1_tf, ma(ma1_type_final, ma1_src, ma1_period_final))
-ma2 = request.security(syminfo.tickerid, ma2_tf, ma(ma2_type_final, ma2_src, ma2_period_final))
-ma3 = request.security(syminfo.tickerid, ma3_tf, ma(ma3_type, ma3_src, ma3_period))
-ma4 = request.security(syminfo.tickerid, ma4_tf, ma(ma4_type, ma4_src, ma4_period))
-ma5 = request.security(syminfo.tickerid, ma5_tf, ma(ma5_type, ma5_src, ma5_period))
-ma6 = request.security(syminfo.tickerid, ma6_tf, ma(ma6_type, ma6_src, ma6_period))
-ma7 = request.security(syminfo.tickerid, ma7_tf, ma(ma7_type, ma7_src, ma7_period))
-ma8 = request.security(syminfo.tickerid, ma8_tf, ma(ma8_type, ma8_src, ma8_period))
+ma1 = request.security(syminfo.tickerid, ma1_tf_final, ma(ma1_type_final, ma1_src_final, ma1_period_final))
+ma2 = request.security(syminfo.tickerid, ma2_tf_final, ma(ma2_type_final, ma2_src_final, ma2_period_final))
+ma3 = request.security(syminfo.tickerid, ma3_tf_final, ma(ma3_type_final, ma3_src_final, ma3_period))
+ma4 = request.security(syminfo.tickerid, ma4_tf_final, ma(ma4_type_final, ma4_src_final, ma4_period))
+ma5 = request.security(syminfo.tickerid, ma5_tf_final, ma(ma5_type_final, ma5_src_final, ma5_period))
+ma6 = request.security(syminfo.tickerid, ma6_tf_final, ma(ma6_type_final, ma6_src_final, ma6_period))
+ma7 = request.security(syminfo.tickerid, ma7_tf_final, ma(ma7_type_final, ma7_src_final, ma7_period))
+ma8 = request.security(syminfo.tickerid, ma8_tf_final, ma(ma8_type_final, ma8_src_final, ma8_period))
 
 // Create an array of the calculated MA series for easy access
 ma_series = array.from(ma1, ma2, ma3, ma4, ma5, ma6, ma7, ma8)
@@ -151,8 +187,8 @@ string bearish_cross_text = na // Declare tooltip text variable
 if show_crossovers
     // Create arrays of the final settings for the crossover logic to use
     ma_enables = array.from(ma1_enable_final, ma2_enable_final, ma3_enable_final, ma4_enable_final, ma5_enable_final, ma6_enable_final, ma7_enable_final, ma8_enable_final)
-    ma_periods = array.from(ma1_period_final, ma2_period_final, ma3_period, ma4_period, ma5_period, ma6_period, ma7_period, ma8_period)
-    ma_types = array.from(ma1_type_final, ma2_type_final, ma3_type, ma4_type, ma5_type, ma6_type, ma7_type, ma8_type)
+    ma_periods = array.from(ma1_period_final, ma2_period_final, ma3_period, ma4_period, ma5_period, ma6_period, ma7_period, ma8_period) // Note: Presets only affect periods 1 & 2
+    ma_types = array.from(ma1_type_final, ma2_type_final, ma3_type_final, ma4_type_final, ma5_type_final, ma6_type_final, ma7_type_final, ma8_type_final)
 
     // Find the two shortest active MAs
     int active_ma_count = 0

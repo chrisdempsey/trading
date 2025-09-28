@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>HTML Stripper</title>
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Google Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="/trading/assets/css/styles.css">
+    <!-- Global App Config -->
+    <script src="/trading/assets/js/config.js"></script>
+    <style>
+        textarea.form-control.io-textarea {
+            min-height: 20rem;
+            resize: vertical;
+            font-family: var(--bs-font-monospace);
+        }
+        
+        .toggle-group {
+            border-left: 3px solid var(--bs-primary);
+            padding-left: 1rem;
+        }
+        
+        .toggle-group h6 {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .toggle-group .form-check {
+            margin-right: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .collapse-chevron {
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .collapse-chevron.rotated {
+            transform: rotate(90deg);
+        }
+    </style>
+</head>
+<body class="html-stripper-page d-flex flex-column vh-100">
+    <div id="header-placeholder"></div>
+    <div id="navbar-placeholder"></div>
+
+    <main class="flex-grow-1">
+        <div class="container py-4">
+            <h1 class="mb-2 text-center">HTML Stripper</h1>
+            <p class="text-center text-muted mb-4">Remove unwanted HTML tags from a block of text.</p>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#optionsCollapse" aria-expanded="false" aria-controls="optionsCollapse">
+                                <span class="material-symbols-outlined collapse-chevron me-2">chevron_right</span>
+                                Options
+                            </button>
+                        </h5>
+                        <button id="reset-options-btn" class="btn btn-sm btn-outline-secondary">Reset</button>
+                    </div>
+                </div>
+                <div class="collapse" id="optionsCollapse">
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text">Line Breaks</span>
+                                    <input type="number" class="form-control" id="line-breaks-input" value="1" min="1" max="5">
+                                </div>
+                                <div class="form-text">Number of line breaks to add when removing block elements</div>
+                            </div>
+                        </div>
+                        <h6 class="mt-4">Tag Configuration</h6>
+                        <p class="text-muted small mb-3">Select the HTML tags you wish to keep. All other tags will be removed.</p>
+                        <div id="toggle-container" class="row">
+                            <!-- Toggle groups will be dynamically inserted here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 mt-2">
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header">Input</div>
+                        <div class="card-body">
+                            <textarea id="input-text" class="form-control io-textarea" placeholder="Paste your HTML here..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span>Output</span>
+                            <button id="copy-btn" class="btn btn-sm btn-outline-secondary">Copy</button>
+                        </div>
+                        <div class="card-body">
+                            <textarea id="output-text" class="form-control io-textarea" readonly placeholder="Stripped text will appear here..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+             <div class="text-center mt-4">
+                <button type="button" id="reset-btn" class="btn btn-outline-secondary">Reset</button>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <!-- jQuery 3.7.1 -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <!-- Bootstrap 5.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Shared Header Script -->
+    <script src="/trading/assets/js/header.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // --- Load Shared Components ---
+            $("#header-placeholder").load("/trading/assets/includes/_header.html", () => initializeHeader && initializeHeader());
+            $("#navbar-placeholder").load("/trading/assets/includes/_navbar.html");
+            $("#footer-placeholder").load("/trading/assets/includes/_footer.html");
+
+            // --- Constants and Selectors ---
+            const STORAGE_KEY = 'htmlStripperState';
+            const $inputText = $('#input-text');
+            const $outputText = $('#output-text');
+            const $toggleContainer = $('#toggle-container');
+            const $copyBtn = $('#copy-btn');
+            const $resetBtn = $('#reset-btn');
+            const $resetOptionsBtn = $('#reset-options-btn');
+            const $lineBreaksInput = $('#line-breaks-input');
+
+            // Define which tags can be preserved, organized by category
+            const TAG_GROUPS = {
+                'Layout': ['div', 'p', 'br'],
+                'Headings': ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+                'Text Formatting': ['strong', 'b', 'em', 'i', 'u'],
+                'Lists': ['ul', 'ol', 'li'],
+                'Links': ['a']
+            };
+
+            // --- UI Initialization ---
+            function buildToggles() {
+                // Clear any existing toggles first
+                $toggleContainer.html('<div id="toggle-col-1" class="col-md-6"></div><div id="toggle-col-2" class="col-md-6"></div>');
+                const $col1 = $('#toggle-col-1');
+                const $col2 = $('#toggle-col-2');
+
+                Object.entries(TAG_GROUPS).forEach(([groupName, tags], index) => {
+                    const groupId = groupName.toLowerCase().replace(' ', '-');
+                    const targetColumn = index < 3 ? $col1 : $col2; // Split groups between columns
+
+                    const groupHtml = `
+                        <div class="toggle-group mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="text-muted mb-0">${groupName}</h6>
+                                <a href="#" class="text-decoration-none small select-all-link" data-group="${groupId}" title="Select all">
+                                    <span class="material-symbols-outlined align-middle">select_all</span>
+                                </a>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2" data-group="${groupId}">
+                            </div>
+                        </div>
+                    `;
+                    targetColumn.append(groupHtml);
+                    
+                    // Add toggles to the group
+                    const $groupContainer = targetColumn.find(`.toggle-group:last-child div[data-group="${groupId}"]`);
+                    tags.forEach(tag => {
+                        const toggleHtml = `
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="toggle-${tag}" data-tag="${tag}">
+                                <label class="form-check-label" for="toggle-${tag}">&lt;${tag}&gt;</label>
+                            </div>
+                        `;
+                        $groupContainer.append(toggleHtml);
+                    });
+                });
+            }
+
+            // --- Core Logic ---
+            function stripHtml(isInitialLoad = false) {
+                const htmlString = $inputText.val();
+                if (!htmlString) {
+                    $outputText.val('');
+                    // Only save state if it's not the initial load
+                    if (!isInitialLoad) saveState('stripHtml-empty');
+                    return; 
+                }
+
+                const retainedTags = [];
+                $toggleContainer.find('input:checked').each(function() {
+                    retainedTags.push($(this).data('tag'));
+                });
+
+                // Get the number of line breaks from the input
+                const lineBreaksCount = parseInt($lineBreaksInput.val()) || 1;
+                const lineBreaks = '\n'.repeat(lineBreaksCount);
+
+                // Use regex-based approach for more reliable tag removal
+                let result = htmlString;
+                
+                // If no tags are retained, strip all HTML tags but preserve structure
+                if (retainedTags.length === 0) {
+                    // First, replace block-level elements with single line breaks
+                    const blockElements = ['div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'tr', 'td', 'th', 'section', 'article', 'aside', 'nav', 'header', 'footer', 'main', 'blockquote'];
+                    blockElements.forEach(tag => {
+                        result = result.replace(new RegExp(`</${tag}>`, 'gi'), '\n');
+                        result = result.replace(new RegExp(`<${tag}[^>]*>`, 'gi'), '');
+                    });
+                    
+                    // Replace <br> tags with single line breaks
+                    result = result.replace(/<br\s*\/?>/gi, '\n');
+                    
+                    // Remove all remaining HTML tags
+                    result = result.replace(/<[^>]*>/g, '');
+                } else {
+                    // Create regex pattern for tags to remove
+                    const allPossibleTags = ['div', 'span', 'p', 'strong', 'b', 'em', 'i', 'u', 'a', 'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'table', 'tr', 'td', 'th', 'thead', 'tbody', 'img', 'form', 'input', 'button', 'select', 'option', 'textarea', 'label', 'fieldset', 'legend', 'section', 'article', 'aside', 'nav', 'header', 'footer', 'main'];
+                    
+                    const tagsToRemove = allPossibleTags.filter(tag => !retainedTags.includes(tag));
+                    const blockLevelTags = ['div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'tr', 'td', 'th', 'section', 'article', 'aside', 'nav', 'header', 'footer', 'main', 'blockquote'];
+                    
+                    tagsToRemove.forEach(tag => {
+                        if (blockLevelTags.includes(tag)) {
+                            // For block-level elements, replace closing tag with single line break
+                            const closingTagRegex = new RegExp(`</${tag}>`, 'gi');
+                            result = result.replace(closingTagRegex, '\n');
+                            // Then remove opening tag
+                            const openingTagRegex = new RegExp(`<${tag}[^>]*>`, 'gi');
+                            result = result.replace(openingTagRegex, '');
+                        } else {
+                            // For inline elements, just remove both tags
+                            const openingTagRegex = new RegExp(`<${tag}[^>]*>`, 'gi');
+                            const closingTagRegex = new RegExp(`</${tag}>`, 'gi');
+                            result = result.replace(openingTagRegex, '');
+                            result = result.replace(closingTagRegex, '');
+                        }
+                    });
+                    
+                    // Handle <br> tags specially if they're being removed
+                    if (tagsToRemove.includes('br')) {
+                        result = result.replace(/<br\s*\/?>/gi, '\n');
+                    }
+                }
+                
+                // Clean up and apply line break settings
+                result = result.replace(/[ \t]+/g, ' '); // Multiple spaces/tabs to single space
+                
+                // First, clean up multiple consecutive single newlines to avoid excessive spacing
+                result = result.replace(/\n\s*\n/g, '\n'); // Multiple newlines to single
+                
+                // Now apply the line break multiplier
+                if (lineBreaksCount > 1) {
+                    // Replace single newlines with the desired number of line breaks
+                    result = result.replace(/\n/g, lineBreaks);
+                }
+                
+                // Trim only leading whitespace and trailing spaces/tabs, but preserve trailing newlines
+                result = result.replace(/^\s+/, ''); // Trim leading whitespace
+                result = result.replace(/[ \t]+$/, ''); // Trim trailing spaces/tabs but not newlines
+                
+                $outputText.val(result); 
+                if (!isInitialLoad) saveState('stripHtml');
+            }
+
+            // --- State Management ---
+            function saveState(source) {
+                // Get collapse state
+                const optionsCollapse = document.getElementById('optionsCollapse');
+                const isCollapsed = !optionsCollapse.classList.contains('show');
+                const state = {
+                    text: $inputText.val(),
+                    lineBreaks: $lineBreaksInput.val(),
+                    optionsCollapsed: isCollapsed
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+
+                // Save individual toggle states if the change came from a toggle
+                if (source === 'toggle-change' || source === 'select-all' || source === 'reset') {
+                    $toggleContainer.find('input[data-tag]').each(function() {
+                        const tag = $(this).data('tag');
+                        localStorage.setItem(`${STORAGE_KEY}_${tag}`, $(this).is(':checked'));
+                    });
+                }
+            }
+
+            function loadState() {
+                const savedState = localStorage.getItem(STORAGE_KEY);
+                return savedState ? JSON.parse(savedState) : {};
+            }
+
+            function clearToggleStates() {
+                $toggleContainer.find('input[data-tag]').each(function() {
+                    localStorage.removeItem(`${STORAGE_KEY}_${$(this).data('tag')}`);
+                });
+            }
+
+            // --- Event Binding ---
+            function bindEvents() {
+                $inputText.on('input', function() { 
+                    stripHtml(); 
+                    saveState('input-text'); 
+                });
+                $toggleContainer.on('change', 'input', function() {
+                    updateSelectAllButtons(); // This needs to run before stripHtml to get the right state
+                    stripHtml(); saveState('toggle-change');
+                });
+                $lineBreaksInput.on('input', function() { 
+                    stripHtml(); 
+                    saveState('line-breaks'); 
+                });
+
+                const optionsCollapse = document.getElementById('optionsCollapse');
+                const chevronIcon = document.querySelector('.collapse-chevron');
+                optionsCollapse.addEventListener('shown.bs.collapse', () => saveState('collapse-shown')); optionsCollapse.addEventListener('hidden.bs.collapse', () => saveState('collapse-hidden'));
+                optionsCollapse.addEventListener('show.bs.collapse', () => chevronIcon.classList.add('rotated'));
+                optionsCollapse.addEventListener('hide.bs.collapse', () => chevronIcon.classList.remove('rotated'));
+
+                $toggleContainer.on('click', '.select-all-link', function(e) {
+                    e.preventDefault();
+                    const groupId = $(this).data('group');
+                    const $groupContainer = $toggleContainer.find(`[data-group="${groupId}"]`);
+                    const $toggles = $groupContainer.find('input[type="checkbox"]');
+                    const allSelected = $toggles.length > 0 && $toggles.filter(':checked').length === $toggles.length;
+                    
+                    $toggles.prop('checked', !allSelected);
+                    // Update the icon and title based on the new state
+                    $(this).attr('title', allSelected ? 'Select all' : 'Deselect all');
+                    $(this).find('.material-symbols-outlined').text(allSelected ? 'select_all' : 'deselect');
+                    
+                    stripHtml();
+                    saveState('select-all');
+                });
+
+                $resetOptionsBtn.on('click', function() {
+                    $toggleContainer.find('input').prop('checked', false);
+                    $toggleContainer.find('.select-all-link').attr('title', 'Select all')
+                        .find('.material-symbols-outlined').text('select_all');
+                    stripHtml();
+                    clearToggleStates();
+                    saveState('reset');
+                });
+
+                $resetBtn.on('click', function() {
+                    $inputText.val('');
+                    $toggleContainer.find('input').prop('checked', false); 
+                    $toggleContainer.find('.select-all-link').attr('title', 'Select all')
+                        .find('.material-symbols-outlined').text('select_all');
+                    $lineBreaksInput.val(1);
+                    stripHtml();
+                    clearToggleStates(); // Clear individual toggle states
+                    saveState('reset'); // Save the reset state for text etc.
+                });
+
+                $copyBtn.on('click', function() {
+                    const textToCopy = $outputText.val();
+                    if (!textToCopy) return;
+
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        const originalHtml = $copyBtn.html();
+                        $copyBtn.text('Copied!');
+                        $copyBtn.addClass('btn-success').removeClass('btn-outline-secondary');
+                        setTimeout(() => {
+                            $copyBtn.html(originalHtml).removeClass('btn-success').addClass('btn-outline-secondary');
+                        }, 1500);
+                    });
+                });
+            }
+
+            // Helper function to update all "Select all" button states
+            function updateSelectAllButtons() {
+                Object.keys(TAG_GROUPS).forEach(groupName => {
+                    const groupId = groupName.toLowerCase().replace(' ', '-');
+                    const $group = $toggleContainer.find(`[data-group="${groupId}"]`);
+                    const $selectAllBtn = $toggleContainer.find(`.select-all-link[data-group="${groupId}"]`);
+                    const $toggles = $group.find('input[type="checkbox"]');
+                    const allSelected = $toggles.length > 0 && $toggles.filter(':checked').length === $toggles.length;
+                    
+                    $selectAllBtn.attr('title', allSelected ? 'Deselect all' : 'Select all');
+                    $selectAllBtn.find('.material-symbols-outlined').text(allSelected ? 'deselect' : 'select_all');
+                });
+            }
+
+            // --- Synchronized Textarea Resizing ---
+            let isResizing = false;
+            
+            function syncTextareaHeights(sourceTextarea, targetTextarea) {
+                if (isResizing) return; // Prevent infinite loop
+                
+                isResizing = true;
+                const sourceHeight = sourceTextarea.style.height || sourceTextarea.offsetHeight + 'px';
+                targetTextarea.style.height = sourceHeight;
+                isResizing = false;
+            }
+
+            // Use ResizeObserver for better performance and more reliable detection
+            if (window.ResizeObserver) {
+                const inputObserver = new ResizeObserver(() => syncTextareaHeights($inputText[0], $outputText[0]));
+                const outputObserver = new ResizeObserver(() => syncTextareaHeights($outputText[0], $inputText[0]));
+                inputObserver.observe($inputText[0]);
+                outputObserver.observe($outputText[0]);
+            } else {
+                // Fallback for older browsers
+                $inputText.on('mouseup mousedown', () => syncTextareaHeights($inputText[0], $outputText[0]));
+                $outputText.on('mouseup mousedown', () => syncTextareaHeights($outputText[0], $inputText[0]));
+            }
+
+            // --- Initial Load ---
+            buildToggles();
+            
+            // Load main state (text, options)
+            const mainState = loadState();
+            $inputText.val(mainState.text || '');
+            $lineBreaksInput.val(mainState.lineBreaks || 1);
+
+            // Restore collapse state
+            const optionsCollapse = document.getElementById('optionsCollapse');
+            const shouldBeCollapsed = mainState.optionsCollapsed !== false;
+            if (!shouldBeCollapsed) {
+                optionsCollapse.classList.add('show');
+                const chevronIcon = document.querySelector('.collapse-chevron');
+                if (chevronIcon) chevronIcon.classList.add('rotated');
+                const collapseButton = document.querySelector('[data-bs-target="#optionsCollapse"]');
+                if (collapseButton) collapseButton.setAttribute('aria-expanded', 'true');
+            }
+
+            // Restore individual toggle states
+            $toggleContainer.find('input[data-tag]').each(function() {
+                const tag = $(this).data('tag');
+                const isChecked = localStorage.getItem(`${STORAGE_KEY}_${tag}`) === 'true';
+                $(this).prop('checked', isChecked);
+            });
+
+            // Update UI based on loaded state before the first render
+            updateSelectAllButtons();
+            stripHtml(true); // Run strip once to populate output without saving
+
+            // Bind all event listeners AFTER the initial state has been fully loaded and rendered.
+            bindEvents();
+        });
+    </script>
+</body>
+</html>

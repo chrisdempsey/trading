@@ -27,29 +27,35 @@
                 <form id="vat-calculator-form" onsubmit="return false;">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label for="amount" class="form-label">Amount</label>
+                            <div class="d-flex align-items-center mb-1">
+                                <label for="amount" class="form-label mb-0">Amount</label>
+                                <div class="form-check form-switch form-switch-label-first ms-auto">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="tax-included-switch" checked>
+                                    <label class="form-check-label" for="tax-included">Includes VAT</label>
+                                </div>
+                            </div>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
                                 <input type="number" class="form-control form-control-lg" id="amount" step="any" placeholder="e.g. 100">
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label for="tax" class="form-label">VAT/Tax Rate (%)</label>
-                            <select class="form-select form-select-lg mb-2" id="tax">
-                                <option value="30">30%</option>
+                            <div class="d-flex align-items-center mb-1">
+                                <label for="tax-select" class="form-label mb-0">VAT/Tax Rate (%)</label>
+                                <div class="form-check form-switch form-switch-label-first ms-auto">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="custom-rate-switch">
+                                    <label class="form-check-label" for="custom-rate-switch">Custom</label>
+                                </div>
+                            </div>
+                            <select class="form-select form-select-lg" id="tax-select">
                                 <option value="20" selected>20%</option>
                                 <option value="17.5">17.5%</option>
                                 <option value="15">15%</option>
                             </select>
-                            <div class="text-center text-muted small my-1">or</div>
-                            <input type="number" class="form-control form-control-lg" id="tax-manual" step="any" placeholder="Enter custom rate">
+                            <input type="number" class="form-control form-control-lg mt-2 d-none" id="tax-manual" step="any" placeholder="Enter custom rate">
                         </div>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center mt-4">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" role="switch" id="tax-included" checked>
-                            <label class="form-check-label" for="tax-included">Amount includes VAT</label>
-                        </div>
+                    <div class="d-flex justify-content-end align-items-center mt-4">
                         <button type="button" class="btn btn-outline-secondary" id="reset-btn">Reset</button>
                     </div>
                 </form>
@@ -111,12 +117,13 @@
 
             // --- Element Selectors ---
             const $amount = $('#amount');
-            const $taxSelect = $('#tax');
+            const $taxSelect = $('#tax-select');
             const $taxManual = $('#tax-manual');
-            const $taxIncluded = $('#tax-included');
+            const $taxIncluded = $('#tax-included-switch');
             const $resultsContainer = $('#results-container');
             const $resultTaxAmount = $('#result-tax-amount');
             const $resultTotalAmount = $('#result-total-amount');
+            const $customRateSwitch = $('#custom-rate-switch');
 
             // --- Calculation Logic ---
             function calculateAndDisplay() {
@@ -156,22 +163,23 @@
             // --- Event Handlers ---
             $('#vat-calculator-form input, #vat-calculator-form select').on('input change', calculateAndDisplay);
 
-            // Clear manual input when select is used and vice-versa for a better UX
-            $taxSelect.on('change', function() {
-                $taxManual.val('');
-            });
-
-            $taxManual.on('input', function() {
-                if ($(this).val()) {
-                    // Reset select to a non-value state to avoid confusion
-                    $taxSelect.val($taxSelect.find('option:first').val()).prop('selected', false);
+            // Toggle between standard and custom rate inputs
+            $customRateSwitch.on('change', function() {
+                const useCustom = $(this).is(':checked');
+                if (useCustom) {
+                    $taxSelect.addClass('d-none');
+                    $taxManual.removeClass('d-none').focus();
+                } else {
+                    $taxSelect.removeClass('d-none');
+                    $taxManual.addClass('d-none').val('');
                 }
             });
 
             // Reset button
             $('#reset-btn').on('click', function() {
                 $('#vat-calculator-form')[0].reset();
-                $taxSelect.val('20'); // Reset select to default
+                $customRateSwitch.prop('checked', false).trigger('change'); // Reset custom toggle and trigger its logic
+                $taxSelect.val('20'); // Reset select to default after custom toggle is handled
                 $resultsContainer.hide();
             });
 

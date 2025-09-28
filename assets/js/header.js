@@ -68,10 +68,10 @@
 
         // Start observing
         observer.observe(document.documentElement, { childList: true, subtree: true });
-        
+
         // Process existing elements immediately
         processExistingElements();
-        
+
         return { processExistingElements, observer };
     };
 
@@ -117,29 +117,42 @@ function initializeHeader() {
     $('#week-number').text('Week ' + getWeekNumber(today));
 
     const $ipAddressSpan = $('#ip-address');
-    $.getJSON('https://api.ipify.org?format=json', function(data) {
-        const ip = data.ip;
+    $.get('https://cloudflare.com/cdn-cgi/trace', function(data) {
+        // Parse the trace data to extract IP address
+        const lines = data.split('\n');
+        let ip = null;
+        
+        for (const line of lines) {
+            if (line.startsWith('ip=')) {
+                ip = line.substring(3); // Remove 'ip=' prefix
+                break;
+            }
+        }
+        
+        if (ip) {
+            // Create the new structure
+            const labelHtml = '<span title="IP address provided via cloudflare.com/cdn-cgi/trace, your details are not sent to our server.">Your IP: </span>';
+            const valueHtml = `<span id="ip-address-value" style="cursor: pointer;" title="Click to copy IP">${ip}</span>`;
 
-        // Create the new structure
-        const labelHtml = '<span title="IP address provided via api.ipify.org, your details are not sent to our server.">Your IP: </span>';
-        const valueHtml = `<span id="ip-address-value" style="cursor: pointer;" title="Click to copy IP">${ip}</span>`;
+            $ipAddressSpan.html(labelHtml + valueHtml);
 
-        $ipAddressSpan.html(labelHtml + valueHtml);
+            const $ipValueSpan = $('#ip-address-value');
 
-        const $ipValueSpan = $('#ip-address-value');
-
-        // Attach click event only to the IP address value
-        $ipValueSpan.on('click', function() {
-            navigator.clipboard.writeText(ip).then(() => {
-                const originalIp = $ipValueSpan.text();
-                $ipValueSpan.text('Copied!');
-                setTimeout(() => {
-                    $ipValueSpan.text(originalIp);
-                }, 1500);
-            }).catch(err => {
-                console.error('Failed to copy IP to clipboard: ', err);
+            // Attach click event only to the IP address value
+            $ipValueSpan.on('click', function() {
+                navigator.clipboard.writeText(ip).then(() => {
+                    const originalIp = $ipValueSpan.text();
+                    $ipValueSpan.text('Copied!');
+                    setTimeout(() => {
+                        $ipValueSpan.text(originalIp);
+                    }, 1500);
+                }).catch(err => {
+                    console.error('Failed to copy IP to clipboard: ', err);
+                });
             });
-        });
+        } else {
+            $ipAddressSpan.text('Your IP: Not available').css('cursor', 'default');
+        }
     }).fail(function() {
         $ipAddressSpan.text('Your IP: Not available').css('cursor', 'default');
     });

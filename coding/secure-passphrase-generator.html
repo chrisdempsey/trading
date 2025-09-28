@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Secure Passphrase Generator</title>
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Google Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="/trading/assets/css/styles.css">
+    <!-- Global App Config -->
+    <script src="/trading/assets/js/config.js"></script>
+    <style>
+        .collapse-chevron {
+            transition: transform 0.3s ease-in-out;
+        }
+        .collapse-chevron.rotated {
+            transform: rotate(90deg);
+        }
+        #passphrase-output {
+            font-family: var(--bs-font-monospace);
+            white-space: pre-wrap;
+            word-break: break-all;
+            column-width: 180px;
+            column-gap: 2rem;
+        }
+        #strength-meter {
+            height: 5px;
+            transition: width 0.3s ease-in-out, background-color 0.3s ease-in-out;
+        }
+        #strength-feedback-suggestions ul {
+            padding-left: 1.2rem;
+            margin-bottom: 0;
+        }
+        .passphrase-item {
+            cursor: pointer;
+            transition: color 0.2s ease-in-out;
+        }
+    </style>
+</head>
+<body class="d-flex flex-column vh-100">
+    <div id="header-placeholder"></div>
+    <div id="navbar-placeholder"></div>
+
+    <main class="flex-grow-1">
+        <div class="container py-4">
+            <h1 class="mb-2 text-center">Secure Passphrase Generator</h1>
+            <p class="text-center text-muted mb-4">Generate passphrases that are easy to remember but hard to guess, inspired by <a href="https://xkcd.com/936/" target="_blank">XKCD</a>.</p>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Settings</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="num-passphrases" class="form-label">Number of Passphrases</label>
+                            <input type="number" class="form-control" id="num-passphrases" value="10" min="1" max="50">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="num-words" class="form-label">Words per Passphrase</label>
+                            <input type="number" class="form-control" id="num-words" value="4" min="1" max="10">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Word Length</label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="input-group">
+                                        <span class="input-group-text">Min</span>
+                                        <input type="number" class="form-control" id="word-length-min" value="4" min="3" max="10">
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="input-group">
+                                        <span class="input-group-text">Max</span>
+                                        <input type="number" class="form-control" id="word-length-max" value="8" min="3" max="15">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#advanced-options" aria-expanded="false" aria-controls="advanced-options">
+                            <span class="material-symbols-outlined collapse-chevron me-2">chevron_right</span>
+                            Advanced Options
+                        </button>
+                    </h5>
+                </div>
+                <div class="collapse" id="advanced-options">
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <div class="col-md-3">
+                                <h6>Dictionary</h6>
+                                <!-- NOTES
+                                    - the option values should match the dictionary filenames in the dictionaries/ directory
+                                    - EFF is Electronic Frontier Foundation
+                                -->
+                                <select id="dictionary-select" class="form-select">
+                                    <option value="wordlist" selected>Standard (EFF)</option>
+                                    <option value="lorem-ipsum">Lorem Ipsum</option>
+                                    <option value="bacon-ipsum">Bacon Ipsum</option>
+                                    <option value="samuel-l-jackson">Samuel L. Jackson</option>
+                                    <option value="bunghole">Bunghole</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <h6>Case Transformation</h6>
+                                <select id="case-transform" class="form-select">
+                                    <option value="LOWERCASE" selected>all lower case</option>
+                                    <option value="UPPERCASE">ALL UPPER CASE</option>
+                                    <option value="CAPITALIZE">Capitalize Each Word</option>
+                                    <option value="ALTERNATE">aLtErNaTiNg CaSe</option>
+                                    <option value="TOGGLE">case PER word</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row g-4 pt-3 mt-3 border-top">
+                            <div class="col-md-4">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="add-separator-toggle" checked>
+                                    <label class="form-check-label" for="add-separator-toggle">Add Separator</label>
+                                </div>
+                                <div id="separator-options">
+                                    <div class="input-group">
+                                        <span class="input-group-text">Character</span>
+                                        <select id="separator-char" class="form-select">
+                                            <option value="!">!</option>
+                                            <option value="&quot;">"</option>
+                                            <option value="£">£</option>
+                                            <option value="$">$</option>
+                                            <option value="%">%</option>
+                                            <option value="^">^</option>
+                                            <option value="&">&</option>
+                                            <option value="*">*</option>
+                                            <option value="(">(</option>
+                                            <option value=")">)</option>
+                                            <option value="-" selected>-</option>
+                                            <option value="_">_</option>
+                                            <option value="=">=</option>
+                                            <option value="+">+</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-text">Adds a character between each word.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="add-digits-toggle">
+                                    <label class="form-check-label" for="add-digits-toggle">Add Digits</label>
+                                </div>
+                                <div id="digits-options" style="display: none;">
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <div class="input-group">
+                                                <span class="input-group-text">Before</span>
+                                                <input type="number" class="form-control" id="padding-digits-before" value="0" min="0" max="5">
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="input-group">
+                                                <span class="input-group-text">After</span>
+                                                <input type="number" class="form-control" id="padding-digits-after" value="0" min="0" max="5">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-text">Adds numeric digits to the start or end of the string.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="add-special-char-toggle">
+                                    <label class="form-check-label" for="add-special-char-toggle">Add a Special Character</label>
+                                </div>
+                                <div id="special-char-options" style="display: none;">
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <div class="input-group">
+                                                <span class="input-group-text">Character</span>
+                                                <select id="special-char-select" class="form-select">
+                                                    <option value="!">!</option>
+                                                    <option value="&quot;">"</option>
+                                                    <option value="£">£</option>
+                                                    <option value="$" selected>$</option>
+                                                    <option value="%">%</option>
+                                                    <option value="^">^</option>
+                                                    <option value="&">&</option>
+                                                    <option value="*">*</option>
+                                                    <option value="(">(</option>
+                                                    <option value=")">)</option>
+                                                    <option value="-">-</option>
+                                                    <option value="_">_</option>
+                                                    <option value="=">=</option>
+                                                    <option value="+">+</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="input-group">
+                                                <span class="input-group-text">Position</span>
+                                                <select id="special-char-position" class="form-select">
+                                                    <option value="end" selected>End</option>
+                                                    <option value="start">Start</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-text">Adds a special character to the start or end of the string.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mb-4">
+                <button id="generate-btn" class="btn btn-primary">Generate</button>
+            </div>
+
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Passphrases</span>
+                    <button id="copy-btn" class="btn btn-sm btn-outline-secondary">
+                        <span class="material-symbols-outlined icon-inline-sm">content_copy</span>
+                        Copy All
+                    </button>
+                </div>
+                <div class="card-body">
+                    <pre id="passphrase-output" class="bg-body-tertiary p-3 rounded border" style="min-height: 10rem;"></pre>
+                    <div class="form-text mt-2">Your passphrases are shown above. Select any to copy it to the clipboard.</div>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#strength-test-collapse" aria-expanded="false" aria-controls="strength-test-collapse">
+                            <span class="material-symbols-outlined collapse-chevron me-2">chevron_right</span>
+                            Strength Meter
+                        </button>
+                    </h5>
+                </div>
+                <div class="collapse" id="strength-test-collapse">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="strength-test-input" class="form-label">Password to Test</label>
+                            <input type="text" class="form-control" id="strength-test-input" placeholder="Enter a password to check its strength">
+                        </div>
+                        <div id="strength-results" class="d-none">
+                            <div class="progress mb-2" role="progressbar" aria-label="Password strength" aria-valuenow="0" aria-valuemin="0" aria-valuemax="4">
+                                <div id="strength-meter" class="progress-bar"></div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small id="strength-text" class="fw-bold"></small>
+                                <small id="strength-time" class="text-muted"></small>
+                            </div>
+                            <div id="strength-feedback" class="mt-2">
+                                <div id="strength-feedback-warning" class="alert alert-warning p-2 d-none" role="alert">
+                                    <small></small>
+                                </div>
+                                <div id="strength-feedback-suggestions" class="d-none">
+                                    <p class="mb-1 small text-muted">Suggestions:</p>
+                                    <ul></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#password-tips" aria-expanded="false" aria-controls="password-tips">
+                            <span class="material-symbols-outlined collapse-chevron me-2">chevron_right</span>
+                            Password Tips
+                        </button>
+                    </h5>
+                </div>
+                <div class="collapse" id="password-tips">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-success fw-bold">Do</h6>
+                                <ul>
+                                    <li>Use a password manager like <a href="http://keepass.info/">Keepass</a></li>
+                                    <li>Use 2-factor authentication when available</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-danger fw-bold">Don't</h6>
+                                <ul>
+                                    <li>Use the same passphrase for more than one account or device</li>
+                                    <li>Substitute letters for numbers like <code>p455w0rd</code></li>
+                                    <li>Use single dictionary words, not even in a foreign language</li>
+                                    <li>Use keyboard sequences eg., <code>asdfghjkl</code> (UK) or <code>azerty</code> (French)</li>
+                                    <li>Base your passphrase on personal information eg., pet's name, date of birth</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <p class="mt-3">The National Cyber Security Centre, an offshoot that grew out of GCHQ, offers more information to better <a href="https://www.ncsc.gov.uk/collection/passwords/updating-your-approach#tip5-password-collection" target="_blank" rel="noopener noreferrer">generate and manage your passwords</a>.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <!-- jQuery 3.7.1 -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <!-- Bootstrap 5.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Shared Header Script -->
+    <script src="/trading/assets/js/header.js"></script>
+    <!-- zxcvbn Password Strength Estimator -->
+    <script src="https://cdn.jsdelivr.net/npm/zxcvbn@4.4.2/dist/zxcvbn.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Debug logging function that checks global debug mode
+            function debugLog(...args) {
+                const debugSwitch = $('#enable-debug-mode-switch');
+                if (debugSwitch.length && debugSwitch.is(':checked')) {
+                    console.log(...args);
+                }
+            }
+            
+            debugLog('Document ready fired');
+            
+            // --- Load Shared Components ---
+            $("#header-placeholder").load("/trading/assets/includes/_header.html", () => initializeHeader && initializeHeader());
+            $("#navbar-placeholder").load("/trading/assets/includes/_navbar.html");
+            $("#footer-placeholder").load("/trading/assets/includes/_footer.html");
+
+            // --- Constants and Selectors ---
+            const STORAGE_KEY = 'passphraseGeneratorState';
+            const $generateBtn = $('#generate-btn');
+            const $copyBtn = $('#copy-btn');
+            const $output = $('#passphrase-output');
+            const $strengthInput = $('#strength-test-input');
+            
+            debugLog('Generate button found:', $generateBtn.length);
+            debugLog('Output element found:', $output.length);
+
+            let wordlist = [];
+            
+            // Custom passphrase generator since xkcd-pass library isn't loading
+            function generatePassphrase(options) {
+                const {
+                    numWords = 4,
+                    wordLengthMin = 4, // default min
+                    wordLengthMax = 8, // default max
+                    caseTransform = 'LOWERCASE', addSeparator = true,
+                    separatorChar = '-',
+                    paddingDigitsBefore = 0,
+                    paddingDigitsAfter = 0,
+                    addSpecialChar = false,
+                    specialChar = '$',
+                    specialCharPosition = 'end'
+                } = options;
+                
+                // Filter words by length range
+                const validWords = wordlist.filter(word => word.length >= wordLengthMin && word.length <= wordLengthMax);
+                
+                if (validWords.length === 0) {
+                    throw new Error('No words available that meet the minimum length requirement');
+                }
+                
+                // Select random words
+                const selectedWords = [];
+                for (let i = 0; i < numWords; i++) {
+                    const randomIndex = Math.floor(Math.random() * validWords.length);
+                    selectedWords.push(validWords[randomIndex]);
+                }
+                
+                // Apply case transformation
+                const transformedWords = selectedWords.map(word => {
+                    switch (caseTransform) {
+                        case 'UPPERCASE':
+                            return word.toUpperCase();
+                        case 'CAPITALIZE':
+                            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                        case 'ALTERNATE':
+                            return word.split('').map((char, index) => 
+                                index % 2 === 0 ? char.toLowerCase() : char.toUpperCase()
+                            ).join('');
+                        case 'TOGGLE':
+                            // This is handled per-word later, so just make it lowercase for now.
+                            // The index of the word in the array determines its final case.
+                            return word.toLowerCase();
+                        case 'LOWERCASE':
+                        default:
+                            return word.toLowerCase();
+                    }
+                });
+                
+                // Add padding digits
+                let finalWords;
+                if (caseTransform === 'TOGGLE') {
+                    finalWords = transformedWords.map((word, index) => 
+                        index % 2 === 0 ? word.toLowerCase() : word.toUpperCase()
+                    );
+                } else {
+                    finalWords = transformedWords;
+                }
+                let passphrase = addSeparator ? finalWords.join(separatorChar) : finalWords.join('');
+                
+                if (paddingDigitsBefore > 0) {
+                    const beforeDigits = Array.from({length: paddingDigitsBefore}, () => 
+                        Math.floor(Math.random() * 10)
+                    ).join('');
+                    passphrase = beforeDigits + passphrase;
+                }
+                
+                if (paddingDigitsAfter > 0) {
+                    const afterDigits = Array.from({length: paddingDigitsAfter}, () => 
+                        Math.floor(Math.random() * 10)
+                    ).join('');
+                    passphrase = passphrase + afterDigits;
+                }
+                
+                // Add special character
+                if (addSpecialChar) {
+                    if (specialCharPosition === 'start') {
+                        passphrase = specialChar + passphrase;
+                    } else { // 'end'
+                        passphrase = passphrase + specialChar;
+                    }
+                }
+                return passphrase;
+            }
+
+            // --- State Management ---
+            function saveState() {
+                const state = {
+                    numPassphrases: $('#num-passphrases').val(),
+                    numWords: $('#num-words').val(),
+                    wordLengthMin: $('#word-length-min').val(),
+                    wordLengthMax: $('#word-length-max').val(),
+                    caseTransform: $('#case-transform').val(),
+                    dictionary: $('#dictionary-select').val(),
+                    addSeparator: $('#add-separator-toggle').is(':checked'),
+                    separatorChar: $('#separator-char').val(),
+                    addDigits: $('#add-digits-toggle').is(':checked'),
+                    paddingDigitsBefore: $('#padding-digits-before').val(),
+                    paddingDigitsAfter: $('#padding-digits-after').val(),
+                    addSpecialChar: $('#add-special-char-toggle').is(':checked'),
+                    specialChar: $('#special-char-select').val(),
+                    specialCharPosition: $('#special-char-position').val(),
+                    advancedVisible: $('#advanced-options').hasClass('show'),
+                    passwordTipsVisible: $('#password-tips').hasClass('show'),
+                    strengthTestVisible: $('#strength-test-collapse').hasClass('show'),
+                    strengthTestInput: $strengthInput.val()
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            }
+
+            function loadState() {
+                const savedState = localStorage.getItem(STORAGE_KEY);
+                if (savedState) {
+                    const state = JSON.parse(savedState);
+                    $('#num-passphrases').val(state.numPassphrases || 10);
+                    $('#num-words').val(state.numWords || 4);
+                    $('#word-length-min').val(state.wordLengthMin || 4);
+                    $('#word-length-max').val(state.wordLengthMax || 8);
+                    $('#case-transform').val(state.caseTransform || 'LOWERCASE');
+                    $('#dictionary-select').val(state.dictionary || 'wordlist');
+                    $('#add-separator-toggle').prop('checked', state.addSeparator === undefined ? true : state.addSeparator);
+                    $('#separator-char').val(state.separatorChar || '-');
+                    $('#add-digits-toggle').prop('checked', state.addDigits || false);
+                    $('#padding-digits-before').val(state.paddingDigitsBefore || 0);
+                    $('#padding-digits-after').val(state.paddingDigitsAfter || 0);
+                    $('#add-special-char-toggle').prop('checked', state.addSpecialChar || false);
+                    $('#special-char-select').val(state.specialChar || '$');
+                    $('#special-char-position').val(state.specialCharPosition || 'end');
+                    
+                    // Manually trigger the handler to show/hide the options
+                    handleSeparatorToggle(false); // false to prevent re-generation on load
+                    handleDigitsToggle(false);
+                    handleSpecialCharToggle(false);
+
+                    if (state.advancedVisible) {
+                        new bootstrap.Collapse('#advanced-options', { toggle: false }).show();
+                    }
+                    if (state.passwordTipsVisible) {
+                        new bootstrap.Collapse('#password-tips', { toggle: false }).show();
+                    }
+                    $strengthInput.val(state.strengthTestInput || '');
+                    if (state.strengthTestVisible) {
+                        new bootstrap.Collapse('#strength-test-collapse', { toggle: false }).show();
+                    }
+                }
+            }
+
+            // --- Core Logic ---
+            async function fetchWordlist() {
+                debugLog('Attempting to fetch wordlist...');
+                try {
+                    const dictionaryName = $('#dictionary-select').val();
+                    const response = await fetch(`dictionaries/${dictionaryName}.txt`);
+                    debugLog('Fetch response:', response);
+                    if (!response.ok) throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
+                    const text = await response.text();
+                    debugLog('Raw wordlist length:', text.length);
+                    // Filter for purely alphabetic words to match original script's logic
+                    wordlist = text.split(/\r?\n/).filter(word => /^[a-z]+$/i.test(word));
+                    debugLog('Filtered wordlist length:', wordlist.length);
+                    debugLog('First 10 words:', wordlist.slice(0, 10));
+                    if (wordlist.length === 0) {
+                        throw new Error('Wordlist is empty or could not be parsed.');
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch wordlist:', error);
+                    $output.text('Error: Could not load the required wordlist.txt file. ' + error.message);
+                    $generateBtn.prop('disabled', true);
+                }
+            }
+
+            async function generatePassphrases() {
+                debugLog('generatePassphrases called, wordlist length:', wordlist.length);
+                
+                if (wordlist.length === 0) {
+                    await fetchWordlist(); // Attempt to load it if it's missing
+                    $output.text('Wordlist not loaded. Please wait or refresh.');
+                    return;
+                }
+
+                const options = {
+                    numWords: parseInt($('#num-words').val()),
+                    wordLengthMin: parseInt($('#word-length-min').val()),
+                    wordLengthMax: parseInt($('#word-length-max').val()),
+                    caseTransform: $('#case-transform').val(), addSeparator: $('#add-separator-toggle').is(':checked'),
+                    separatorChar: $('#separator-char').val(),
+                    // Only include digits if the toggle is on
+                    paddingDigitsBefore: $('#add-digits-toggle').is(':checked') ? parseInt($('#padding-digits-before').val()) : 0,
+                    paddingDigitsAfter: $('#add-digits-toggle').is(':checked') ? parseInt($('#padding-digits-after').val()) : 0,
+                    addSpecialChar: $('#add-special-char-toggle').is(':checked'),
+                    specialChar: $('#special-char-select').val(),
+                    specialCharPosition: $('#special-char-position').val()
+                };
+                
+                debugLog('Generation options:', options);
+
+                const numPassphrases = parseInt($('#num-passphrases').val());
+                const passphrases = [];
+
+                try {
+                    for (let i = 0; i < numPassphrases; i++) {
+                        debugLog(`Generating passphrase ${i + 1}...`);
+                        const passphrase = generatePassphrase(options);
+                        debugLog(`Generated passphrase ${i + 1}:`, passphrase);
+                        passphrases.push(passphrase);
+                    }
+
+                    $output.empty();
+                    passphrases.forEach(p => {
+                        const $passphraseEl = $('<div>').addClass('passphrase-item').text(p);
+                        $output.append($passphraseEl);
+                    });
+
+                    debugLog('All passphrases generated successfully');
+                    saveState();
+                } catch (error) {
+                    $output.empty();
+                    console.error('Error generating passphrases:', error);
+                    $output.text('Error generating passphrases: ' + error.message);
+                }
+            }
+
+            function copyToClipboard() {
+                const textToCopy = $output.text();
+                if (!textToCopy) return;
+
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    const originalHtml = $copyBtn.html();
+                    $copyBtn.html('<span class="material-symbols-outlined icon-inline-sm">check</span> Copied!');
+                    $copyBtn.addClass('btn-success').removeClass('btn-outline-secondary');
+                    setTimeout(() => {
+                        $copyBtn.html(originalHtml).removeClass('btn-success').addClass('btn-outline-secondary');
+                    }, 1500);
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                    alert('Failed to copy text.');
+                });
+            }
+
+            // --- Password Strength Checker ---
+            function checkPasswordStrength() {
+                const password = $strengthInput.val();
+                const $results = $('#strength-results');
+                if (!password) {
+                    $results.addClass('d-none');
+                    return;
+                }
+
+                $results.removeClass('d-none');
+                const result = zxcvbn(password);
+                
+                // 1. Update Meter
+                const $meter = $('#strength-meter');
+                const score = result.score; // 0-4
+                const scorePercentage = (score + 1) * 20;
+                const meterClasses = ['bg-danger', 'bg-danger', 'bg-warning', 'bg-info', 'bg-success'];
+                const strengthTexts = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+
+                $meter.css('width', `${scorePercentage}%`);
+                $meter.removeClass('bg-danger bg-warning bg-info bg-success').addClass(meterClasses[score]);
+                $meter.parent().attr('aria-valuenow', score);
+
+                // 2. Update Text
+                $('#strength-text').text(strengthTexts[score]);
+                $('#strength-time').text(`Time to crack: ${result.crack_times_display.offline_slow_hashing_1e4_per_second}`);
+
+                // 3. Update Feedback
+                const $warning = $('#strength-feedback-warning');
+                const $suggestions = $('#strength-feedback-suggestions');
+                const $suggestionsList = $suggestions.find('ul');
+
+                if (result.feedback.warning) {
+                    $warning.find('small').text(result.feedback.warning);
+                    $warning.removeClass('d-none');
+                } else {
+                    $warning.addClass('d-none');
+                }
+
+                if (result.feedback.suggestions.length > 0) {
+                    $suggestionsList.empty();
+                    result.feedback.suggestions.forEach(suggestion => {
+                        $suggestionsList.append(`<li><small>${suggestion}</small></li>`);
+                    });
+                    $suggestions.removeClass('d-none');
+                } else {
+                    $suggestions.addClass('d-none');
+                }
+            }
+
+            // --- Event Listeners ---
+            debugLog('Setting up event listeners...');
+            $generateBtn.on('click', function() {
+                debugLog('Generate button clicked!');
+                generatePassphrases();
+            });
+
+            // --- Copy Event Handlers ---
+            $output.on('click', '.passphrase-item', function() {
+                const $item = $(this);
+                const passphraseText = $item.text();
+
+                if (!passphraseText || $item.data('is-copying')) return;
+
+                $item.data('is-copying', true);
+
+                navigator.clipboard.writeText(passphraseText).then(() => {
+                    $item.text('Copied!').css('color', 'var(--bs-success)');
+                    setTimeout(() => {
+                        $item.text(passphraseText).css('color', '');
+                        $item.data('is-copying', false);
+                    }, 1500);
+                }).catch(err => {
+                    console.error('Failed to copy passphrase: ', err);
+                    $item.data('is-copying', false);
+                });
+            });
+            $copyBtn.on('click', copyToClipboard);
+
+            // Save state when any collapse element is toggled
+            $('#advanced-options, #strength-test-collapse, #password-tips').on('shown.bs.collapse hidden.bs.collapse', saveState);
+
+            // Save state on input
+            $('input, select').on('input change', saveState);
+            
+            // When dictionary changes, fetch the new wordlist
+            $('#dictionary-select').on('change', async function() {
+                await fetchWordlist();
+                generatePassphrases();
+            });
+
+            // Rotate chevron icon for collapse
+            $('#advanced-options').on('show.bs.collapse', function () {
+                $(this).prev().find('.collapse-chevron').addClass('rotated');
+            }).on('hide.bs.collapse', function () {
+                $(this).prev().find('.collapse-chevron').removeClass('rotated');
+            });
+
+            // Rotate chevron icon for password tips collapse
+            $('#password-tips').on('show.bs.collapse', function () {
+                $(this).prev().find('.collapse-chevron').addClass('rotated');
+            }).on('hide.bs.collapse', function () {
+                $(this).prev().find('.collapse-chevron').removeClass('rotated');
+            });
+
+            // Rotate chevron icon for strength test collapse
+            $('#strength-test-collapse').on('show.bs.collapse', function () {
+                $(this).prev().find('.collapse-chevron').addClass('rotated');
+            }).on('hide.bs.collapse', function () {
+                $(this).prev().find('.collapse-chevron').removeClass('rotated');
+            });
+
+            // Strength checker event listener
+            $strengthInput.on('input', function() {
+                checkPasswordStrength();
+            });
+
+            // --- Advanced Option Toggles ---
+            function handleSeparatorToggle(regenerate = true) {
+                $('#separator-options').toggle($('#add-separator-toggle').is(':checked'));
+                if (regenerate) generatePassphrases();
+            }
+            function handleDigitsToggle(regenerate = true) {
+                $('#digits-options').toggle($('#add-digits-toggle').is(':checked'));
+                if (regenerate) generatePassphrases();
+            }
+            function handleSpecialCharToggle(regenerate = true) {
+                $('#special-char-options').toggle($('#add-special-char-toggle').is(':checked'));
+                if (regenerate) generatePassphrases();
+            }
+
+            $('#add-separator-toggle').on('change', handleSeparatorToggle);
+            $('#add-digits-toggle').on('change', handleDigitsToggle);
+            $('#add-special-char-toggle').on('change', handleSpecialCharToggle);
+
+            // --- Initial Load ---
+            async function initialize() {
+                debugLog('Initializing...');
+                loadState();
+                debugLog('State loaded, fetching wordlist...');
+                await fetchWordlist();
+                debugLog('Wordlist fetch complete. Wordlist length:', wordlist.length);
+                // Generate passphrases on initial load if wordlist is ready
+                if (wordlist.length > 0) {
+                    debugLog('Generating initial passphrases...');
+                    generatePassphrases();
+                } else {
+                    debugLog('Wordlist not ready, skipping initial generation');
+                }
+                // Check strength of any pre-loaded password
+                checkPasswordStrength();
+            }
+
+            initialize();
+        });
+    </script>
+</body>
+</html>

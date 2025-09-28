@@ -1,262 +1,36 @@
-/*
- * Shared styles for the Trading Tools website
- */
-
-/* Add padding to the body to account for the fixed header and navbar */
-body {
-    padding-top: 7rem;
-    padding-bottom: 2rem;
-}
-
-/* Custom dark background for the navbar for better contrast */
-.bg-custom-dark {
-    background-color: #111111 !important;
-}
-
-/* General styling for Google Material Symbols to align them better */
-.material-symbols-outlined {
-    vertical-align: text-bottom;
-    font-size: 1.15em;
-}
-
-
-/**
-  *
-  * pair trades tracker
- */
-
-/* Make table inputs a bit wider for better visibility */
-.trade-input {
-    min-width: 100px;
-}
-
-/* Ensure dropdowns in the table don't overflow */
-.trade-select {
-    min-width: 120px;
-}
-
-/* Increase specificity to override Bootstrap's default focus styles without !important */
-.form-control.is-invalid,
-.form-select.is-invalid {
-    border-color: var(--bs-danger);
-}
-
-.delete-trade-btn .material-symbols-outlined {
-    font-size: 1rem;
-    vertical-align: text-bottom;
-    pointer-events: none; /* Prevents icon from capturing click */
-}
-
-/* Add a hover effect to the delete icon */
-.delete-trade-btn .material-symbols-outlined.text-danger {
-    transition: color 300ms ease-in-out;
-}
-
-.delete-trade-btn:hover .material-symbols-outlined.text-danger {
-    /* A lighter, less intense red. Using !important to override .text-danger */
-    color: #E57373 !important;
-}
-
-/* Style for initial quantity inputs */
-#config-stock-a-qty[readonly], #config-stock-b-qty[readonly] {
-    cursor: text;
-    background-color: var(--bs-secondary-bg);
-}
-
-
-/* collapse elements */
-/* Make any collapse toggle element indicate it's clickable */
-[data-bs-toggle="collapse"] {
-    cursor: pointer;
-}
-
-/* For single-icon chevrons that rotate */
-.collapse-chevron {
-    transition: transform 0.3s ease-in-out;
-}
-[data-bs-toggle="collapse"][aria-expanded="true"] .collapse-chevron {
-    transform: rotate(90deg);
-}
-
-/* Hide the closed icon by default */
-.collapse-icon-closed {
-    display: inline-block;
-}
-/* Hide the open icon by default */
-.collapse-icon-open {
-    display: none;
-}
-/* When the collapse is open, show the open icon */
-[data-bs-toggle="collapse"][aria-expanded="true"] .collapse-icon-open {
-    display: inline-block;
-}
-/* When the collapse is open, hide the closed icon */
-[data-bs-toggle="collapse"][aria-expanded="true"] .collapse-icon-closed {
-    display: none;
-}
-
-.asset-swap-calculator-page [data-bs-toggle="tooltip"] {
-    cursor: help;
-}
-
-/* A reusable class for buttons that should only display an icon */
-.icon-btn {
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    opacity: 0.6; /* A subtle default opacity */
-    transition: opacity 0.2s ease-in-out;
-    vertical-align: middle;
-}
-
-.icon-btn:hover { opacity: 1; } /* Full opacity on hover */
-
-.notes-row > td {
-    background-color: var(--bs-tertiary-bg);
-}
-
-textarea.notes-editor[readonly] {
-    cursor: text;
-    background-color: var(--bs-tertiary-bg); /* Match the row background */
-    resize: none;
-}
-
-/* custom thead dark */
-.thead-custom-dark {
-    background-color: var(--bs-gray-900); /* A standard "almost black" */
-    color: var(--bs-white);
-    border-color: var(--bs-gray-700);
-}
-
-/* Toast header styling based on data attribute */
-#app-toast[data-toast-type="error"] .toast-header {
-    background-color: var(--bs-danger);
-    color: var(--bs-white);
-}
-
-#app-toast[data-toast-type="success"] .toast-header {
-    background-color: var(--bs-success);
-    color: var(--bs-white);
-}
-
-/* Date sort icon hover effect */
-.sort-icon {
-    /* Use Bootstrap's variable for a muted text color */
-    color: var(--bs-secondary-color);
-    transition: color 0.15s ease-in-out;
-}
-
-#date-header:hover .sort-icon {
-    color: var(--bs-body-color);
-}
-
-/* Improve UX for in-line editable cells in Pair Trade Tracker */
-.editable-cell {
-    cursor: default;
-}
-
-/* Custom striping for trade log to handle multi-row trades */
-/* Apply striped color only to the main trade rows, ignoring notes rows */
-#trade-log-table tbody tr.trade-row-odd.leg-row > td,
-#trade-log-table tbody tr.trade-row-odd.legacy-trade > td {
-    background-color: var(--bs-table-striped-bg);
-}
-
-/* Apply a hover color to all rows in a trade group when hovered */
-#trade-log-table tbody tr.trade-hover > td {
-    background-color: var(--bs-table-hover-bg);
-}
-
-/* Styling for the settings icon in the header */
-.settings-icon {
-    color: #adb5bd; /* A light, muted grey */
-    text-decoration: none;
-    transition: color 0.2s ease-in-out;
-    display: inline-flex;
+/* Reusable utility to ensure the label in a form-switch comes first */
+.form-switch-label-first {
+    display: flex;
     align-items: center;
 }
-
-.settings-icon:hover {
-    color: #fff; /* White on hover */
+.form-switch-label-first .form-check-label {
+    order: 1; /* Label comes first */
+    white-space: nowrap; /* Prevent the label from wrapping */
+}
+.form-switch-label-first .form-check-input {
+    order: 2; /* Input (the switch) comes second */
+    margin-left: .5rem; /* Add some space between label and switch */
 }
 
-.settings-icon .material-symbols-outlined {
-    font-size: 20px; /* Makes the icon slightly smaller and more subtle */
-}
-
-/**
-  *
-  * Asset Swap Calculator page styles
+/*
+ * Adjust the main content area to account for the fixed header and navbar.
+ * The header is 36px high and the navbar is approx 56px high.
+ * A total padding of around 96px is needed.
  */
-.asset-swap-calculator-page .container {
-    max-width: 800px;
+body > main {
+    padding-top: 96px;
 }
 
-.asset-swap-calculator-page .error-message {
-    display: none; /* Hidden by default */
-}
-
-.asset-swap-calculator-page .tooltip {
-    --bs-tooltip-max-width: 350px;
-}
-
-.asset-swap-calculator-page #copy-ratio-btn.is-copied .material-symbols-outlined,
-.asset-swap-calculator-page #copy-log-btn.is-copied .material-symbols-outlined {
-    transform: scale(1.25);
-}
-
-/* Styling for the close icon in the shared footer notice */
-.footer-close-icon {
-    font-size: 1rem;
-    vertical-align: middle;
-    cursor: pointer;
-    opacity: 0.6;
-    transition: opacity 0.2s ease-in-out;
-}
-
-.footer-close-icon:hover {
-    opacity: 1;
-}
-
-/* Creates a clean, borderless gap between trade groups in the log */
-.trade-spacer-row td {
-    border: none;
-    padding: 0;
-    height: 1.5rem;
-}
-
-/**
-  *
-  * Calculator page styles
+/*
+ * Z-index layering to ensure proper stacking order during page scrolling:
+ * - Header should be on top (z-index: 1040)
+ * - Navbar should be below header but above content (z-index: 1035)
+ * - Page content should be below both (default z-index)
  */
-
-/* Add a hover effect to the card body on the calculator index page */
-.card-hover-effect .card-body {
-    transition: background-color 300ms ease-in-out;
-}
-.card-hover-effect:hover .card-body {
-    background-color: #262a2e;
+.header-bar {
+    z-index: 1040 !important;
 }
 
-/**
-  *
-  * Bootstrap Extensions
- */
-
-/* A non-interactive header item for a list-group component */
-.list-group-header {
-    padding: var(--bs-list-group-item-padding-y) var(--bs-list-group-item-padding-x);
-    color: var(--bs-secondary-color); /* Muted text color to de-emphasize */
-    background-color: #1a1d20; /* A dark gray between the navbar and body background */
-    border-top: var(--bs-list-group-border-width) solid var(--bs-list-group-border-color);
-    border-right: var(--bs-list-group-border-width) solid var(--bs-list-group-border-color);
-    border-left: var(--bs-list-group-border-width) solid var(--bs-list-group-border-color);
-    border-bottom: var(--bs-list-group-border-width) solid var(--bs-list-group-border-color);
-    margin-bottom: -1px; /* Overlap borders like a normal list-group-item */
-}
-
-/* Remove the top border of a header if it directly follows another list item to prevent double borders */
-.list-group-item + .list-group-header {
-    border-top: none;
+.navbar {
+    z-index: 1035 !important;
 }

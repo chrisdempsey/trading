@@ -1,0 +1,3 @@
+- [ ] add copy icons for
+    - converted price (add toggle for inc. symbol
+    - full conversion log (eg. 23.59 GBP = 31.87 USD)

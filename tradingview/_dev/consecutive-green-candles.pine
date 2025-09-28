@@ -1,0 +1,91 @@
+//@version=5
+strategy("DW Hack Crossover Long-Only Strategy", shorttitle="DW Hack Crossover Long-Only Strategy", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=100, initial_capital=1000, commission_type=strategy.commission.percent, commission_value=0, precision=3)
+
+// Inputs
+signal = input(close, title="Signal")
+threshold = input(close, title="Crossover Threshold")
+start_date = input.time(defval=timestamp("2020-01-01"), title="Start Date")
+end_date = input.time(defval=timestamp("2040-01-01"), title="End Date")
+consecClosesAboveRequired = input(1, title="Enter on consecutive closes above threshold")
+
+// NOTE: if using IA-TREND model for signal and threshold,the consecClosesBelowRequired must be 1 as the model as the model flips as simple buy/sell
+consecClosesBelowRequired = input(1, title="Exit on consecutive closes below threshold")
+emaPeriod = input(20, title="EMA Period")
+useEMA = input(true, title="Use EMA Filter for Entry")
+
+// Consecutive green candles input with true/false dropdown
+useConsecGreenCandles = input(true, title="Require consecutive green candles")
+consecGreenCandlesRequired = input(3, title="Green candles for entry")
+
+// EMA Calculation based on user-defined period
+ema = ta.ema(close, emaPeriod)
+
+// Plot Signal and Threshold
+plot(signal, color=color.blue, title="Signal")
+plot(threshold, color=color.red, title="Threshold")
+
+// Plot EMA if it's being used
+plot(useEMA ? ema : na, color=color.orange, title="EMA")
+
+// Plot markers for crossovers - location options are abovebar, belowbar, top, bottom, absolute
+plotshape(ta.crossover(signal, threshold), style=shape.labelup, location=location.belowbar, color=color.green, title="Crossover (calculated buy position)")
+plotshape(ta.crossunder(signal, threshold), style=shape.labeldown, location=location.abovebar, color=color.red, title="Crossunder (calculated sell position)")
+
+// Tracking the crossover, consecutive closes above/below threshold, and consecutive green candles
+int consecClosesAbove = 0
+int consecClosesBelow = 0
+int consecGreenCandles = 0
+var crossoverOccurred = false
+
+// Calculate crossover and update flags
+crossover = ta.crossover(signal, threshold)
+if crossover
+    crossoverOccurred := true
+    consecClosesAbove := 0 // Reset on crossover
+    consecGreenCandles := 0 // Reset on crossover
+
+// Increment counter after crossover if signal remains above threshold
+if crossoverOccurred and signal > threshold
+    consecClosesAbove := consecClosesAbove + 1
+
+    // Check for green candle and increment consecGreenCandles
+    if close > open
+        consecGreenCandles := consecGreenCandles + 1
+    else
+        consecGreenCandles := 0 // Reset if not a green candle
+
+// Reset conditions if signal crosses under threshold
+if ta.crossunder(signal, threshold)
+    crossoverOccurred := false
+    consecClosesAbove := 0
+    consecGreenCandles := 0
+
+// Increment counter if signal is below threshold for exit condition
+if signal < threshold
+    consecClosesBelow := consecClosesBelow + 1
+else
+    consecClosesBelow := 0 // Reset if condition is not met
+
+// Check if the current date is within the specified range
+in_date_range = (time >= start_date and time <= end_date)
+
+// Strategy execution with date filter and conditions
+if in_date_range
+    // Entry conditions
+    // 1. crossover occurred
+    // 2. specified number of consecutive closes above threshold after crossover
+    // 3. if `useConsecGreenCandles` is true, also check for the specified number of consecutive green candles
+    // 4. if useEMA condition is true check if close is above ema
+    if (crossoverOccurred) and 
+       (consecClosesAbove >= consecClosesAboveRequired) and 
+       (not useConsecGreenCandles or (useConsecGreenCandles and consecGreenCandles >= consecGreenCandlesRequired)) and 
+       (not useEMA or (useEMA and close > ema))
+        
+        strategy.entry("Long", strategy.long)
+        crossoverOccurred := false // reset after entry
+        consecGreenCandles := 0
+
+    // Exit condition: the specified number of consecutive closes below threshold
+    if consecClosesBelow == consecClosesBelowRequired
+        strategy.close("Long")
+

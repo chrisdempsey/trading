@@ -49,6 +49,7 @@
 
 
 
-
+### RSI
+- custom version of standard indicator - option to toggle labels for bull/bear divergence, lines only is neater display but may as well leave labels as option
 
 

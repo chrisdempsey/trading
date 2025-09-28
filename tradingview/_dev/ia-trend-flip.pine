@@ -1,0 +1,125 @@
+//@version=5
+strategy("DW Hack Crossover Long-Only Strategy", shorttitle="DW Hack Crossover Long-Only Strategy", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=100, initial_capital=1000, commission_type=strategy.commission.percent, commission_value=0, precision=3)
+
+// Inputs
+signal = input(close, title="Signal")
+threshold = input(close, title="Crossover Threshold")
+start_date = input.time(defval=timestamp("2020-01-01"), title="Start Date")
+end_date = input.time(defval=timestamp("2040-01-01"), title="End Date")
+consecClosesAboveRequired = input(1, title="Enter on consecutive closes above threshold")
+consecClosesBelowRequired = input(1, title="Exit on consecutive closes below threshold")
+emaPeriod = input(21, title="EMA Period")
+useEMA = input(true, title="Use EMA Filter for Entry")
+useConsecGreenCandles = input(true, title="Require consecutive green candles")
+consecGreenCandlesRequired = input(3, title="Green candles for entry")
+
+// Add checkboxes for showing/hiding entry/exit labels and for enabling/disabling stop loss
+showLabels = input.bool(true, title="Show entry/exit labels")
+useStopLoss = input.bool(true, title="Use Stop Loss")
+
+// Input for stop loss percentage, default is set to -5%
+stopLossPercentage = input.float(defval=-5, title="Stop Loss Percentage (%)")
+
+// EMA Calculation based on user-defined period
+ema = ta.ema(close, emaPeriod)
+
+// Plot Signal and Threshold
+plot(signal, color=color.blue, title="Signal")
+plot(threshold, color=color.red, title="Threshold")
+plot(useEMA ? ema : na, color=color.orange, title="EMA")
+
+// Calculate crossovers and crossunders
+crossover = ta.crossover(signal, threshold)
+crossunder = ta.crossunder(signal, threshold)
+
+// Tracking consecutive closes and candles
+int consecClosesAbove = 0
+int consecClosesBelow = 0
+int consecGreenCandles = 0
+var crossoverOccurred = false
+
+// Calculate crossover and update flags
+if crossover
+    crossoverOccurred := true
+    consecClosesAbove := 0 // Reset on crossover
+    consecGreenCandles := 0 // Reset on crossover
+
+// Increment counter after crossover if signal remains above threshold
+if crossoverOccurred and signal > threshold
+    consecClosesAbove += 1
+
+    // Check for green candle and increment consecGreenCandles
+    if close > open
+        consecGreenCandles += 1
+    else
+        consecGreenCandles := 0 // Reset if not a green candle
+
+// Reset conditions if signal crosses under threshold
+if crossunder
+    crossoverOccurred := false
+    consecClosesAbove := 0
+    consecGreenCandles := 0
+
+// Increment counter if signal is below threshold for exit condition
+if signal < threshold
+    consecClosesBelow += 1
+else
+    consecClosesBelow := 0 // Reset if condition is not met
+
+// Check if the current date is within the specified range
+in_date_range = (time >= start_date and time <= end_date)
+
+// Variables to track entry and exit
+var bool in_position = false
+var float entryPrice = na
+
+// Strategy execution with date filter and conditions
+if in_date_range
+    // Entry conditions
+    if crossoverOccurred and consecClosesAbove >= consecClosesAboveRequired and not in_position
+        // Check EMA condition if useEMA is true
+        if not useEMA or (useEMA and close > ema)
+            // Check for consecutive green candles if useConsecGreenCandles is true
+            if not useConsecGreenCandles or (useConsecGreenCandles and consecGreenCandles >= consecGreenCandlesRequired)
+                entryPrice := close // Store the entry price
+                // Delay the entry to the next candle
+                strategy.entry("Long", strategy.long)
+                crossoverOccurred := false // reset after entry
+                consecGreenCandles := 0
+                in_position := true // Track that a position is opened
+                // Add an entry label only if the `showLabels` checkbox is checked
+                if showLabels
+                    label.new(bar_index + 1, high, "Entry: " + str.tostring(entryPrice), color=color.green, style=label.style_label_down, textcolor=color.white)
+
+    // Track percentage change between candles when in a long position
+    if in_position and useStopLoss
+        percentageChange = ((close - entryPrice) / entryPrice) * 100
+        // Check if the percentage change goes below the stop-loss threshold
+        if percentageChange <= stopLossPercentage
+            strategy.close("Long")
+            in_position := false
+            // Add an exit label for stop-loss if `showLabels` checkbox is checked
+            if showLabels
+                label.new(bar_index + 1, low, "Exit (Stop Loss): " + str.tostring(close) + "\nChange: " + str.tostring(percentageChange, "#.##") + "%", color=color.orange, style=label.style_label_up, textcolor=color.white)
+
+    // Exit condition: the specified number of consecutive closes below threshold
+    if consecClosesBelow == consecClosesBelowRequired and in_position
+        exitPrice = close
+        strategy.close("Long")
+        in_position := false // Track that the position is closed
+        // Calculate percentage change between entry and exit
+        percentageChange = ((exitPrice - entryPrice) / entryPrice) * 100
+        // Add an exit label only if the `showLabels` checkbox is checked
+        if showLabels
+            label.new(bar_index + 1, low, "Exit: " + str.tostring(exitPrice) + "\nChange: " + str.tostring(percentageChange, "#.##") + "%", color=color.red, style=label.style_label_up, textcolor=color.white)
+
+    // Close position immediately if a crossunder occurs
+    if crossunder and in_position
+        exitPrice = close
+        strategy.close("Long")  // Close the position immediately when crossing under threshold
+        in_position := false // Track that the position is closed
+        // Calculate percentage change between entry and exit
+        percentageChange = ((exitPrice - entryPrice) / entryPrice) * 100
+        // Add an exit label only if the `showLabels` checkbox is checked
+        if showLabels
+            label.new(bar_index + 1, low, "Exit: " + str.tostring(exitPrice) + "\nChange: " + str.tostring(percentageChange, "#.##") + "%", color=color.red, style=label.style_label_up, textcolor=color.white)

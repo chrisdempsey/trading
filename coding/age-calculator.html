@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Age Calculator</title>
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Google Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="/trading/assets/css/styles.css">
+    <!-- Global App Config -->
+    <script src="/trading/assets/js/config.js"></script>
+</head>
+<body class="age-calculator-page d-flex flex-column vh-100">
+    <div id="header-placeholder"></div>
+    <div id="navbar-placeholder"></div>
+
+    <main class="flex-grow-1">
+        <div class="container py-4">
+            <h1 class="mb-2 text-center">Age Calculator</h1>
+            <p class="text-center text-muted mb-4">Select a date of birth to calculate the current age.</p>
+
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="dob-input" class="form-label">Date of Birth</label>
+                                <input type="date" id="dob-input" class="form-control form-control-lg">
+                            </div>
+
+                            <div id="result-container" class="text-center mt-4" style="display: none;">
+                                <h3 class="mb-3">Your Age Is</h3>
+                                <div class="display-4" id="age-result"></div>
+                                <button id="copy-btn" class="btn btn-sm btn-outline-secondary mt-3">
+                                    <span class="material-symbols-outlined icon-inline-sm">content_copy</span>
+                                    Copy Age
+                                </button>
+                            </div>
+
+                            <div id="welcome-message" class="text-center text-muted mt-4">
+                                <p>Please select a date to see the result.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <!-- jQuery 3.7.1 -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <!-- Bootstrap 5.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Shared Header Script -->
+    <script src="/trading/assets/js/header.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // --- Load Shared Components ---
+            $("#header-placeholder").load("/trading/assets/includes/_header.html", () => initializeHeader && initializeHeader());
+            $("#navbar-placeholder").load("/trading/assets/includes/_navbar.html");
+            $("#footer-placeholder").load("/trading/assets/includes/_footer.html");
+
+            // --- Constants and Selectors ---
+            const STORAGE_KEY = 'ageCalculatorState';
+            const $dobInput = $('#dob-input');
+            const $resultContainer = $('#result-container');
+            const $ageResult = $('#age-result');
+            const $welcomeMessage = $('#welcome-message');
+            const $copyBtn = $('#copy-btn');
+
+            // --- Core Logic ---
+            function calculateAge(dobString) {
+                if (!dobString) {
+                    $resultContainer.hide();
+                    $welcomeMessage.show();
+                    return;
+                }
+
+                const dob = new Date(dobString);
+                const today = new Date();
+
+                let years = today.getFullYear() - dob.getFullYear();
+                let months = today.getMonth() - dob.getMonth();
+                let days = today.getDate() - dob.getDate();
+
+                if (months < 0 || (months === 0 && days < 0)) {
+                    years--;
+                    months = (months + 12) % 12;
+                }
+
+                if (days < 0) {
+                    months--;
+                    const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+                    days += prevMonth.getDate();
+                }
+                
+                const ageString = `${years} years, ${months} months, ${days} days`;
+                $ageResult.text(ageString);
+                $resultContainer.show();
+                $welcomeMessage.hide();
+
+                localStorage.setItem(STORAGE_KEY, dobString);
+            }
+
+            // --- Event Listeners ---
+            $dobInput.on('change', function() {
+                calculateAge($(this).val());
+            });
+
+            $copyBtn.on('click', function() {
+                const textToCopy = $ageResult.text();
+                if (!textToCopy) return;
+
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    const originalText = $copyBtn.html();
+                    $copyBtn.html('<span class="material-symbols-outlined icon-inline-sm">check</span> Copied!');
+                    $copyBtn.addClass('btn-success').removeClass('btn-outline-secondary');
+                    setTimeout(() => {
+                        $copyBtn.html(originalText).removeClass('btn-success').addClass('btn-outline-secondary');
+                    }, 1500);
+                });
+            });
+
+            // --- Initial Load ---
+            const savedDob = localStorage.getItem(STORAGE_KEY);
+            if (savedDob) {
+                $dobInput.val(savedDob);
+                calculateAge(savedDob);
+            }
+        });
+    </script>
+</body>
+</html>

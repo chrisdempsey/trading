@@ -1,0 +1,67 @@
+//@version=5
+strategy("DW Hack Crossover Long-Only Strategy", shorttitle="DW Hack Crossover Long-Only Strategy", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=100, initial_capital=1000, commission_type=strategy.commission.percent, commission_value=0.1, precision=3)
+
+// Inputs
+signal = input(close, title="Signal (OT-FAST)")
+threshold = input(close, title="Crossover Threshold (OT-SLOW)")
+start_date = input.time(defval=timestamp("2020-01-01"), title="Start Date")
+end_date = input.time(defval=timestamp("2040-01-01"), title="End Date")
+consecClosesAboveRequired = input(1, title="Consecutive Closes Above Threshold Required for Entry")
+consecClosesBelowRequired = input(1, title="Consecutive Closes Below Threshold Required for Exit")
+emaPeriod = input(20, title="EMA Period")
+useEMA = input(true, title="Use EMA Filter for Entry")
+
+// EMA Calculation based on user-defined period
+ema = ta.ema(close, emaPeriod)
+
+// Plot Signal and Threshold
+plot(signal, color=color.blue, title="Signal")
+plot(threshold, color=color.red, title="Threshold")
+
+// Plot EMA if it's being used
+plot(useEMA ? ema : na, color=color.orange, title="EMA")
+
+// Plot markers for crossovers
+plotshape(ta.crossover(signal, threshold), style=shape.labelup, location=location.belowbar, color=color.green, title="Crossover")
+plotshape(ta.crossunder(signal, threshold), style=shape.labeldown, location=location.abovebar, color=color.red, title="Crossunder")
+
+// Tracking the crossover, consecutive closes above/below threshold
+int consecClosesAbove = 0
+int consecClosesBelow = 0
+crossoverOccurred = false
+
+// Calculate crossover and update flags
+crossover = ta.crossover(signal, threshold)
+if crossover
+    crossoverOccurred := true
+    consecClosesAbove := 0 // Reset on crossover
+
+// Increment counter after crossover if signal remains above threshold
+if crossoverOccurred and signal > threshold
+    consecClosesAbove := consecClosesAbove + 1
+
+// Reset conditions if signal crosses under threshold
+if ta.crossunder(signal, threshold)
+    crossoverOccurred := false
+    consecClosesAbove := 0
+
+// Increment counter if signal is below threshold for exit condition
+if signal < threshold
+    consecClosesBelow := consecClosesBelow + 1
+else
+    consecClosesBelow := 0 // Reset if condition is not met
+
+// Check if the current date is within the specified range
+in_date_range = time >= start_date and time <= end_date
+
+// Strategy execution with date filter and conditions
+if in_date_range
+    // Entry condition: crossover occurred, the specified number of consecutive closes above threshold after crossover
+    // Additionally check EMA condition if useEMA is true
+    if consecClosesAbove == consecClosesAboveRequired and (not useEMA or (useEMA and close > ema))
+        strategy.entry("Long", strategy.long)
+        crossoverOccurred := false // Reset after entry
+
+    // Exit condition: the specified number of consecutive closes below threshold
+    if consecClosesBelow == consecClosesBelowRequired
+        strategy.close("Long")

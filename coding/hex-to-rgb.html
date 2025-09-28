@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Hex to RGB Converter</title>
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Google Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="/trading/assets/css/styles.css">
+    <!-- Global App Config -->
+    <script src="/trading/assets/js/config.js"></script>
+    <style>
+        .color-preview {
+            width: 100%;
+            height: 60px;
+            border: 2px solid var(--bs-border-color);
+            border-radius: 0.375rem;
+            transition: background-color 0.3s ease;
+        }
+        
+        .form-control.monospace {
+            font-family: var(--bs-font-monospace);
+        }
+        
+        .rgb-input {
+            max-width: 80px;
+        }
+        
+        .color-card {
+            min-height: 200px;
+        }
+        .collapse-chevron {
+            transition: transform 0.3s ease-in-out;
+        }
+        .collapse-chevron.rotated {
+            transform: rotate(90deg);
+        }
+        #hue-gradient-bar {
+            width: 100%;
+            height: 10px;
+            border-radius: 5px;
+            margin-top: 0.5rem;
+            background: linear-gradient(to right, 
+                hsl(0, 100%, 50%), hsl(60, 100%, 50%), 
+                hsl(120, 100%, 50%), hsl(180, 100%, 50%), 
+                hsl(240, 100%, 50%), hsl(300, 100%, 50%), 
+                hsl(360, 100%, 50%)
+            );
+        }
+    </style>
+</head>
+<body class="hex-rgb-converter-page d-flex flex-column vh-100">
+    <div id="header-placeholder"></div>
+    <div id="navbar-placeholder"></div>
+
+    <main class="flex-grow-1">
+        <div class="container py-4">
+            <h1 class="mb-2 text-center">Hex to RGB Converter</h1>
+            <p class="text-center text-muted mb-4">Convert between hexadecimal and RGB color values with live preview.</p>
+
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="card color-card h-100">
+                        <div class="card-header">
+                            <span>Hexadecimal Color</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="hex-input" class="form-label">Hex Value</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">#</span>
+                                    <input type="text" class="form-control monospace" id="hex-input" placeholder="FF5733" maxlength="6">
+                                    <button class="btn btn-outline-secondary" type="button" id="copy-hex-value-btn" title="Copy Hex Value">
+                                        <span class="material-symbols-outlined icon-inline-sm">content_copy</span>
+                                    </button>
+                                </div>
+                                <div class="form-text">Enter 6-digit hex code (without #)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6">
+                    <div class="card color-card h-100">
+                        <div class="card-header">
+                            <span>RGB Color</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">RGB Values</label>
+                                <div class="row g-2">
+                                    <div class="col-4">
+                                        <div class="input-group">
+                                            <span class="input-group-text">R</span>
+                                            <input type="number" class="form-control rgb-input" id="rgb-r-input" min="0" max="255" placeholder="255" aria-label="Red value">
+                                            <button class="btn btn-outline-secondary" type="button" id="copy-rgb-r-btn" title="Copy R value">
+                                                <span class="material-symbols-outlined icon-inline-sm">content_copy</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="input-group">
+                                            <span class="input-group-text">G</span>
+                                            <input type="number" class="form-control rgb-input" id="rgb-g-input" min="0" max="255" placeholder="87" aria-label="Green value">
+                                            <button class="btn btn-outline-secondary" type="button" id="copy-rgb-g-btn" title="Copy G value">
+                                                <span class="material-symbols-outlined icon-inline-sm">content_copy</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="input-group">
+                                            <span class="input-group-text">B</span>
+                                            <input type="number" class="form-control rgb-input" id="rgb-b-input" min="0" max="255" placeholder="51" aria-label="Blue value">
+                                            <button class="btn btn-outline-secondary" type="button" id="copy-rgb-b-btn" title="Copy B value">
+                                                <span class="material-symbols-outlined icon-inline-sm">content_copy</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-text">Enter values from 0 to 255</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="rgb-string-output" class="form-label">RGB String</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control monospace" id="rgb-string-output" readonly placeholder="rgb(255, 87, 51)">
+                                    <button class="btn btn-outline-secondary" type="button" id="copy-rgb-string-btn" title="Copy RGB String">
+                                        <span class="material-symbols-outlined icon-inline-sm">content_copy</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center my-4">
+                <button type="button" id="reset-btn" class="btn btn-outline-secondary">Reset</button>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#color-preview-collapse" aria-expanded="false" aria-controls="color-preview-collapse">
+                                    <span class="material-symbols-outlined collapse-chevron me-2">chevron_right</span>
+                                    Colour Preview
+                                </button>
+                            </h5>
+                        </div>
+                        <div class="collapse" id="color-preview-collapse">
+                            <div class="card-body">
+                                <div id="color-preview" class="color-preview mb-3"></div>
+                                <div>
+                                    <label for="hue-slider" class="form-label">Hue</label>
+                                    <input type="range" class="form-range" min="0" max="360" id="hue-slider">
+                                    <div id="hue-gradient-bar"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#color-info-collapse" aria-expanded="false" aria-controls="color-info-collapse">
+                                    <span class="material-symbols-outlined collapse-chevron me-2">chevron_right</span>
+                                    Color Information
+                                </button>
+                            </h5>
+                        </div>
+                        <div class="collapse" id="color-info-collapse">
+                            <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6 col-lg-3">
+                                    <label for="hsl-output" class="form-label">HSL</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control monospace" id="hsl-output" readonly placeholder="hsl(11, 100%, 60%)">
+                                        <button class="btn btn-outline-secondary" type="button" id="copy-hsl-btn" title="Copy HSL">
+                                            <span class="material-symbols-outlined icon-inline-sm">content_copy</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <label for="hsv-output" class="form-label">HSV</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control monospace" id="hsv-output" readonly placeholder="hsv(11, 80%, 100%)">
+                                        <button class="btn btn-outline-secondary" type="button" id="copy-hsv-btn" title="Copy HSV">
+                                            <span class="material-symbols-outlined icon-inline-sm">content_copy</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <label for="cmyk-output" class="form-label">CMYK</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control monospace" id="cmyk-output" readonly placeholder="cmyk(0, 66, 80, 0)">
+                                        <button class="btn btn-outline-secondary" type="button" id="copy-cmyk-btn" title="Copy CMYK">
+                                            <span class="material-symbols-outlined icon-inline-sm">content_copy</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <label for="luminance-output" class="form-label">Luminance</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="luminance-output" readonly placeholder="0.299">
+                                        <button class="btn btn-outline-secondary" type="button" id="copy-luminance-btn" title="Copy Luminance">
+                                            <span class="material-symbols-outlined icon-inline-sm">content_copy</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <!-- jQuery 3.7.1 -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <!-- Bootstrap 5.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Shared Header Script -->
+    <script src="/trading/assets/js/header.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Debug logging function that checks global debug mode
+            function debugLog(...args) {
+                const debugSwitch = $('#enable-debug-mode-switch');
+                if (debugSwitch.length && debugSwitch.is(':checked')) {
+                    console.log(...args);
+                }
+            }
+
+            // --- Load Shared Components ---
+            $("#header-placeholder").load("/trading/assets/includes/_header.html", () => initializeHeader && initializeHeader());
+            $("#navbar-placeholder").load("/trading/assets/includes/_navbar.html");
+            $("#footer-placeholder").load("/trading/assets/includes/_footer.html");
+
+            // --- Constants and Selectors ---
+            const STORAGE_KEY = 'hexRgbConverterState';
+            const $hexInput = $('#hex-input');
+            const $rgbRInput = $('#rgb-r-input');
+            const $rgbGInput = $('#rgb-g-input');
+            const $rgbBInput = $('#rgb-b-input');
+            const $rgbStringOutput = $('#rgb-string-output');
+            const $colorPreview = $('#color-preview');
+            const $hslOutput = $('#hsl-output');
+            const $hsvOutput = $('#hsv-output');
+            const $cmykOutput = $('#cmyk-output');
+            const $luminanceOutput = $('#luminance-output');
+            const $copyHexValueBtn = $('#copy-hex-value-btn');
+            const $copyRgbRBtn = $('#copy-rgb-r-btn');
+            const $copyRgbGBtn = $('#copy-rgb-g-btn');
+            const $copyRgbBBtn = $('#copy-rgb-b-btn');
+            const $copyRgbStringBtn = $('#copy-rgb-string-btn');
+            const $copyHslBtn = $('#copy-hsl-btn');
+            const $copyHsvBtn = $('#copy-hsv-btn');
+            const $copyCmykBtn = $('#copy-cmyk-btn');
+            const $copyLuminanceBtn = $('#copy-luminance-btn');
+            const $hueSlider = $('#hue-slider');
+            const $resetBtn = $('#reset-btn');
+
+            let isUpdating = false; // Prevent circular updates
+
+            // --- Core Conversion Functions ---
+            function hexToRgb(hex) {
+                // Remove # if present
+                hex = hex.replace(/^#/, '');
+                
+                // Validate hex
+                if (!/^[0-9A-Fa-f]{6}$/.test(hex)) {
+                    return null;
+                }
+
+                const r = parseInt(hex.substring(0, 2), 16);
+                const g = parseInt(hex.substring(2, 4), 16);
+                const b = parseInt(hex.substring(4, 6), 16);
+
+                return { r, g, b };
+            }
+
+            function rgbToHex(r, g, b) {
+                // Ensure values are integers between 0-255
+                r = Math.max(0, Math.min(255, parseInt(r) || 0));
+                g = Math.max(0, Math.min(255, parseInt(g) || 0));
+                b = Math.max(0, Math.min(255, parseInt(b) || 0));
+
+                const hex = ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0').toUpperCase();
+                return hex;
+            }
+
+            function hslToRgb(h, s, l) {
+                s /= 100;
+                l /= 100;
+                let c = (1 - Math.abs(2 * l - 1)) * s,
+                    x = c * (1 - Math.abs((h / 60) % 2 - 1)),
+                    m = l - c / 2,
+                    r = 0,
+                    g = 0,
+                    b = 0;
+
+                if (0 <= h && h < 60) {
+                    r = c; g = x; b = 0;
+                } else if (60 <= h && h < 120) {
+                    r = x; g = c; b = 0;
+                } else if (120 <= h && h < 180) {
+                    r = 0; g = c; b = x;
+                } else if (180 <= h && h < 240) {
+                    r = 0; g = x; b = c;
+                } else if (240 <= h && h < 300) {
+                    r = x; g = 0; b = c;
+                } else if (300 <= h && h <= 360) {
+                    r = c; g = 0; b = x;
+                }
+                r = Math.round((r + m) * 255);
+                g = Math.round((g + m) * 255);
+                b = Math.round((b + m) * 255);
+
+                return { r, g, b };
+            }
+
+            function rgbToHsl(r, g, b) {
+                r /= 255;
+                g /= 255;
+                b /= 255;
+
+                const max = Math.max(r, g, b);
+                const min = Math.min(r, g, b);
+                let h, s, l = (max + min) / 2;
+
+                if (max === min) {
+                    h = s = 0;
+                } else {
+                    const d = max - min;
+                    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                    switch (max) {
+                        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                        case g: h = (b - r) / d + 2; break;
+                        case b: h = (r - g) / d + 4; break;
+                    }
+                    h /= 6;
+                }
+
+                return {
+                    h: Math.round(h * 360),
+                    s: Math.round(s * 100),
+                    l: Math.round(l * 100)
+                };
+            }
+
+            function rgbToHsv(r, g, b) {
+                r /= 255;
+                g /= 255;
+                b /= 255;
+
+                const max = Math.max(r, g, b);
+                const min = Math.min(r, g, b);
+                let h, s, v = max;
+
+                const d = max - min;
+                s = max === 0 ? 0 : d / max;
+
+                if (max === min) {
+                    h = 0;
+                } else {
+                    switch (max) {
+                        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                        case g: h = (b - r) / d + 2; break;
+                        case b: h = (r - g) / d + 4; break;
+                    }
+                    h /= 6;
+                }
+
+                return {
+                    h: Math.round(h * 360),
+                    s: Math.round(s * 100),
+                    v: Math.round(v * 100)
+                };
+            }
+
+            function rgbToCmyk(r, g, b) {
+                r /= 255;
+                g /= 255;
+                b /= 255;
+
+                const k = 1 - Math.max(r, g, b);
+                const c = k === 1 ? 0 : (1 - r - k) / (1 - k);
+                const m = k === 1 ? 0 : (1 - g - k) / (1 - k);
+                const y = k === 1 ? 0 : (1 - b - k) / (1 - k);
+
+                return {
+                    c: Math.round(c * 100),
+                    m: Math.round(m * 100),
+                    y: Math.round(y * 100),
+                    k: Math.round(k * 100)
+                };
+            }
+
+            function getLuminance(r, g, b) {
+                // Calculate relative luminance
+                const sRGB = [r, g, b].map(c => {
+                    c = c / 255;
+                    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+                });
+                return 0.2126 * sRGB[0] + 0.7152 * sRGB[1] + 0.0722 * sRGB[2];
+            }
+
+            // --- Update Functions ---
+            function updateFromHex() {
+                if (isUpdating) return;
+                isUpdating = true;
+
+                const hex = $hexInput.val().trim();
+                debugLog('Updating from hex:', hex);
+
+                if (hex === '') {
+                    // Clear all fields
+                    $rgbRInput.val('');
+                    $rgbGInput.val('');
+                    $rgbBInput.val('');
+                    $rgbStringOutput.val('');
+                    $colorPreview.css('background-color', '');
+                    clearColorInfo();
+                } else {
+                    const rgb = hexToRgb(hex);
+                    if (rgb) {
+                        $rgbRInput.val(rgb.r);
+                        $rgbGInput.val(rgb.g);
+                        $rgbBInput.val(rgb.b);
+                        updateColorInfo(rgb.r, rgb.g, rgb.b);
+                        updatePreviews(rgb.r, rgb.g, rgb.b);
+                    } else {
+                        // Invalid hex, clear RGB but keep hex input
+                        $rgbRInput.val('');
+                        $rgbGInput.val('');
+                        $rgbBInput.val('');
+                        $rgbStringOutput.val('');
+                        $colorPreview.css('background-color', '');
+                        clearColorInfo();
+                    }
+                }
+
+                isUpdating = false;
+                saveState();
+            }
+
+            function updateFromRgb() {
+                if (isUpdating) return;
+                isUpdating = true;
+
+                const r = parseInt($rgbRInput.val()) || 0;
+                const g = parseInt($rgbGInput.val()) || 0;
+                const b = parseInt($rgbBInput.val()) || 0;
+
+                debugLog('Updating from RGB:', r, g, b);
+
+                // Clamp values
+                const clampedR = Math.max(0, Math.min(255, r));
+                const clampedG = Math.max(0, Math.min(255, g));
+                const clampedB = Math.max(0, Math.min(255, b));
+
+                // Update input fields with clamped values if they were out of range
+                if (r !== clampedR) $rgbRInput.val(clampedR);
+                if (g !== clampedG) $rgbGInput.val(clampedG);
+                if (b !== clampedB) $rgbBInput.val(clampedB);
+
+                const hex = rgbToHex(clampedR, clampedG, clampedB);
+                $hexInput.val(hex);
+
+                updateColorInfo(clampedR, clampedG, clampedB);
+                updatePreviews(clampedR, clampedG, clampedB);
+
+                isUpdating = false;
+                saveState();
+            }
+
+            function updateFromHueSlider() {
+                if (isUpdating) return;
+                isUpdating = true;
+
+                const newHue = parseInt($hueSlider.val());
+                const currentR = parseInt($rgbRInput.val()) || 0;
+                const currentG = parseInt($rgbGInput.val()) || 0;
+                const currentB = parseInt($rgbBInput.val()) || 0;
+
+                // Get current S and L
+                const currentHsl = rgbToHsl(currentR, currentG, currentB);
+                
+                // Create new color with the new hue
+                const newRgb = hslToRgb(newHue, currentHsl.s, currentHsl.l);
+
+                // Update RGB inputs, which will trigger the updateFromRgb flow
+                $rgbRInput.val(newRgb.r);
+                $rgbGInput.val(newRgb.g);
+                $rgbBInput.val(newRgb.b);
+                
+                isUpdating = false;
+                updateFromRgb(); // Manually trigger the update
+            }
+
+            function updateColorInfo(r, g, b) {
+                // RGB string
+                $rgbStringOutput.val(`rgb(${r}, ${g}, ${b})`);
+
+                // HSL
+                const hsl = rgbToHsl(r, g, b);
+                $hslOutput.val(`hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`);
+                $hueSlider.val(hsl.h); // Sync slider with current color
+
+                // HSV
+                const hsv = rgbToHsv(r, g, b);
+                $hsvOutput.val(`hsv(${hsv.h}, ${hsv.s}%, ${hsv.v}%)`);
+
+                // CMYK
+                const cmyk = rgbToCmyk(r, g, b);
+                $cmykOutput.val(`cmyk(${cmyk.c}, ${cmyk.m}, ${cmyk.y}, ${cmyk.k})`);
+
+                // Luminance
+                const luminance = getLuminance(r, g, b);
+                $luminanceOutput.val(luminance.toFixed(3));
+            }
+
+            function updatePreviews(r, g, b) {
+                const color = `rgb(${r}, ${g}, ${b})`;
+                $colorPreview.css('background-color', color);
+            }
+
+            function clearColorInfo() {
+                $hslOutput.val('');
+                $hsvOutput.val('');
+                $cmykOutput.val('');
+                $luminanceOutput.val('');
+            }
+
+            // --- State Management ---
+            function saveState() {
+                const state = {
+                    hex: $hexInput.val(),
+                    r: $rgbRInput.val(),
+                    g: $rgbGInput.val(),
+                    b: $rgbBInput.val(),
+                    previewVisible: $('#color-preview-collapse').hasClass('show'),
+                    infoVisible: $('#color-info-collapse').hasClass('show')
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            }
+
+            function loadState() {
+                const savedState = localStorage.getItem(STORAGE_KEY);
+                if (savedState) {
+                    const state = JSON.parse(savedState);
+                    $hexInput.val(state.hex || '');
+                    $rgbRInput.val(state.r || '');
+                    $rgbGInput.val(state.g || '');
+                    $rgbBInput.val(state.b || '');
+                    
+                    // Update displays
+                    if (state.hex) {
+                        updateFromHex();
+                    } else if (state.r || state.g || state.b) {
+                        updateFromRgb();
+                    }
+                    if (state.previewVisible) {
+                        new bootstrap.Collapse('#color-preview-collapse', { toggle: false }).show();
+                    }
+                    if (state.infoVisible) {
+                        new bootstrap.Collapse('#color-info-collapse', { toggle: false }).show();
+                    }
+                }
+            }
+
+            // --- Copy Functions ---
+            function copyToClipboard(text, $button) {
+                navigator.clipboard.writeText(text).then(() => {
+                    const originalHtml = $button.html();
+                    $button.html('<span class="material-symbols-outlined icon-inline-sm">check</span> Copied!');
+                    $button.addClass('btn-success').removeClass('btn-outline-secondary');
+                    setTimeout(() => {
+                        $button.html(originalHtml).removeClass('btn-success').addClass('btn-outline-secondary');
+                    }, 1500);
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                    alert('Failed to copy text.');
+                });
+            }
+
+            // --- Event Listeners ---
+            $hexInput.on('input', updateFromHex);
+            $rgbRInput.on('input', updateFromRgb);
+            $rgbGInput.on('input', updateFromRgb);
+            $rgbBInput.on('input', updateFromRgb);
+            $hueSlider.on('input', updateFromHueSlider);
+
+            // Save state when collapse elements are toggled
+            $('#color-preview-collapse, #color-info-collapse').on('shown.bs.collapse hidden.bs.collapse', saveState);
+
+            // Rotate chevron icons for collapse elements
+            $('#color-preview-collapse, #color-info-collapse').on('show.bs.collapse', function () {
+                $(this).prev().find('.collapse-chevron').addClass('rotated');
+            }).on('hide.bs.collapse', function () {
+                $(this).prev().find('.collapse-chevron').removeClass('rotated');
+            });
+
+
+
+
+            $copyHexValueBtn.on('click', function() {
+                const hex = $hexInput.val();
+                if (hex) {
+                    copyToClipboard('#' + hex, $(this));
+                }
+            });
+
+            $copyRgbStringBtn.on('click', function() {
+                const rgb = $rgbStringOutput.val();
+                if (rgb) {
+                    copyToClipboard(rgb, $copyRgbStringBtn);
+                }
+            });
+
+            $copyRgbRBtn.on('click', function() {
+                const r = $rgbRInput.val();
+                if (r) {
+                    copyToClipboard(r, $(this));
+                }
+            });
+
+            $copyRgbGBtn.on('click', function() {
+                const g = $rgbGInput.val();
+                if (g) {
+                    copyToClipboard(g, $(this));
+                }
+            });
+
+            $copyRgbBBtn.on('click', function() {
+                const b = $rgbBInput.val();
+                if (b) {
+                    copyToClipboard(b, $(this));
+                }
+            });
+
+            $copyHslBtn.on('click', function() {
+                const val = $hslOutput.val();
+                if (val) {
+                    copyToClipboard(val, $(this));
+                }
+            });
+
+            $copyHsvBtn.on('click', function() {
+                const val = $hsvOutput.val();
+                if (val) {
+                    copyToClipboard(val, $(this));
+                }
+            });
+
+            $copyCmykBtn.on('click', function() {
+                const val = $cmykOutput.val();
+                if (val) {
+                    copyToClipboard(val, $(this));
+                }
+            });
+
+            $copyLuminanceBtn.on('click', function() {
+                const val = $luminanceOutput.val();
+                if (val) {
+                    copyToClipboard(val, $(this));
+                }
+            });
+
+            $resetBtn.on('click', function() {
+                $hexInput.val('');
+                $rgbRInput.val('');
+                $rgbGInput.val('');
+                $rgbBInput.val('');
+                $rgbStringOutput.val('');
+                $colorPreview.css('background-color', '');
+                clearColorInfo();
+                saveState();
+            });
+
+            // --- Initial Load ---
+            loadState();
+            
+            // Set default example if no state
+            if (!$hexInput.val() && !$rgbRInput.val()) {
+                $hexInput.val('FF5733');
+                updateFromHex();
+            }
+        });
+    </script>
+</body>
+</html>

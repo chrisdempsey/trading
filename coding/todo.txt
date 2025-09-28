@@ -1,7 +1,21 @@
+- add index page + all item in navbar
 - character counter
 - option to set quantity of bunghole phrases per paragraph
-- update the bunghole position to random in every paragraph
 - generate: `n` words, sentences, paragraphs
 - usage of the word fuck
 - add random commas to the paragraphs to make them look like sentences, every 7-14 words - but not at the end of a sentence
-- add still game to the bunghole file - Navid - bastard, innit. pung, pung, pung. Beavis - Boinggg.
+- json-ld schema generator
+
+### strip-text.html
+
+- add preset options for these??
+    - headings
+    - lists
+    - styling (strong, bold, em)
+    - layout (div)
+
+
+### QR Code Generator
+
+- check settings and content are remembered in local storage
+- [ ] svg and png downloads are invalid files

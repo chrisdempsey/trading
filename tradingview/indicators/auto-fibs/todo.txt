@@ -1,3 +1,5 @@
+- [ ] add checkbox to anchor fib levels to where price crossed up 200SMA
+      - also option to set anchor by date?
 - [ ] update offset to take chart timeframe into account eg. 25 bars is ok on 4hr but not far enough out on 1D
 - [ ] add option to show projected higher levels 1.272, 1.618 etc.
     - include color choice?

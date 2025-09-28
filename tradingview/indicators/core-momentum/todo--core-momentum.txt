@@ -1,0 +1,18 @@
+- [ ] add tooltip to Trading Style - has no effect on calculation, only the visual bars
+
+Defaults
+
+- RSI Z-Score
+    - default length 14
+- Williams %R
+    - default length 9
+
+
+Lookback 600
+Noise 30
+AO
+RSIZ
+
+
+
+

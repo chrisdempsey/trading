@@ -2,6 +2,7 @@
     - presets for CORI
 - features
     - [ ] add awesome oscillator preset? 5/34 SMA
+    - [ ] add checkbox to toggle preset, remove option for `none`
     - [ ] alerts don't seem to be configurable correctly - verify how to add an alert for bullish or bearish crossover with the message having the same value as the crossover label
     - [ ] add label on right side for most recent crossovers in the same format used by auto fib levels and TTS MACD support/resistance
     - [x] flag crossovers with diamond
@@ -9,5 +10,10 @@
         - golden cross are the 50-day SMA and the 200-day SMA
             - 50 crosses up 200 = golden cross
             - 50 crosses down 200 = death cross
+- [ ] remove `none` from presets dropdown, add checkbox for `use preset` to make usage more obvious
+- [ ] rename `overrides` group to `override settings` to make usage more obvious
 
-
+- update the logic
+    - preset should be MAs only
+    - overrides should be named Defaults
+    - if settings has type/source/timeframe set,  prioritise over Defaults - CANT - source and timeframe are fixed list, no option to add `none`

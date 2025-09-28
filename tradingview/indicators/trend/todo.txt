@@ -1,4 +1,4 @@
-- [ ] 
+- [ ] reorder the Transparency group elements - checkbox, input value, tooltip
 
 add a user input to select the fill type: solid, gradient, none. The default should be gradient.
 

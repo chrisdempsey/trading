@@ -1,0 +1,1 @@
+- [ ] add checkbox to enable alternate symbol

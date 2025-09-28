@@ -1,0 +1,251 @@
+
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Length Converter</title>
+  <!-- Bootstrap 5.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <!-- Google Material Symbols -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <!-- Shared Styles -->
+  <link rel="stylesheet" href="/trading/assets/css/styles.css">
+  <!-- Global App Config -->
+  <script src="/trading/assets/js/config.js"></script>
+</head>
+
+<body class="length-converter-page d-flex flex-column vh-100">
+    <div id="header-placeholder"></div>
+    <div id="navbar-placeholder"></div>
+
+    <main class="flex-grow-1">
+        <div class="container py-4">
+            <h1 class="mb-2 text-center">Length Converter</h1>
+            <p class="text-center text-muted mb-4">Type a value in any field to convert between length measurements.</p>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-end mb-3">
+                        <div class="form-check form-switch form-switch-label-first">
+                            <input class="form-check-input" type="checkbox" role="switch" id="include-units-switch">
+                            <label class="form-check-label" for="include-units-switch" title="Includes the units when using a copy button eg. 15ft instead of just 15.">Include Units</label>
+                        </div>
+                    </div>
+
+                    <form id="length-converter-form" onsubmit="return false;">
+                        <div class="row g-4">
+                            <!-- Imperial Units -->
+                            <div class="col-md-6">
+                                <fieldset class="border p-3 rounded-3 h-100">
+                                    <legend class="float-none w-auto px-2 h6">Imperial</legend>
+                                    <div class="mb-3">
+                                        <label for="inputFeet" class="form-label">Feet</label>
+                                        <div class="input-group">
+                                            <input id="inputFeet" type="number" class="form-control" placeholder="0" step="any" data-unit="ft">
+                                            <button class="btn btn-outline-secondary btn-copy" type="button" data-copy-target="#inputFeet" title="Copy Feet"><span class="material-symbols-outlined">content_copy</span></button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="inputInches" class="form-label">Inches</label>
+                                        <div class="input-group">
+                                            <input id="inputInches" type="number" class="form-control" placeholder="0" step="any" data-unit="in">
+                                            <button class="btn btn-outline-secondary btn-copy" type="button" data-copy-target="#inputInches" title="Copy Inches"><span class="material-symbols-outlined">content_copy</span></button>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+
+                            <!-- Metric Units -->
+                            <div class="col-md-6">
+                                <fieldset class="border p-3 rounded-3 h-100">
+                                    <legend class="float-none w-auto px-2 h6">Metric</legend>
+                                    <div class="mb-3">
+                                        <label for="inputMeters" class="form-label">Meters</label>
+                                        <div class="input-group">
+                                            <input id="inputMeters" type="number" class="form-control" placeholder="0" step="any" data-unit="m">
+                                            <button class="btn btn-outline-secondary btn-copy" type="button" data-copy-target="#inputMeters" title="Copy Meters"><span class="material-symbols-outlined">content_copy</span></button>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="inputCm" class="form-label">Centimeters (cm)</label>
+                                        <div class="input-group">
+                                            <input id="inputCm" type="number" class="form-control" placeholder="0" step="any" data-unit="cm">
+                                            <button class="btn btn-outline-secondary btn-copy" type="button" data-copy-target="#inputCm" title="Copy Centimeters"><span class="material-symbols-outlined">content_copy</span></button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="inputMm" class="form-label">Millimeters (mm)</label>
+                                        <div class="input-group">
+                                            <input id="inputMm" type="number" class="form-control" placeholder="0" step="any" data-unit="mm">
+                                            <button class="btn btn-outline-secondary btn-copy" type="button" data-copy-target="#inputMm" title="Copy Millimeters"><span class="material-symbols-outlined">content_copy</span></button>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>
+                        <div class="text-center mt-4">
+                            <button type="button" id="reset-btn" class="btn btn-outline-secondary">Reset</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <!-- jQuery 3.7.1 -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <!-- Bootstrap 5.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Shared Header Script -->
+    <script src="/trading/assets/js/header.js"></script>
+
+<script>
+$(document).ready(function() {
+    // --- Load Shared Components ---
+    $("#header-placeholder").load("/trading/assets/includes/_header.html", () => initializeHeader && initializeHeader());
+    $("#navbar-placeholder").load("/trading/assets/includes/_navbar.html");
+    $("#footer-placeholder").load("/trading/assets/includes/_footer.html");
+
+    // --- Constants and Selectors ---
+    const STORAGE_KEY = 'lengthConverterState';
+    const $includeUnitsSwitch = $('#include-units-switch');
+    const inputs = {
+        feet: $('#inputFeet'),
+        inches: $('#inputInches'),
+        meters: $('#inputMeters'),
+        cm: $('#inputCm'),
+        mm: $('#inputMm')
+    };
+    let isCalculating = false; // Flag to prevent recursive calculations
+
+    // --- State Management ---
+    function saveState(sourceId, value) {
+        const state = {
+            lastInputId: sourceId,
+            lastInputValue: value,
+            includeUnits: $includeUnitsSwitch.is(':checked')
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function loadState() {
+        const savedState = localStorage.getItem(STORAGE_KEY);
+        if (savedState) {
+            const state = JSON.parse(savedState);
+            $includeUnitsSwitch.prop('checked', state.includeUnits || false);
+            if (state.lastInputId && state.lastInputValue) {
+                const $sourceInput = $(`#${state.lastInputId}`);
+                if ($sourceInput.length) {
+                    $sourceInput.val(state.lastInputValue);
+                    lengthConverter(state.lastInputId, state.lastInputValue);
+                }
+            }
+        }
+    }
+
+    // --- Core Logic ---
+    function lengthConverter(sourceId, valNum) {
+        if (isCalculating) return; // Prevent recursion
+        isCalculating = true;
+
+        valNum = parseFloat(valNum);
+        if (isNaN(valNum)) {
+            // If input is cleared or invalid, clear all fields
+            Object.values(inputs).forEach($input => $input.val(''));
+            saveState(sourceId, ''); // Save the cleared state
+            isCalculating = false;
+            return;
+        }
+
+        let meters;
+        switch (sourceId) {
+            case 'inputFeet':   meters = valNum / 3.28084; break;
+            case 'inputInches': meters = valNum / 39.3701; break;
+            case 'inputMeters': meters = valNum; break;
+            case 'inputCm':     meters = valNum / 100; break;
+            case 'inputMm':     meters = valNum / 1000; break;
+            default:
+                isCalculating = false;
+                return;
+        }
+
+        // Calculate all other values from the base 'meters' value
+        const calculatedValues = {
+            feet: meters * 3.28084,
+            inches: meters * 39.3701,
+            meters: meters,
+            cm: meters * 100,
+            mm: meters * 1000
+        };
+
+        // Update all input fields except the source
+        for (const unit in inputs) {
+            const $input = inputs[unit];
+            if ($input.attr('id') !== sourceId) {
+                // Use toFixed(4) for reasonable precision without excessive decimals
+                $input.val(parseFloat(calculatedValues[unit].toFixed(4)));
+            }
+        }
+
+        saveState(sourceId, valNum);
+        isCalculating = false;
+    }
+
+    // --- Event Listeners ---
+    $('#length-converter-form').on('input', 'input[type="number"]', function() {
+        lengthConverter(this.id, this.value);
+    });
+
+    $('#reset-btn').on('click', function() {
+        $('#length-converter-form')[0].reset();
+        localStorage.removeItem(STORAGE_KEY);
+    });
+
+    $('.btn-copy').on('click', function() {
+        const $button = $(this);
+        const targetId = $button.data('copy-target');
+        const $target = $(targetId);
+        let textToCopy = $target.val();
+
+        if (!textToCopy) return;
+
+        if ($includeUnitsSwitch.is(':checked')) {
+            const unit = $target.data('unit');
+            if (unit) {
+                textToCopy += unit;
+            }
+        }
+
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const originalIcon = $button.find('.material-symbols-outlined').text();
+            const originalTitle = $button.attr('title');
+            $button.find('.material-symbols-outlined').text('check');
+            $button.attr('title', 'Copied!');
+            $button.addClass('btn-success').removeClass('btn-outline-secondary');
+
+            setTimeout(() => {
+                $button.find('.material-symbols-outlined').text(originalIcon);
+                $button.attr('title', originalTitle);
+                $button.removeClass('btn-success').addClass('btn-outline-secondary');
+            }, 1500);
+        }).catch(err => {
+            console.error('Failed to copy text: ', err);
+            alert('Failed to copy text.');
+        });
+    });
+
+    $includeUnitsSwitch.on('change', function() {
+        saveState(null, null); // Save the toggle state
+    });
+
+    // --- Initial Load ---
+    loadState();
+});
+</script>
+
+</body>
+</html>

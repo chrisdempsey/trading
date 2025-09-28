@@ -1,1 +1,28 @@
-- check similarity to confluence
+#### check similarity to confluence
+
+##### Presets
+
+- bullish = match
+- neutral = match
+- bearish = match
+
+- centre overlap created by dual confluence = default preset
+
+- need setting for dual outer + center
+    - outer = 2.5, 3.0
+    - center = 1, 1
+
+    - inner band width 33%
+
+
+
+
+
+
+
+
+
+
+
+
+

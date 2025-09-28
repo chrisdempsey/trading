@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>File Diff Checker</title>
+    <!-- Bootstrap 5.3.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Google Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="/trading/assets/css/styles.css">
+    <!-- Diff2Html CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/diff2html/bundles/css/diff2html.min.css" />
+    <style>
+        textarea.form-control.io-textarea {
+            min-height: 20rem;
+            resize: vertical;
+            font-family: var(--bs-font-monospace);
+            font-size: 0.875rem;
+        }
+        
+        /* Override diff2html theme to match app */
+        .d2h-wrapper {
+            background-color: var(--bs-body-bg) !important;
+        }
+        
+        .d2h-file-header {
+            background-color: var(--bs-secondary-bg) !important;
+            color: var(--bs-body-color) !important;
+            border-color: var(--bs-border-color) !important;
+        }
+        
+        .d2h-code-line {
+            background-color: var(--bs-body-bg) !important;
+            color: var(--bs-body-color) !important;
+        }
+        
+        .d2h-code-side-linenumber {
+            background-color: var(--bs-tertiary-bg) !important;
+            color: var(--bs-secondary-color) !important;
+            border-color: var(--bs-border-color) !important;
+        }
+        
+        .d2h-code-line-ins {
+            background-color: rgba(25, 135, 84, 0.15) !important;
+        }
+        
+        .d2h-code-line-del {
+            background-color: rgba(220, 53, 69, 0.15) !important;
+        }
+        
+        .d2h-ins {
+            background-color: rgba(25, 135, 84, 0.3) !important;
+        }
+        
+        .d2h-del {
+            background-color: rgba(220, 53, 69, 0.3) !important;
+        }
+        
+        .diff-summary {
+            font-size: 0.875rem;
+        }
+        
+        .loading-spinner {
+            display: none;
+        }
+        
+        /* Style the diff2html collapse checkbox as a Bootstrap toggle switch */
+        .d2h-file-collapse {
+            display: flex !important;
+            flex-direction: row-reverse;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0;
+            cursor: pointer;
+        }
+        
+        .d2h-file-collapse-input {
+            width: 2rem;
+            height: 1rem;
+            background-color: var(--bs-secondary-bg);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: left center;
+            background-size: contain;
+            border: 1px solid var(--bs-border-color);
+            border-radius: 2rem;
+            transition: background-position .15s ease-in-out;
+            appearance: none;
+            cursor: pointer;
+            margin: 0;
+            flex-shrink: 0;
+        }
+        
+        .d2h-file-collapse-input:checked {
+            background-color: var(--bs-primary);
+            background-position: right center;
+            border-color: var(--bs-primary);
+        }
+        
+        .d2h-file-collapse-input:focus {
+            box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+            outline: 0;
+        }
+        
+        .d2h-file-collapse-input:disabled {
+            pointer-events: none;
+            filter: none;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body class="diff-checker-page d-flex flex-column vh-100">
+    <div id="header-placeholder"></div>
+    <div id="navbar-placeholder"></div>
+
+    <main class="flex-grow-1">
+        <div class="container py-4">
+            <h1 class="mb-2 text-center">File Diff Checker</h1>
+            <p class="text-center text-muted mb-4">Compare two blocks of text to see the differences highlighted.</p>
+
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span>Original Text</span>
+                            <small class="text-muted" id="original-lines">0 lines</small>
+                        </div>
+                        <div class="card-body p-0">
+                            <textarea id="original-text" class="form-control border-0 rounded-0 io-textarea" placeholder="Paste original text here..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span>Changed Text</span>
+                            <small class="text-muted" id="changed-lines">0 lines</small>
+                        </div>
+                        <div class="card-body p-0">
+                            <textarea id="changed-text" class="form-control border-0 rounded-0 io-textarea" placeholder="Paste changed text here..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center my-4">
+                <button id="reset-btn" class="btn btn-outline-secondary me-2">
+                    Reset
+                </button>
+                <button id="swap-btn" class="btn btn-outline-info me-2">
+                    Swap
+                </button>
+                <button id="compare-btn" class="btn btn-outline-primary">
+                    Compare
+                </button>
+            </div>
+
+            <div id="diff-summary" class="alert alert-info diff-summary" style="display: none;"></div>
+            
+            <div id="loading" class="text-center loading-spinner">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Generating diff...</span>
+                </div>
+                <p class="mt-2 text-muted">Generating diff...</p>
+            </div>
+
+            <div id="diff-output" class="mt-4"></div>
+        </div>
+    </main>
+
+    <div id="footer-placeholder"></div>
+
+    <!-- jQuery 3.7.1 -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <!-- Bootstrap 5.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Shared Header Script -->
+    <script src="/trading/assets/js/header.js"></script>
+    <!-- Global App Config -->
+    <script src="/trading/assets/js/config.js"></script>
+    <!-- Diff library -->
+    <script src="https://cdn.jsdelivr.net/npm/diff@5.1.0/dist/diff.min.js"></script>
+    <!-- Diff2Html library -->
+    <script src="https://cdn.jsdelivr.net/npm/diff2html/bundles/js/diff2html-ui.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // --- Load Shared Components ---
+            $("#header-placeholder").load("/trading/assets/includes/_header.html", () => {
+                if (typeof initializeHeader === 'function') {
+                    initializeHeader();
+                }
+            });
+            $("#navbar-placeholder").load("/trading/assets/includes/_navbar.html");
+            $("#footer-placeholder").load("/trading/assets/includes/_footer.html");
+
+            // --- Constants and Selectors ---
+            const STORAGE_KEY = 'diffCheckerState';
+            const $originalText = $('#original-text');
+            const $changedText = $('#changed-text');
+            const $compareBtn = $('#compare-btn');
+            const $resetBtn = $('#reset-btn');
+            const $swapBtn = $('#swap-btn');
+            const $diffOutput = $('#diff-output');
+            const $diffSummary = $('#diff-summary');
+            const $loading = $('#loading');
+            const $originalLines = $('#original-lines');
+            const $changedLines = $('#changed-lines');
+
+            // --- Utility Functions ---
+            function updateLineCount() {
+                const originalLines = $originalText.val().split('\n').length;
+                const changedLines = $changedText.val().split('\n').length;
+                $originalLines.text(`${originalLines} lines`);
+                $changedLines.text(`${changedLines} lines`);
+            }
+
+            function showLoading(show = true) {
+                if (show) {
+                    $loading.show();
+                    $diffOutput.hide();
+                    $diffSummary.hide();
+                } else {
+                    $loading.hide();
+                    $diffOutput.show();
+                }
+            }
+
+            function showError(message) {
+                $diffOutput.html(`
+                    <div class="alert alert-danger">
+                        <strong>Error:</strong> ${message}
+                    </div>
+                `);
+            }
+
+            function saveState() {
+                const state = {
+                    original: $originalText.val(),
+                    changed: $changedText.val()
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            }
+
+            function loadState() {
+                try {
+                    const saved = localStorage.getItem(STORAGE_KEY);
+                    if (saved) {
+                        const state = JSON.parse(saved);
+                        $originalText.val(state.original || '');
+                        $changedText.val(state.changed || '');
+                        updateLineCount();
+                    }
+                } catch (e) {
+                    console.warn('Failed to load saved state:', e);
+                }
+            }
+
+            // --- Core Logic ---
+            function getCurrentTheme() {
+                // Check the theme switch in the header
+                const themeSwitch = document.getElementById('theme-switch-input');
+                if (themeSwitch) {
+                    return themeSwitch.checked ? 'dark' : 'light';
+                }
+                // Fallback to checking the HTML data-bs-theme attribute
+                const htmlTheme = document.documentElement.getAttribute('data-bs-theme');
+                return htmlTheme === 'dark' ? 'dark' : 'light';
+            }
+
+            function generateDiff() {
+                const originalStr = $originalText.val();
+                const changedStr = $changedText.val();
+
+                if (!originalStr.trim() && !changedStr.trim()) {
+                    $diffOutput.html('<div class="alert alert-warning">Please enter text in both fields to compare.</div>');
+                    return;
+                }
+
+                if (!originalStr.trim()) {
+                    $diffOutput.html('<div class="alert alert-warning">Please enter original text to compare.</div>');
+                    return;
+                }
+
+                if (!changedStr.trim()) {
+                    $diffOutput.html('<div class="alert alert-warning">Please enter changed text to compare.</div>');
+                    return;
+                }
+
+                showLoading(true);
+
+                // Use setTimeout to allow UI to update
+                setTimeout(() => {
+                    try {
+                        // Check if libraries are loaded
+                        if (typeof Diff === 'undefined') {
+                            throw new Error('Diff library not loaded');
+                        }
+
+                        if (typeof Diff2HtmlUI === 'undefined') {
+                            throw new Error('Diff2Html library not loaded');
+                        }
+
+                        // Generate the diff
+                        const diffString = Diff.createPatch('comparison', originalStr, changedStr, '', '');
+                        
+                        // Calculate diff statistics
+                        const lines = diffString.split('\n');
+                        let additions = 0;
+                        let deletions = 0;
+                        let changes = 0;
+
+                        lines.forEach(line => {
+                            if (line.startsWith('+') && !line.startsWith('+++')) additions++;
+                            if (line.startsWith('-') && !line.startsWith('---')) deletions++;
+                        });
+
+                        changes = Math.max(additions, deletions);
+
+                        // Show summary
+                        if (changes === 0) {
+                            $diffSummary.removeClass('alert-info alert-warning').addClass('alert-success');
+                            $diffSummary.html('<strong>No differences found!</strong> The texts are identical.');
+                        } else {
+                            $diffSummary.removeClass('alert-success alert-warning').addClass('alert-info');
+                            $diffSummary.html(`
+                                <strong>Differences found:</strong> 
+                                <span class="text-success">+${additions} additions</span>, 
+                                <span class="text-danger">-${deletions} deletions</span>
+                            `);
+                        }
+
+                        // Clear previous output
+                        $diffOutput.empty();
+
+                        // Get current theme
+                        const currentTheme = getCurrentTheme();
+
+                        // Generate and display the diff
+                        const diff2htmlUi = new Diff2HtmlUI($diffOutput[0], diffString, {
+                            drawFileList: false,
+                            matching: 'lines',
+                            outputFormat: 'side-by-side',
+                            synchronisedScroll: true,
+                            highlight: true,
+                            colorScheme: currentTheme
+                        });
+
+                        diff2htmlUi.draw();
+                        diff2htmlUi.highlightCode();
+
+                        showLoading(false);
+                        $diffSummary.show();
+
+                        // Save state
+                        saveState();
+
+                    } catch (error) {
+                        console.error('Diff generation error:', error);
+                        showLoading(false);
+                        showError('Failed to generate diff. Please check your input and try again.');
+                    }
+                }, 100);
+            }
+
+            function resetFields() {
+                $originalText.val('');
+                $changedText.val('');
+                $diffOutput.empty();
+                $diffSummary.hide();
+                updateLineCount();
+                localStorage.removeItem(STORAGE_KEY);
+            }
+
+            function swapTexts() {
+                const originalVal = $originalText.val();
+                const changedVal = $changedText.val();
+                $originalText.val(changedVal);
+                $changedText.val(originalVal);
+                updateLineCount();
+                saveState();
+            }
+
+            // --- Event Listeners ---
+            $compareBtn.on('click', generateDiff);
+            $resetBtn.on('click', resetFields);
+            $swapBtn.on('click', swapTexts);
+
+            // Auto-save on input
+            $originalText.add($changedText).on('input', function() {
+                updateLineCount();
+                saveState();
+            });
+
+            // Keyboard shortcuts
+            $(document).on('keydown', function(e) {
+                if (e.ctrlKey) {
+                    switch(e.key) {
+                        case 'Enter':
+                            e.preventDefault();
+                            generateDiff();
+                            break;
+                        case 'r':
+                            e.preventDefault();
+                            resetFields();
+                            break;
+                    }
+                }
+            });
+
+            // Listen for theme changes and regenerate diff if one exists
+            $(document).on('change', '#theme-switch-input', function() {
+                // If there's already a diff displayed, regenerate it with the new theme
+                if ($diffOutput.children().length > 0 && !$loading.is(':visible')) {
+                    generateDiff();
+                }
+            });
+
+            // --- Initialize ---
+            loadState();
+            updateLineCount();
+
+            // Show keyboard shortcuts help
+            $('body').append(`
+                <div class="position-fixed bottom-0 start-0 p-3" style="z-index: 1050;">
+                    <small class="text-muted">
+                        <strong>Shortcuts:</strong> Ctrl+Enter (Compare), Ctrl+R (Reset)
+                    </small>
+                </div>
+            `);
+        });
+    </script>
+</body>
+</html>

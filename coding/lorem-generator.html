@@ -21,7 +21,7 @@
     <main class="flex-grow-1">
         <div class="container py-4">
             <h1 class="mb-2 text-center">Lorem Ipsum Generator</h1>
-            <p class="text-center text-muted mb-4">Generate placeholder text</p>
+            <p class="text-center text-muted mb-4">Generate customizable placeholder text from various dictionaries, including classic Lorem Ipsum and more entertaining options.</p>
 
             <div class="card mb-4">
                 <div class="card-header">
@@ -42,6 +42,7 @@
                                 <input class="form-check-input" type="checkbox" role="switch" id="bunghole-toggle">
                                 <label class="form-check-label" for="bunghole-toggle">Do not toggle</label>
                             </div>
+                            <div id="bunghole-description" class="form-text" style="display: none;">Injects a random phrase from the <a href="/trading/coding/dictionaries/bunghole.txt" target="_blank">bunghole dictionary</a> into each paragraph.</div>
                         </div>
                         <div class="col-md-6 col-lg-4">
                             <label for="word-count-input" class="form-label">Word Count</label>
@@ -67,14 +68,8 @@
                         <!-- Generated text will appear here -->
                     </div>
                     <div class="d-flex justify-content-end gap-2 mt-3">
-                        <button id="copy-btn" class="btn btn-outline-secondary">
-                            <span class="material-symbols-outlined icon-inline-sm">content_copy</span>
-                            Copy
-                        </button>
-                        <button id="download-btn" class="btn btn-outline-secondary">
-                            <span class="material-symbols-outlined icon-inline-sm">download</span>
-                            Download
-                        </button>
+                        <button id="copy-btn" class="btn btn-outline-secondary">Copy</button>
+                        <button id="download-btn" class="btn btn-outline-secondary">Download</button>
                     </div>
                 </div>
             </div>
@@ -144,11 +139,6 @@
                     $bungholeToggle.prop('checked', state.bungholeEnabled || false);
                     $outputContainer.html(state.outputText || '');
                     syncSliders();
-
-                    // After loading, if the toggle was enabled, re-apply the bunghole words
-                    if ($bungholeToggle.is(':checked')) {
-                        toggleBungholeWords(true, true); // Re-apply without saving state again
-                    }
                 }
             }
 
@@ -248,29 +238,20 @@
             async function injectBungholeWords(bungholeDictionary, skipSave = false) {
                 if (!bungholeDictionary || bungholeDictionary.length === 0) return;
 
-                const injectionInterval = 70;
                 // First, remove any existing bunghole words to ensure a clean run.
                 $outputContainer.find('code').remove();
 
-                let wordCounter = 0;
                 $outputContainer.find('p').each(function() {
-                    let text = $(this).text();
-                    let words = text.split(' ');
-                    let newWords = [];
-
-                    for (let i = 0; i < words.length; i++) {
-                        newWords.push(words[i]);
-                        wordCounter++;
-                        if (wordCounter > 0 && wordCounter % injectionInterval === 0) {
-                            const bungholeWord = bungholeDictionary[Math.floor(Math.random() * bungholeDictionary.length)];
-                            newWords.push(`<code>${bungholeWord}</code>`);
-                        }
-                    }
-                    $(this).html(newWords.join(' '));
-
-                    // After injecting, ensure the paragraph ends with a full stop.
-                    if ($(this).html().trim().slice(-1) !== '.') {
-                        $(this).append('.');
+                    let words = $(this).text().split(' ');
+                    if (words.length > 0 && words[0] !== '') { // Ensure paragraph is not empty
+                        // Select a random phrase from the bunghole dictionary
+                        const bungholePhrase = bungholeDictionary[Math.floor(Math.random() * bungholeDictionary.length)];
+                        // Choose a random position within the paragraph to insert the phrase
+                        const randomIndex = Math.floor(Math.random() * (words.length + 1));
+                        
+                        // Insert the phrase wrapped in a <code> tag
+                        words.splice(randomIndex, 0, `<code>${bungholePhrase}</code>`);
+                        $(this).html(words.join(' '));
                     }
                 });
 
@@ -281,15 +262,10 @@
 
             function removeBungholeWords(skipSave = false) {
                 // Remove the bunghole words by removing the <code> tags.
-                $outputContainer.find('code').remove();
-                // Clean up potential double spaces left after removal.
                 $outputContainer.find('p').each(function() {
-                    // Also ensure the full stop is still there after removal.
-                    let currentHtml = $(this).html().trim();
-                    if (currentHtml.slice(-1) !== '.') {
-                        $(this).html(currentHtml + '.');
-                    }
+                    $(this).find('code').remove();
                 });
+                // Clean up potential double spaces left after removal and re-apply text.
                 $outputContainer.find('p').each(function() {
                     $(this).html($(this).html().replace(/\s\s+/g, ' '));
                 });
@@ -304,10 +280,10 @@
                 if (!textToCopy) return;
 
                 navigator.clipboard.writeText(textToCopy).then(() => {
-                    const originalIcon = $copyBtn.find('.material-symbols-outlined').text();
-                    $copyBtn.find('.material-symbols-outlined').text('check').addClass('text-success');
+                    const originalText = $copyBtn.text();
+                    $copyBtn.text('Copied!').addClass('btn-success');
                     setTimeout(() => {
-                        $copyBtn.find('.material-symbols-outlined').text(originalIcon).removeClass('text-success');
+                        $copyBtn.text(originalText).removeClass('btn-success');
                     }, 1500);
                 }).catch(err => {
                     console.error('Failed to copy text: ', err);
@@ -359,11 +335,15 @@
 
             // Only toggle bunghole words when this switch changes, without regenerating all text.
             $bungholeToggle.on('change', function() {
-                toggleBungholeWords($(this).is(':checked'));
+                const isEnabled = $(this).is(':checked');
+                toggleBungholeWords(isEnabled);
+                $('#bunghole-description').toggle(isEnabled);
             });
 
             // --- Initial Load ---
             loadState();
+            // Set initial visibility of the description based on loaded state
+            $('#bunghole-description').toggle($bungholeToggle.is(':checked'));
         });
     </script>
 </body>
